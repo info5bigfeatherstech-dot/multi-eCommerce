@@ -22,7 +22,7 @@ export function TopBanner() {
   if (!isVisible) return null;
 
   return (
-    <div className="w-full max-w-[1600px] mx-auto px-4 pt-3 pb-1 select-none">
+    <div className="w-full max-w-[1600px] mx-auto px-4 pt-3 pb-1">
       <div className="bg-gradient-to-r from-accent via-coral-hover to-accent text-white text-xs py-2 px-4 rounded-xl shadow-sm border border-white/10 flex items-center justify-between gap-4">
         
         {/* Left Badge */}

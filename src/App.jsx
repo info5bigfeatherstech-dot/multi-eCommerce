@@ -9,24 +9,27 @@ import TrustBadges from "./components/home/TrustBadges";
 import FeaturedCollection from "./components/home/FeaturedCollection";
 import CategoryGrid from "./components/home/CategoryGrid";
 import WholesaleDeals from "./components/home/WholesaleDeals";
+import Under99Store from "./components/home/Under99Store";
+import SaleProductShowcase from "./components/home/SaleProductShowcase";
 import PromoBanners from "./components/home/PromoBanners";
 import CategorySpotlight from "./components/home/CategorySpotlight";
 import CustomerTrust from "./components/home/CustomerTrust";
 import ProductDetail from "./components/product/ProductDetail";
 import WishlistPage from "./components/wishlist/WishlistPage";
+import ContactPage from "./components/pages/ContactPage";
+import InquiryPage from "./components/pages/InquiryPage";
 import CartDrawer from "./components/cart/CartDrawer";
 import { useAppDispatch, useAppSelector } from "./store/hooks";
-import { setMobileDrawerOpen } from "./store/slices/uiSlice";
+import { setMobileDrawerOpen, setCurrentView } from "./store/slices/uiSlice";
 import Footer from "./components/layout/Footer";
 import { Store, X } from "lucide-react";
 import { cn } from "./lib/utils";
 
 export default function App() {
   const dispatch = useAppDispatch();
-  const [currentView, setCurrentView] = useState("home"); // "home" | "product" | "wishlist"
   const [selectedProduct, setSelectedProduct] = useState(null);
   const products = useAppSelector((state) => state.products.items);
-  const { isCategorySidebarOpen, isMobileDrawerOpen } = useAppSelector(
+  const { isCategorySidebarOpen, isMobileDrawerOpen, currentView } = useAppSelector(
     (state) => state.ui
   );
 
@@ -34,7 +37,19 @@ export default function App() {
     const handleHashChange = () => {
       const hash = window.location.hash.replace("#", "").trim();
       if (hash === "wishlist") {
-        setCurrentView("wishlist");
+        dispatch(setCurrentView("wishlist"));
+        setSelectedProduct(null);
+        window.scrollTo(0, 0);
+        return;
+      }
+      if (hash === "contact") {
+        dispatch(setCurrentView("contact"));
+        setSelectedProduct(null);
+        window.scrollTo(0, 0);
+        return;
+      }
+      if (hash === "inquiry") {
+        dispatch(setCurrentView("inquiry"));
         setSelectedProduct(null);
         window.scrollTo(0, 0);
         return;
@@ -43,12 +58,12 @@ export default function App() {
         const found = products.find((p) => p.slug === hash);
         if (found) {
           setSelectedProduct(found);
-          setCurrentView("product");
+          dispatch(setCurrentView("product"));
           window.scrollTo(0, 0);
           return;
         }
       }
-      setCurrentView("home");
+      dispatch(setCurrentView("home"));
       setSelectedProduct(null);
       window.scrollTo(0, 0);
     };
@@ -56,7 +71,7 @@ export default function App() {
     handleHashChange();
     window.addEventListener("hashchange", handleHashChange);
     return () => window.removeEventListener("hashchange", handleHashChange);
-  }, [products]);
+  }, [products, dispatch]);
 
   // Scroll to top whenever currentView or selectedProduct changes
   React.useEffect(() => {
@@ -65,19 +80,15 @@ export default function App() {
 
   const handleSelectProduct = (product) => {
     setSelectedProduct(product);
-    setCurrentView("product");
-    if (product && product.slug) {
-      window.location.hash = product.slug;
-    }
+    dispatch(setCurrentView("product"));
+    window.location.hash = product.slug;
     window.scrollTo(0, 0);
   };
 
   const handleBackToCatalog = () => {
+    dispatch(setCurrentView("home"));
     setSelectedProduct(null);
-    setCurrentView("home");
-    if (window.location.hash) {
-      window.history.pushState("", document.title, window.location.pathname + window.location.search);
-    }
+    window.location.hash = "";
     window.scrollTo(0, 0);
   };
 
@@ -102,6 +113,10 @@ export default function App() {
             onBack={handleBackToCatalog}
             onSelectProduct={handleSelectProduct}
           />
+        ) : currentView === "contact" ? (
+          <ContactPage onBack={handleBackToCatalog} />
+        ) : currentView === "inquiry" ? (
+          <InquiryPage onBack={handleBackToCatalog} />
         ) : currentView === "product" && selectedProduct ? (
           <ProductDetail
             product={selectedProduct}
@@ -136,22 +151,28 @@ export default function App() {
               </div>
             </div>
 
-            {/* 1. Category Cards Grid (11 Categories) */}
+            {/* 1. Category Cards Grid (11 Categories with Images) */}
             <CategoryGrid onSelectCategory={(slug) => console.log("Selected category:", slug)} />
 
-            {/* 2. Today's Wholesale Flash Deals (Live Timer & Stock Progress) */}
+            {/* 2. Budget Wholesale: Under ₹99 Store */}
+            <Under99Store onSelectProduct={handleSelectProduct} />
+
+            {/* 3. Today's Wholesale Flash Deals (Live Timer & Stock Progress) */}
             <WholesaleDeals onSelectProduct={handleSelectProduct} />
 
-            {/* 3. Category Feature Banners (Electronics, Home Decor, Gifts) */}
+            {/* 4. Mega Sale & Clearance Showcase (Up to 75% OFF) */}
+            <SaleProductShowcase onSelectProduct={handleSelectProduct} />
+
+            {/* 5. Category Feature Banners (Electronics, Home Decor, Gifts) */}
             <PromoBanners onSelectCategory={(slug) => console.log("Selected banner category:", slug)} />
 
-            {/* 4. Category Spotlight & Tabbed Product Showcase */}
+            {/* 6. Category Spotlight & Tabbed Product Showcase */}
             <CategorySpotlight onSelectProduct={handleSelectProduct} />
 
-            {/* 5. Featured Collection Product Grid */}
+            {/* 7. Featured Collection Product Grid */}
             <FeaturedCollection onSelectProduct={handleSelectProduct} />
 
-            {/* 6. Customer Trust & Wholesale Testimonials */}
+            {/* 8. Customer Trust & Wholesale Testimonials */}
             <CustomerTrust />
           </>
         )}

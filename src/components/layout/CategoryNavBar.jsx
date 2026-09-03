@@ -10,6 +10,8 @@ import { cn } from "@/lib/utils";
 
 const NAV_ITEMS = [
   { id: "just-arrived", label: "Just Arrived", isFeatured: true },
+  { id: "under-99", label: "⚡ Under ₹99 Store", isFeatured: true },
+  { id: "mega-sale", label: "🔥 Mega Sale", isFeatured: true },
   { id: "home-living", label: "Home & Living", isFeatured: false },
   { id: "kitchen-dining", label: "Kitchen & Dining", isFeatured: false },
   { id: "electronics-gadgets", label: "Electronics & Gadgets", isFeatured: false },
@@ -37,7 +39,7 @@ export function CategoryNavBar() {
   }, [dispatch, status]);
 
   return (
-    <div className="w-full max-w-[1600px] mx-auto px-4 py-1 select-none">
+    <div className="w-full max-w-[1600px] mx-auto px-4 py-1">
       <nav className="bg-primary text-white rounded-xl shadow-sm border border-primary-light/40 px-3">
         <div className="flex items-center gap-2 md:gap-4">
           

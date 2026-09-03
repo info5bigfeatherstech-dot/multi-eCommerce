@@ -4,6 +4,8 @@
     "slug": "home-living",
     "name": "Home & Living",
     "icon": "Home",
+    "imageUrl": "https://images.unsplash.com/photo-1583847268964-b28dc8f51f92?auto=format&fit=crop&w=600&q=80",
+    "tag": "Trending",
     "isFeatured": true,
     "itemCount": 3240,
     "subCategories": [
@@ -18,6 +20,8 @@
     "slug": "kitchen-dining",
     "name": "Kitchen & Dining",
     "icon": "Utensils",
+    "imageUrl": "https://images.unsplash.com/photo-1556911220-e15b29be8c8f?auto=format&fit=crop&w=600&q=80",
+    "tag": "Best Value",
     "isFeatured": true,
     "itemCount": 2150,
     "subCategories": [
@@ -32,6 +36,8 @@
     "slug": "electronics-gadgets",
     "name": "Electronics & Gadgets",
     "icon": "Smartphone",
+    "imageUrl": "https://images.unsplash.com/photo-1505740420928-5e560c06d30e?auto=format&fit=crop&w=600&q=80",
+    "tag": "Top Tech",
     "isFeatured": true,
     "itemCount": 2890,
     "subCategories": [
@@ -46,6 +52,8 @@
     "slug": "beauty-personal-care",
     "name": "Beauty & Personal Care",
     "icon": "Sparkles",
+    "imageUrl": "https://images.unsplash.com/photo-1522337360788-8b13dee7a37e?auto=format&fit=crop&w=600&q=80",
+    "tag": "Hot",
     "isFeatured": true,
     "itemCount": 1250,
     "subCategories": [
@@ -60,6 +68,8 @@
     "slug": "sports-fitness",
     "name": "Sports & Fitness",
     "icon": "Dumbbell",
+    "imageUrl": "https://images.unsplash.com/photo-1517838277536-f5f99be501cd?auto=format&fit=crop&w=600&q=80",
+    "tag": "Fitness",
     "isFeatured": false,
     "itemCount": 780,
     "subCategories": [
@@ -73,6 +83,8 @@
     "slug": "jewellery-accessories",
     "name": "Jewellery & Accessories",
     "icon": "Gem",
+    "imageUrl": "https://images.unsplash.com/photo-1599643478518-a784e5dc4c8f?auto=format&fit=crop&w=600&q=80",
+    "tag": "Bestseller",
     "isFeatured": true,
     "itemCount": 1840,
     "subCategories": [
@@ -87,6 +99,8 @@
     "slug": "home-decor",
     "name": "Home Decor",
     "icon": "Palette",
+    "imageUrl": "https://images.unsplash.com/photo-1534349762230-e0cadf78f5da?auto=format&fit=crop&w=600&q=80",
+    "tag": "Aesthetic",
     "isFeatured": true,
     "itemCount": 1560,
     "subCategories": [
@@ -101,6 +115,8 @@
     "slug": "stationery-office-school",
     "name": "Stationery, Office & School",
     "icon": "FileText",
+    "imageUrl": "https://images.unsplash.com/photo-1585776245991-cf89dd7fc73a?auto=format&fit=crop&w=600&q=80",
+    "tag": "Office",
     "isFeatured": false,
     "itemCount": 920,
     "subCategories": [
@@ -115,6 +131,8 @@
     "slug": "gifts-lifestyle",
     "name": "Gifts & Lifestyle",
     "icon": "Gift",
+    "imageUrl": "https://images.unsplash.com/photo-1549465220-1a8b9238cd48?auto=format&fit=crop&w=600&q=80",
+    "tag": "Gifting",
     "isFeatured": true,
     "itemCount": 1140,
     "subCategories": [
@@ -128,6 +146,8 @@
     "slug": "travel-outdoor",
     "name": "Travel & Outdoor",
     "icon": "Compass",
+    "imageUrl": "https://images.unsplash.com/photo-1488646953014-85cb44e25828?auto=format&fit=crop&w=600&q=80",
+    "tag": "Explore",
     "isFeatured": false,
     "itemCount": 860,
     "subCategories": [
@@ -141,6 +161,8 @@
     "slug": "mix-items",
     "name": "Mix Items",
     "icon": "Package",
+    "imageUrl": "https://images.unsplash.com/photo-1526170375885-4d8ecf77b99f?auto=format&fit=crop&w=600&q=80",
+    "tag": "Wholesale Bulk",
     "isFeatured": false,
     "itemCount": 4500,
     "subCategories": [

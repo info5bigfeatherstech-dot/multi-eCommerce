@@ -68,7 +68,7 @@ export function CategorySidebar({ isMobile = false }) {
   return (
     <div
       className={cn(
-        "relative bg-white border border-slate-200/80 shadow-md rounded-2xl select-none flex flex-col justify-between overflow-visible z-30",
+        "relative bg-white border border-slate-200/80 shadow-md rounded-2xl flex flex-col justify-between overflow-visible z-30",
         isMobile ? "w-full shadow-none border-none" : "w-64 flex-shrink-0"
       )}
       onMouseLeave={() => setHoveredId(null)}

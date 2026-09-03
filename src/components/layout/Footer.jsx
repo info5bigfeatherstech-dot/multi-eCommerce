@@ -1,6 +1,8 @@
 "use client";
 
 import React, { useState } from "react";
+import { useAppDispatch } from "@/store/hooks";
+import { setCurrentView } from "@/store/slices/uiSlice";
 import { siteConfig } from "@/config/site";
 import {
   Store,
@@ -21,6 +23,7 @@ import {
 } from "lucide-react";
 
 export function Footer() {
+  const dispatch = useAppDispatch();
   const [email, setEmail] = useState("");
   const [subscribed, setSubscribed] = useState(false);
 
@@ -38,7 +41,7 @@ export function Footer() {
   };
 
   return (
-    <footer className="w-full bg-primary text-slate-300 font-albert-sans border-t border-primary-light/30 mt-12 select-none">
+    <footer className="w-full bg-primary text-slate-300 font-albert-sans border-t border-primary-light/30 mt-12">
       
       {/* 1. Newsletter Subscription Bar */}
       <div className="bg-gradient-to-r from-primary-dark via-primary to-primary-dark border-b border-primary-light/20 py-10 px-4">
@@ -163,10 +166,30 @@ export function Footer() {
             <ul className="space-y-2 text-xs font-inter text-slate-400">
               <li><a href="#" onClick={handleScrollToTop} className="hover:text-accent transition-colors">Track Your Order</a></li>
               <li><a href="#" onClick={handleScrollToTop} className="hover:text-accent transition-colors">GST Invoice Claim</a></li>
-              <li><a href="#" onClick={handleScrollToTop} className="hover:text-accent transition-colors">Wholesale Bulk Query</a></li>
+              <li>
+                <button
+                  onClick={() => {
+                    dispatch(setCurrentView("inquiry"));
+                    window.scrollTo({ top: 0, behavior: "smooth" });
+                  }}
+                  className="hover:text-accent transition-colors text-left"
+                >
+                  Wholesale Bulk Query
+                </button>
+              </li>
               <li><a href="#" onClick={handleScrollToTop} className="hover:text-accent transition-colors">Shipping & Delivery Policy</a></li>
               <li><a href="#" onClick={handleScrollToTop} className="hover:text-accent transition-colors">Returns & Replacement</a></li>
-              <li><a href="#" onClick={handleScrollToTop} className="hover:text-accent transition-colors">Help Center & FAQ</a></li>
+              <li>
+                <button
+                  onClick={() => {
+                    dispatch(setCurrentView("contact"));
+                    window.scrollTo({ top: 0, behavior: "smooth" });
+                  }}
+                  className="hover:text-accent transition-colors text-left"
+                >
+                  Help Center & FAQ
+                </button>
+              </li>
             </ul>
           </div>
 
@@ -181,7 +204,17 @@ export function Footer() {
               <li><a href="#" onClick={handleScrollToTop} className="hover:text-accent transition-colors">Become a Verified Supplier</a></li>
               <li><a href="#" onClick={handleScrollToTop} className="hover:text-accent transition-colors">Terms of Service</a></li>
               <li><a href="#" onClick={handleScrollToTop} className="hover:text-accent transition-colors">Privacy Policy</a></li>
-              <li><a href="#" onClick={handleScrollToTop} className="hover:text-accent transition-colors">Contact Us</a></li>
+              <li>
+                <button
+                  onClick={() => {
+                    dispatch(setCurrentView("contact"));
+                    window.scrollTo({ top: 0, behavior: "smooth" });
+                  }}
+                  className="hover:text-accent transition-colors text-left text-accent font-bold"
+                >
+                  Contact Us
+                </button>
+              </li>
             </ul>
           </div>
 

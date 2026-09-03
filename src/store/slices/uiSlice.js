@@ -9,8 +9,12 @@ const uiSlice = createSlice({
     searchQuery: "",
     isMobileDrawerOpen: false,
     isCartDrawerOpen: false,
+    currentView: "home", // "home" | "product" | "wishlist" | "contact" | "inquiry"
   },
   reducers: {
+    setCurrentView: (state, action) => {
+      state.currentView = action.payload;
+    },
     toggleCategorySidebar: (state) => {
       state.isCategorySidebarOpen = !state.isCategorySidebarOpen;
     },
@@ -42,6 +46,7 @@ const uiSlice = createSlice({
 });
 
 export const {
+  setCurrentView,
   toggleCategorySidebar,
   setCategorySidebarOpen,
   setActiveFlyoutCategoryId,
