@@ -8,7 +8,6 @@ export function Toaster({ ...props }) {
     <SonnerToaster
       position="bottom-right"
       richColors
-      closeButton
       duration={3200}
       visibleToasts={3}
       className="toaster group"

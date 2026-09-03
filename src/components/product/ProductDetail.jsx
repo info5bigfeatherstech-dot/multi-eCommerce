@@ -97,7 +97,7 @@ export default function ProductDetail({ product: propProduct, onBack: propOnBack
 
   const handleBuyNow = () => {
     dispatch(addItem({ ...currentProduct, quantity }));
-    dispatch(setCartDrawerOpen(true));
+    navigate("/checkout");
   };
 
   return (

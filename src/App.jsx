@@ -11,6 +11,8 @@ import InquiryPage from "./components/pages/InquiryPage";
 import ContactPage from "./components/pages/ContactPage";
 import WishlistPage from "./components/wishlist/WishlistPage";
 import ProductDetail from "./components/product/ProductDetail";
+import CheckoutPage from "./components/pages/CheckoutPage";
+import CategoryPage from "./components/pages/CategoryPage";
 import CartDrawer from "./components/cart/CartDrawer";
 import Footer from "./components/layout/Footer";
 import ScrollToTop from "./components/common/ScrollToTop";
@@ -53,6 +55,9 @@ export default function App() {
           <Route path="/inquiry" element={<InquiryPage />} />
           <Route path="/contact" element={<ContactPage />} />
           <Route path="/wishlist" element={<WishlistPage />} />
+          <Route path="/checkout" element={<CheckoutPage />} />
+          <Route path="/category/:slug" element={<CategoryPage />} />
+          <Route path="/category/:slug/:subSlug" element={<CategoryPage />} />
           <Route path="/product/:slug" element={<ProductDetail />} />
           {/* Catch-all route returns to Home */}
           <Route path="*" element={<HomePage />} />

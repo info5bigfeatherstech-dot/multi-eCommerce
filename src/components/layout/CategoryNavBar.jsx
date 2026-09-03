@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import { useAppDispatch, useAppSelector } from "@/store/hooks";
 import { fetchCategories } from "@/store/slices/categorySlice";
 import { toggleCategorySidebar, setActiveCategoryNavId } from "@/store/slices/uiSlice";
@@ -35,6 +36,7 @@ const NAV_ITEMS = [
 
 export function CategoryNavBar() {
   const dispatch = useAppDispatch();
+  const navigate = useNavigate();
   const { items: categories, status } = useAppSelector((state) => state.categories);
   const { isCategorySidebarOpen, activeCategoryNavId } = useAppSelector(
     (state) => state.ui
@@ -46,6 +48,11 @@ export function CategoryNavBar() {
     }
   }, [dispatch, status]);
 
+  const handleNavClick = (slug) => {
+    dispatch(setActiveCategoryNavId(slug));
+    navigate(`/category/${slug}`);
+  };
+
   return (
     <div className="w-full max-w-[1600px] mx-auto px-4 py-1">
       <nav className="bg-primary text-white rounded-xl shadow-sm border border-primary-light/40 px-3">
@@ -55,7 +62,7 @@ export function CategoryNavBar() {
           <button
             onClick={() => dispatch(toggleCategorySidebar())}
             className={cn(
-              "flex items-center gap-2 px-4 py-2 bg-accent hover:bg-accent-hover text-white font-poppins font-bold text-xs rounded-lg transition-all shadow-sm flex-shrink-0 my-1",
+              "flex items-center gap-2 px-4 py-2 bg-accent hover:bg-accent-hover text-white font-poppins font-bold text-xs rounded-lg transition-all shadow-sm flex-shrink-0 my-1 cursor-pointer",
               isCategorySidebarOpen && "ring-2 ring-white/30"
             )}
           >
@@ -77,9 +84,9 @@ export function CategoryNavBar() {
               return (
                 <button
                   key={itemSlug}
-                  onClick={() => dispatch(setActiveCategoryNavId(itemSlug))}
+                  onClick={() => handleNavClick(itemSlug)}
                   className={cn(
-                    "px-3 py-1 text-xs font-poppins font-semibold whitespace-nowrap transition-colors relative",
+                    "px-3 py-1 text-xs font-poppins font-semibold whitespace-nowrap transition-colors relative cursor-pointer",
                     item.isFeatured
                       ? "text-accent font-bold"
                       : isActive
@@ -111,7 +118,7 @@ export function CategoryNavBar() {
                   return (
                     <DropdownMenuItem
                       key={catSlug}
-                      onClick={() => dispatch(setActiveCategoryNavId(catSlug))}
+                      onClick={() => handleNavClick(catSlug)}
                       className="cursor-pointer flex items-center justify-between py-1.5"
                     >
                       <span>{cat.name}</span>

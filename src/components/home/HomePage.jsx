@@ -28,8 +28,7 @@ export function HomePage() {
   };
 
   const handleSelectCategory = (slug) => {
-    // Scroll or filter category
-    console.log("Selected category:", slug);
+    navigate(`/category/${slug}`);
   };
 
   return (

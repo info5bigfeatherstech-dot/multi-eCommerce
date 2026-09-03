@@ -1,6 +1,5 @@
-"use client";
-
 import React from "react";
+import { useNavigate } from "react-router-dom";
 import { useAppDispatch, useAppSelector } from "@/store/hooks";
 import { setCartDrawerOpen } from "@/store/slices/uiSlice";
 import { addItem, removeItem } from "@/store/slices/cartSlice";
@@ -28,6 +27,7 @@ import Button from "@/components/ui/Button";
 
 export function CartDrawer() {
   const dispatch = useAppDispatch();
+  const navigate = useNavigate();
   const { isCartDrawerOpen } = useAppSelector((state) => state.ui);
   const { items: cartItems, totalCount, totalAmount } = useAppSelector(
     (state) => state.cart
@@ -35,6 +35,11 @@ export function CartDrawer() {
 
   const freeShippingThreshold = 599;
   const progressPercent = Math.min(100, Math.round((totalAmount / freeShippingThreshold) * 100));
+
+  const handleProceedToCheckout = () => {
+    dispatch(setCartDrawerOpen(false));
+    navigate("/checkout");
+  };
 
   return (
     <Drawer
@@ -229,9 +234,10 @@ export function CartDrawer() {
             </div>
 
             <Button
+              onClick={handleProceedToCheckout}
               variant="coral"
               size="lg"
-              className="w-full gap-2 shadow-md hover:shadow-xl font-poppins font-bold text-xs uppercase tracking-wider py-3.5 rounded-xl transition-all active:scale-98"
+              className="w-full gap-2 shadow-md hover:shadow-xl font-poppins font-bold text-xs uppercase tracking-wider py-3.5 rounded-xl transition-all active:scale-98 cursor-pointer"
             >
               <ShieldCheck className="w-4 h-4 stroke-[2.2]" />
               <span>Proceed to Wholesale Checkout</span>

@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { useAppDispatch, useAppSelector } from "@/store/hooks";
 import { fetchCategories } from "@/store/slices/categorySlice";
 import { setActiveFlyoutCategoryId } from "@/store/slices/uiSlice";
@@ -39,6 +40,7 @@ const iconMap = {
 
 export function CategorySidebar({ isMobile = false }) {
   const dispatch = useAppDispatch();
+  const navigate = useNavigate();
   const { items: categories, status } = useAppSelector((state) => state.categories);
   const { activeFlyoutCategoryId } = useAppSelector((state) => state.ui);
 
@@ -96,7 +98,7 @@ export function CategorySidebar({ isMobile = false }) {
               <div
                 key={catSlug}
                 onMouseEnter={() => handleCategoryHover(catSlug)}
-                onClick={() => handleCategoryHover(category.id)}
+                onClick={() => navigate(`/category/${catSlug}`)}
                 className={cn(
                   "group flex items-center justify-between px-3 py-2 rounded-xl cursor-pointer transition-colors font-poppins text-xs font-medium",
                   isActive
