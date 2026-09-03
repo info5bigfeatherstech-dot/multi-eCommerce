@@ -1,6 +1,7 @@
 "use client";
 
 import React from "react";
+import { useNavigate } from "react-router-dom";
 import { useAppDispatch, useAppSelector } from "@/store/hooks";
 import { removeFromWishlist, clearWishlist } from "@/store/slices/wishlistSlice";
 import { addItem } from "@/store/slices/cartSlice";
@@ -9,14 +10,15 @@ import { formatCurrency } from "@/lib/utils";
 import { Heart, ShoppingBag, Trash2, ArrowLeft, Sparkles, Star } from "lucide-react";
 import Button from "@/components/ui/Button";
 
-export default function WishlistPage({ onBack, onSelectProduct }) {
+export default function WishlistPage({ onBack: propOnBack, onSelectProduct }) {
   const dispatch = useAppDispatch();
+  const navigate = useNavigate();
+  const handleBack = propOnBack || (() => navigate("/"));
   const wishlistItems = useAppSelector((state) => state.wishlist.items);
 
   const handleMoveToCart = (product) => {
     dispatch(addItem(product));
-    dispatch(removeFromWishlist(product.id));
-    dispatch(setCartDrawerOpen(true));
+    dispatch(removeFromWishlist(product.slug || product.id));
   };
 
   const handleRemove = (productId) => {
@@ -30,8 +32,8 @@ export default function WishlistPage({ onBack, onSelectProduct }) {
       <div className="flex flex-wrap items-center justify-between gap-4 mb-8">
         <div>
           <button
-            onClick={onBack}
-            className="flex items-center gap-1.5 text-xs text-slate-500 hover:text-primary font-bold transition-colors mb-2"
+            onClick={handleBack}
+            className="flex items-center gap-1.5 text-xs text-slate-500 hover:text-primary font-bold transition-colors mb-2 cursor-pointer"
           >
             <ArrowLeft className="w-4 h-4" />
             <span>Back to Shopping</span>

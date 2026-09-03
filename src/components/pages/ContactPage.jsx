@@ -16,6 +16,14 @@ import {
   Sparkles,
   ChevronDown,
 } from "lucide-react";
+import {
+  Select,
+  SelectTrigger,
+  SelectValue,
+  SelectContent,
+  SelectItem,
+} from "@/components/ui/Select";
+import { useNavigate } from "react-router-dom";
 import { cn } from "@/lib/utils";
 
 const FAQS = [
@@ -37,7 +45,9 @@ const FAQS = [
   },
 ];
 
-export function ContactPage({ onBack }) {
+export function ContactPage({ onBack: propOnBack }) {
+  const navigate = useNavigate();
+  const handleBack = propOnBack || (() => navigate("/"));
   const [formData, setFormData] = useState({
     name: "",
     email: "",
@@ -74,8 +84,8 @@ export function ContactPage({ onBack }) {
       {/* Top Header & Back Button */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-200 pb-5">
         <button
-          onClick={onBack}
-          className="inline-flex items-center gap-2 text-xs font-poppins font-bold text-slate-600 hover:text-accent group transition-colors self-start"
+          onClick={handleBack}
+          className="inline-flex items-center gap-2 text-xs font-poppins font-bold text-slate-600 hover:text-accent group transition-colors self-start cursor-pointer"
         >
           <div className="w-8 h-8 rounded-xl bg-white border border-slate-200 group-hover:border-accent flex items-center justify-center transition-all shadow-xs">
             <ArrowLeft className="w-4 h-4 group-hover:-translate-x-0.5 transition-transform" />
@@ -285,17 +295,21 @@ export function ContactPage({ onBack }) {
                   <label className="text-xs font-poppins font-bold text-slate-700">
                     Department
                   </label>
-                  <select
+                  <Select
                     value={formData.department}
-                    onChange={(e) => setFormData({ ...formData, department: e.target.value })}
-                    className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 focus:outline-none focus:border-accent text-xs font-inter bg-white transition-all"
+                    onValueChange={(val) => setFormData({ ...formData, department: val })}
                   >
-                    <option value="wholesale">Wholesale Orders & Quotes</option>
-                    <option value="dispatch">Order Tracking & Logistics</option>
-                    <option value="gst">GST Invoices & Accounts</option>
-                    <option value="returns">Damages & Return Claims</option>
-                    <option value="general">General Inquiry</option>
-                  </select>
+                    <SelectTrigger className="w-full h-10 px-3.5 py-2.5 rounded-xl border border-slate-200 bg-white text-xs font-inter focus:ring-1 focus:ring-accent">
+                      <SelectValue placeholder="Select Department" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="wholesale">Wholesale Orders & Quotes</SelectItem>
+                      <SelectItem value="dispatch">Order Tracking & Logistics</SelectItem>
+                      <SelectItem value="gst">GST Invoices & Accounts</SelectItem>
+                      <SelectItem value="returns">Damages & Return Claims</SelectItem>
+                      <SelectItem value="general">General Inquiry</SelectItem>
+                    </SelectContent>
+                  </Select>
                 </div>
               </div>
 

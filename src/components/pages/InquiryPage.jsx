@@ -20,6 +20,14 @@ import {
   Coins,
   MessageSquare,
 } from "lucide-react";
+import {
+  Select,
+  SelectTrigger,
+  SelectValue,
+  SelectContent,
+  SelectItem,
+} from "@/components/ui/Select";
+import { useNavigate } from "react-router-dom";
 import { cn } from "@/lib/utils";
 
 const CATEGORIES = [
@@ -36,7 +44,9 @@ const CATEGORIES = [
   "Mix Items & Clearance",
 ];
 
-export function InquiryPage({ onBack }) {
+export function InquiryPage({ onBack: propOnBack }) {
+  const navigate = useNavigate();
+  const handleBack = propOnBack || (() => navigate("/"));
   const [formData, setFormData] = useState({
     fullName: "",
     companyName: "",
@@ -72,8 +82,8 @@ export function InquiryPage({ onBack }) {
       {/* Header & Back Button */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-200 pb-5">
         <button
-          onClick={onBack}
-          className="inline-flex items-center gap-2 text-xs font-poppins font-bold text-slate-600 hover:text-accent group transition-colors self-start"
+          onClick={handleBack}
+          className="inline-flex items-center gap-2 text-xs font-poppins font-bold text-slate-600 hover:text-accent group transition-colors self-start cursor-pointer"
         >
           <div className="w-8 h-8 rounded-xl bg-white border border-slate-200 group-hover:border-accent flex items-center justify-center transition-all shadow-xs">
             <ArrowLeft className="w-4 h-4 group-hover:-translate-x-0.5 transition-transform" />
@@ -207,17 +217,21 @@ export function InquiryPage({ onBack }) {
                     <label className="text-xs font-poppins font-bold text-slate-700">
                       Business Type
                     </label>
-                    <select
+                    <Select
                       value={formData.businessType}
-                      onChange={(e) => setFormData({ ...formData, businessType: e.target.value })}
-                      className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 focus:outline-none focus:border-accent text-xs font-inter bg-white transition-all"
+                      onValueChange={(val) => setFormData({ ...formData, businessType: val })}
                     >
-                      <option value="offline-retailer">Offline Retail Shop</option>
-                      <option value="online-seller">Amazon / Flipkart Seller</option>
-                      <option value="dropshipper">Dropshipper / Reseller</option>
-                      <option value="corporate-gift">Corporate Gifter / Event</option>
-                      <option value="wholesaler">Regional Wholesaler</option>
-                    </select>
+                      <SelectTrigger className="w-full h-10 px-3.5 py-2.5 rounded-xl border border-slate-200 bg-white text-xs font-inter focus:ring-1 focus:ring-accent">
+                        <SelectValue placeholder="Select Business Type" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="offline-retailer">Offline Retail Shop</SelectItem>
+                        <SelectItem value="online-seller">Amazon / Flipkart Seller</SelectItem>
+                        <SelectItem value="dropshipper">Dropshipper / Reseller</SelectItem>
+                        <SelectItem value="corporate-gift">Corporate Gifter / Event</SelectItem>
+                        <SelectItem value="wholesaler">Regional Wholesaler</SelectItem>
+                      </SelectContent>
+                    </Select>
                   </div>
 
                   <div className="space-y-1.5">
@@ -293,49 +307,61 @@ export function InquiryPage({ onBack }) {
                     <label className="text-xs font-poppins font-bold text-slate-700">
                       Primary Department
                     </label>
-                    <select
+                    <Select
                       value={formData.category}
-                      onChange={(e) => setFormData({ ...formData, category: e.target.value })}
-                      className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 focus:outline-none focus:border-accent text-xs font-inter bg-white transition-all"
+                      onValueChange={(val) => setFormData({ ...formData, category: val })}
                     >
-                      {CATEGORIES.map((cat) => (
-                        <option key={cat} value={cat}>
-                          {cat}
-                        </option>
-                      ))}
-                    </select>
+                      <SelectTrigger className="w-full h-10 px-3.5 py-2.5 rounded-xl border border-slate-200 bg-white text-xs font-inter focus:ring-1 focus:ring-accent">
+                        <SelectValue placeholder="Select Department" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {CATEGORIES.map((cat) => (
+                          <SelectItem key={cat} value={cat}>
+                            {cat}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
                   </div>
 
                   <div className="space-y-1.5">
                     <label className="text-xs font-poppins font-bold text-slate-700">
                       Estimated Order Quantity
                     </label>
-                    <select
+                    <Select
                       value={formData.quantityTier}
-                      onChange={(e) => setFormData({ ...formData, quantityTier: e.target.value })}
-                      className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 focus:outline-none focus:border-accent text-xs font-inter bg-white transition-all"
+                      onValueChange={(val) => setFormData({ ...formData, quantityTier: val })}
                     >
-                      <option value="50-100">50 - 100 Units (Starter Lot)</option>
-                      <option value="100-500">100 - 500 Units (Standard Trade)</option>
-                      <option value="500-2000">500 - 2,000 Units (Master Carton)</option>
-                      <option value="2000+">2,000+ Units (Container Load)</option>
-                    </select>
+                      <SelectTrigger className="w-full h-10 px-3.5 py-2.5 rounded-xl border border-slate-200 bg-white text-xs font-inter focus:ring-1 focus:ring-accent">
+                        <SelectValue placeholder="Select Quantity Tier" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="50-100">50 - 100 Units (Starter Lot)</SelectItem>
+                        <SelectItem value="100-500">100 - 500 Units (Standard Trade)</SelectItem>
+                        <SelectItem value="500-2000">500 - 2,000 Units (Master Carton)</SelectItem>
+                        <SelectItem value="2000+">2,000+ Units (Container Load)</SelectItem>
+                      </SelectContent>
+                    </Select>
                   </div>
 
                   <div className="space-y-1.5">
                     <label className="text-xs font-poppins font-bold text-slate-700">
                       Monthly Sourcing Budget
                     </label>
-                    <select
+                    <Select
                       value={formData.monthlyBudget}
-                      onChange={(e) => setFormData({ ...formData, monthlyBudget: e.target.value })}
-                      className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 focus:outline-none focus:border-accent text-xs font-inter bg-white transition-all"
+                      onValueChange={(val) => setFormData({ ...formData, monthlyBudget: val })}
                     >
-                      <option value="25k-50k">₹25,000 - ₹50,000</option>
-                      <option value="50k-1lakh">₹50,000 - ₹1,00,000</option>
-                      <option value="1lakh-5lakh">₹1,00,000 - ₹5,00,000</option>
-                      <option value="5lakh+">₹5,00,000+</option>
-                    </select>
+                      <SelectTrigger className="w-full h-10 px-3.5 py-2.5 rounded-xl border border-slate-200 bg-white text-xs font-inter focus:ring-1 focus:ring-accent">
+                        <SelectValue placeholder="Select Monthly Budget" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="25k-50k">₹25,000 - ₹50,000</SelectItem>
+                        <SelectItem value="50k-1lakh">₹50,000 - ₹1,00,000</SelectItem>
+                        <SelectItem value="1lakh-5lakh">₹1,00,000 - ₹5,00,000</SelectItem>
+                        <SelectItem value="5lakh+">₹5,00,000+</SelectItem>
+                      </SelectContent>
+                    </Select>
                   </div>
                 </div>
 

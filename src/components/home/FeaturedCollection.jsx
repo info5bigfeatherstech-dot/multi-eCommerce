@@ -1,12 +1,14 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import { useAppDispatch, useAppSelector } from "@/store/hooks";
 import { fetchProducts } from "@/store/slices/productSlice";
 import { addItem } from "@/store/slices/cartSlice";
 import { setCartDrawerOpen } from "@/store/slices/uiSlice";
 import { toggleWishlist } from "@/store/slices/wishlistSlice";
 import { formatCurrency, cn } from "@/lib/utils";
+import { notifyAddToCart, notifyWishlist } from "@/lib/notify";
 import Skeleton from "@/components/ui/Skeleton";
 import Badge from "@/components/ui/Badge";
 import Button from "@/components/ui/Button";
@@ -21,6 +23,7 @@ import {
 
 export function FeaturedCollection({ onSelectProduct }) {
   const dispatch = useAppDispatch();
+  const navigate = useNavigate();
   const { items: products, status } = useAppSelector((state) => state.products);
   const wishlistItems = useAppSelector((state) => state.wishlist.items);
   const [showAll, setShowAll] = useState(false);
@@ -35,7 +38,9 @@ export function FeaturedCollection({ onSelectProduct }) {
   const handleAddToCart = (e, product) => {
     e.stopPropagation();
     dispatch(addItem(product));
-    dispatch(setCartDrawerOpen(true));
+    notifyAddToCart(product, {
+      onOpenCart: () => dispatch(setCartDrawerOpen(true)),
+    });
 
     setAddedProductIds((prev) => ({ ...prev, [product.id]: true }));
     setTimeout(() => {
@@ -45,7 +50,15 @@ export function FeaturedCollection({ onSelectProduct }) {
 
   const handleWishlistToggle = (e, product) => {
     e.stopPropagation();
+    const isCurrentInWishlist = wishlistItems.some(
+      (item) =>
+        (item.slug && product.slug && item.slug === product.slug) ||
+        (item.id && product.id && item.id === product.id)
+    );
     dispatch(toggleWishlist(product));
+    notifyWishlist(product, !isCurrentInWishlist, {
+      onViewWishlist: () => navigate("/wishlist"),
+    });
   };
 
   // Restrict to exactly 8 products by default as requested
@@ -105,7 +118,7 @@ export function FeaturedCollection({ onSelectProduct }) {
 
               return (
                 <div
-                  key={product.id}
+                  key={product.slug || product.id}
                   onClick={() => onSelectProduct && onSelectProduct(product)}
                   className="group bg-white rounded-2xl border border-slate-200/90 shadow-sm hover:shadow-xl transition-all duration-300 flex flex-col justify-between overflow-hidden p-4 relative cursor-pointer hover:-translate-y-1"
                 >

@@ -1,8 +1,5 @@
-"use client";
-
 import React, { useState } from "react";
-import { useAppDispatch } from "@/store/hooks";
-import { setCurrentView } from "@/store/slices/uiSlice";
+import { useNavigate } from "react-router-dom";
 import { siteConfig } from "@/config/site";
 import {
   Store,
@@ -23,7 +20,7 @@ import {
 } from "lucide-react";
 
 export function Footer() {
-  const dispatch = useAppDispatch();
+  const navigate = useNavigate();
   const [email, setEmail] = useState("");
   const [subscribed, setSubscribed] = useState(false);
 
@@ -168,10 +165,15 @@ export function Footer() {
               <li><a href="#" onClick={handleScrollToTop} className="hover:text-accent transition-colors">GST Invoice Claim</a></li>
               <li>
                 <button
-                  onClick={() => {
-                    dispatch(setCurrentView("inquiry"));
-                    window.scrollTo({ top: 0, behavior: "smooth" });
-                  }}
+                  onClick={() => navigate("/dropshipping")}
+                  className="hover:text-accent transition-colors text-left"
+                >
+                  Dropshipping Partner Program
+                </button>
+              </li>
+              <li>
+                <button
+                  onClick={() => navigate("/inquiry")}
                   className="hover:text-accent transition-colors text-left"
                 >
                   Wholesale Bulk Query
@@ -181,10 +183,7 @@ export function Footer() {
               <li><a href="#" onClick={handleScrollToTop} className="hover:text-accent transition-colors">Returns & Replacement</a></li>
               <li>
                 <button
-                  onClick={() => {
-                    dispatch(setCurrentView("contact"));
-                    window.scrollTo({ top: 0, behavior: "smooth" });
-                  }}
+                  onClick={() => navigate("/contact")}
                   className="hover:text-accent transition-colors text-left"
                 >
                   Help Center & FAQ
@@ -206,10 +205,7 @@ export function Footer() {
               <li><a href="#" onClick={handleScrollToTop} className="hover:text-accent transition-colors">Privacy Policy</a></li>
               <li>
                 <button
-                  onClick={() => {
-                    dispatch(setCurrentView("contact"));
-                    window.scrollTo({ top: 0, behavior: "smooth" });
-                  }}
+                  onClick={() => navigate("/contact")}
                   className="hover:text-accent transition-colors text-left text-accent font-bold"
                 >
                   Contact Us

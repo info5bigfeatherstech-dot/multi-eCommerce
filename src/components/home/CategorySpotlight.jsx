@@ -1,11 +1,13 @@
 "use client";
 
 import React, { useState, useRef } from "react";
+import { useNavigate } from "react-router-dom";
 import { useAppDispatch, useAppSelector } from "@/store/hooks";
 import { addItem } from "@/store/slices/cartSlice";
 import { setCartDrawerOpen } from "@/store/slices/uiSlice";
 import { toggleWishlist } from "@/store/slices/wishlistSlice";
 import { formatCurrency, cn } from "@/lib/utils";
+import { notifyAddToCart, notifyWishlist } from "@/lib/notify";
 import {
   ShoppingBag,
   Heart,
@@ -20,6 +22,7 @@ import {
 const BEST_SELLER_PRODUCTS = [
   {
     id: "bs-spice-dispenser",
+    slug: "rotating-spice-dispenser",
     rank: 1,
     name: "360° Rotating Multi-Grid Kitchen Spice & Grain Dispenser",
     discount: "60% OFF",
@@ -32,6 +35,7 @@ const BEST_SELLER_PRODUCTS = [
   },
   {
     id: "bs-tws-earbuds",
+    slug: "dual-driver-tws-earbuds",
     rank: 2,
     name: "Dual Driver Ultra Bass TWS Wireless Earbuds with ENC",
     discount: "73% OFF",
@@ -44,6 +48,7 @@ const BEST_SELLER_PRODUCTS = [
   },
   {
     id: "bs-brass-diya",
+    slug: "brass-peacock-diya-set",
     rank: 3,
     name: "Pure Brass Handcrafted Peacock Diya & Urli Set",
     discount: "58% OFF",
@@ -56,6 +61,7 @@ const BEST_SELLER_PRODUCTS = [
   },
   {
     id: "bs-jar-candles",
+    slug: "luxury-soy-wax-jar-candles",
     rank: null,
     name: "Luxury Soy Wax Scented Aromatherapy Jar Candles Set",
     discount: "58% OFF",
@@ -68,6 +74,7 @@ const BEST_SELLER_PRODUCTS = [
   },
   {
     id: "bs-granite-tawa",
+    slug: "granite-dosa-tawa-pan-set",
     rank: null,
     name: "Heavy Duty Granite Die-Cast Dosa Tawa & Non-Stick Pan Set",
     discount: "64% OFF",
@@ -80,6 +87,7 @@ const BEST_SELLER_PRODUCTS = [
   },
   {
     id: "bs-smart-watch",
+    slug: "smart-fitness-health-watch-amoled",
     rank: null,
     name: "Smart Fitness Health Watch with AMOLED Display & Heart Rate",
     discount: "50% OFF",
@@ -92,6 +100,7 @@ const BEST_SELLER_PRODUCTS = [
   },
   {
     id: "bs-veg-chopper",
+    slug: "12-in-1-veg-chopper",
     rank: null,
     name: "12-in-1 Ultra Sharp Vegetable & Fruit Chopper with Catch Tray",
     discount: "70% OFF",
@@ -104,6 +113,7 @@ const BEST_SELLER_PRODUCTS = [
   },
   {
     id: "bs-ultrapods",
+    slug: "transparent-ultrapods-max-tws",
     rank: null,
     name: "Transparent Ultrapods Max TWS Earbuds with LED Display",
     discount: "68% OFF",
@@ -118,6 +128,7 @@ const BEST_SELLER_PRODUCTS = [
 
 export function CategorySpotlight({ onSelectProduct }) {
   const dispatch = useAppDispatch();
+  const navigate = useNavigate();
   const wishlistItems = useAppSelector((state) => state.wishlist.items);
   const scrollContainerRef = useRef(null);
   const [addedIds, setAddedIds] = useState({});
@@ -125,7 +136,9 @@ export function CategorySpotlight({ onSelectProduct }) {
   const handleAddToCart = (e, product) => {
     e.stopPropagation();
     dispatch(addItem(product));
-    dispatch(setCartDrawerOpen(true));
+    notifyAddToCart(product, {
+      onOpenCart: () => dispatch(setCartDrawerOpen(true)),
+    });
 
     setAddedIds((prev) => ({ ...prev, [product.id]: true }));
     setTimeout(() => {
@@ -135,7 +148,15 @@ export function CategorySpotlight({ onSelectProduct }) {
 
   const handleWishlistToggle = (e, product) => {
     e.stopPropagation();
+    const isCurrentInWishlist = wishlistItems.some(
+      (item) =>
+        (item.slug && product.slug && item.slug === product.slug) ||
+        (item.id && product.id && item.id === product.id)
+    );
     dispatch(toggleWishlist(product));
+    notifyWishlist(product, !isCurrentInWishlist, {
+      onViewWishlist: () => navigate("/wishlist"),
+    });
   };
 
   const scroll = (direction) => {
@@ -209,7 +230,7 @@ export function CategorySpotlight({ onSelectProduct }) {
 
               return (
                 <div
-                  key={product.id}
+                  key={product.slug || product.id}
                   onClick={() => onSelectProduct && onSelectProduct(product)}
                   className="w-[210px] sm:w-[calc((100%-2*12px)/3)] md:w-[calc((100%-3*14px)/4)] lg:w-[calc((100%-4*14px)/5)] xl:w-[calc((100%-4*16px)/5)] flex-shrink-0 group bg-white rounded-2xl border border-slate-200/90 shadow-xs hover:shadow-xl transition-all duration-300 p-2.5 sm:p-3 flex flex-col justify-between overflow-hidden hover:-translate-y-1 cursor-pointer"
                 >

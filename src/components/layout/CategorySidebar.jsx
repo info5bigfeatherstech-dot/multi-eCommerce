@@ -50,19 +50,19 @@ export function CategorySidebar({ isMobile = false }) {
     }
   }, [dispatch, status]);
 
-  // Robust active category selection
-  const currentActiveId =
+  // Robust active category selection using proper slug
+  const currentActiveSlug =
     hoveredId ||
     activeFlyoutCategoryId ||
-    (categories[0] && categories[0].id) ||
-    "cat-home-living";
+    (categories[0] && (categories[0].slug || categories[0].id)) ||
+    "home-living";
 
   const activeCategoryObject =
-    categories.find((c) => c.id === currentActiveId) || categories[0];
+    categories.find((c) => c.slug === currentActiveSlug || c.id === currentActiveSlug) || categories[0];
 
-  const handleCategoryHover = (catId) => {
-    setHoveredId(catId);
-    dispatch(setActiveFlyoutCategoryId(catId));
+  const handleCategoryHover = (catSlug) => {
+    setHoveredId(catSlug);
+    dispatch(setActiveFlyoutCategoryId(catSlug));
   };
 
   return (
@@ -86,13 +86,16 @@ export function CategorySidebar({ isMobile = false }) {
           </div>
         ) : (
           categories.map((category) => {
+            const catSlug = category.slug || category.id;
             const IconComponent = iconMap[category.icon] || Package;
-            const isActive = activeCategoryObject && activeCategoryObject.id === category.id;
+            const isActive =
+              activeCategoryObject &&
+              (activeCategoryObject.slug === catSlug || activeCategoryObject.id === catSlug);
 
             return (
               <div
-                key={category.id}
-                onMouseEnter={() => handleCategoryHover(category.id)}
+                key={catSlug}
+                onMouseEnter={() => handleCategoryHover(catSlug)}
                 onClick={() => handleCategoryHover(category.id)}
                 className={cn(
                   "group flex items-center justify-between px-3 py-2 rounded-xl cursor-pointer transition-colors font-poppins text-xs font-medium",

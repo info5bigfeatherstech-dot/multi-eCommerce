@@ -1,10 +1,13 @@
 "use client";
 
 import React, { useState, useEffect, useRef } from "react";
-import { useAppDispatch } from "@/store/hooks";
+import { useNavigate } from "react-router-dom";
+import { useAppDispatch, useAppSelector } from "@/store/hooks";
 import { addItem } from "@/store/slices/cartSlice";
 import { setCartDrawerOpen } from "@/store/slices/uiSlice";
+import { toggleWishlist } from "@/store/slices/wishlistSlice";
 import { formatCurrency, cn } from "@/lib/utils";
+import { notifyAddToCart, notifyWishlist } from "@/lib/notify";
 import {
   Flame,
   Clock,
@@ -14,11 +17,13 @@ import {
   Check,
   Star,
   Truck,
+  Heart,
 } from "lucide-react";
 
 const FEATURED_DEALS = [
   {
     id: "deal-spice-dispenser",
+    slug: "rotating-spice-dispenser",
     name: "360° Rotating Multi-Grid Kitchen Spice & Grain Dispenser",
     category: "KITCHEN DINING",
     description: "Airtight, moisture-proof food grade storage with one-touch measurement dispenser.",
@@ -31,6 +36,7 @@ const FEATURED_DEALS = [
   },
   {
     id: "deal-tws-earbuds",
+    slug: "dual-driver-tws-earbuds",
     name: "Dual Driver Ultra Bass TWS Wireless Earbuds with ENC",
     category: "ELECTRONICS GADGETS",
     description: "50-hour playback, instant quad-mic clear calling, IPX5 sweat resistance with low latency gaming mode.",
@@ -43,6 +49,7 @@ const FEATURED_DEALS = [
   },
   {
     id: "deal-brass-diya",
+    slug: "brass-peacock-diya-set",
     name: "Pure Brass Handcrafted Peacock Diya & Urli Set",
     category: "HOME DECOR",
     description: "Solid brass traditional carving for festive puja room, living decor and Diwali gifting.",
@@ -55,6 +62,7 @@ const FEATURED_DEALS = [
   },
   {
     id: "deal-veg-chopper",
+    slug: "12-in-1-veg-chopper",
     name: "12-in-1 Ultra Sharp Vegetable & Fruit Chopper with Catch Tray",
     category: "KITCHEN DINING",
     description: "Stainless steel rust-resistant blades, anti-skid base with hand protector safety guard.",
@@ -67,6 +75,7 @@ const FEATURED_DEALS = [
   },
   {
     id: "deal-wireless-dock",
+    slug: "4-in-1-wireless-dock",
     name: "4-in-1 Magnetic Fast Wireless Charging Dock with Night Lamp",
     category: "ELECTRONICS GADGETS",
     description: "15W wireless fast charging station for phone, smartwatch and earbuds with ambient light.",
@@ -79,6 +88,7 @@ const FEATURED_DEALS = [
   },
   {
     id: "deal-thermal-flask",
+    slug: "thermal-flask-750ml",
     name: "Double-Wall Vacuum Insulated Stainless Steel Thermal Flask 750ml",
     category: "KITCHEN DINING",
     description: "24-hour hot & cold temperature retention with leakproof condensation-free exterior.",
@@ -91,6 +101,7 @@ const FEATURED_DEALS = [
   },
   {
     id: "deal-facial-brush",
+    slug: "sonic-facial-brush",
     name: "Sonic Facial Cleansing Brush & Silicone Exfoliator",
     category: "BEAUTY & PERSONAL CARE",
     description: "Waterproof IPX7 sonic vibration with heated massage modes for deep pore cleansing.",
@@ -103,6 +114,7 @@ const FEATURED_DEALS = [
   },
   {
     id: "deal-ultrapods",
+    slug: "transparent-ultrapods-max-tws",
     name: "Transparent Ultrapods Max TWS Earbuds with LED Display",
     category: "ELECTRONICS GADGETS",
     description: "Crystal clear ENC calling with futuristic neon LED battery casing and USB-C quick charge.",
@@ -117,11 +129,11 @@ const FEATURED_DEALS = [
 
 export function WholesaleDeals({ onSelectProduct }) {
   const dispatch = useAppDispatch();
-  const scrollContainerRef = useRef(null);
+  const navigate = useNavigate();
+  const wishlistItems = useAppSelector((state) => state.wishlist.items);
+  const [timeLeft, setTimeLeft] = useState({ hours: 10, minutes: 24, seconds: 45 });
   const [addedIds, setAddedIds] = useState({});
-
-  // Countdown timer logic
-  const [timeLeft, setTimeLeft] = useState({ hours: 7, minutes: 42, seconds: 19 });
+  const scrollContainerRef = useRef(null);
 
   useEffect(() => {
     const timer = setInterval(() => {
@@ -138,12 +150,27 @@ export function WholesaleDeals({ onSelectProduct }) {
   const handleAddToCart = (e, product) => {
     e.stopPropagation();
     dispatch(addItem(product));
-    dispatch(setCartDrawerOpen(true));
+    notifyAddToCart(product, {
+      onOpenCart: () => dispatch(setCartDrawerOpen(true)),
+    });
 
     setAddedIds((prev) => ({ ...prev, [product.id]: true }));
     setTimeout(() => {
       setAddedIds((prev) => ({ ...prev, [product.id]: false }));
     }, 1300);
+  };
+
+  const handleWishlistToggle = (e, product) => {
+    e.stopPropagation();
+    const isCurrentInWishlist = wishlistItems.some(
+      (item) =>
+        (item.slug && product.slug && item.slug === product.slug) ||
+        (item.id && product.id && item.id === product.id)
+    );
+    dispatch(toggleWishlist(product));
+    notifyWishlist(product, !isCurrentInWishlist, {
+      onViewWishlist: () => navigate("/wishlist"),
+    });
   };
 
   const scroll = (direction) => {
@@ -164,10 +191,7 @@ export function WholesaleDeals({ onSelectProduct }) {
         <div className="flex flex-col sm:flex-row sm:items-end justify-between mb-6 gap-3 text-left">
           <div className="space-y-1">
             <div className="flex items-center gap-2">
-              <span className="inline-flex items-center gap-1.5 px-3 py-0.5 rounded-full bg-accent/15 text-accent font-poppins text-xs font-black uppercase tracking-wider border border-accent/25">
-                <Flame className="w-3.5 h-3.5 fill-accent animate-pulse" />
-                Limited Time Deals
-              </span>
+              
               <span className="text-xs font-poppins font-medium text-slate-500 hidden sm:inline">
                 Direct Factory Liquidation Rates
               </span>
@@ -227,10 +251,15 @@ export function WholesaleDeals({ onSelectProduct }) {
           >
             {FEATURED_DEALS.map((deal) => {
               const isAdded = addedIds[deal.id];
+              const isInWishlist = wishlistItems.some(
+                (item) =>
+                  (item.slug && deal.slug && item.slug === deal.slug) ||
+                  (item.id && deal.id && item.id === deal.id)
+              );
 
               return (
                 <div
-                  key={deal.id}
+                  key={deal.slug || deal.id}
                   onClick={() => onSelectProduct && onSelectProduct(deal)}
                   className="w-[210px] sm:w-[calc((100%-2*12px)/3)] md:w-[calc((100%-3*14px)/4)] lg:w-[calc((100%-4*14px)/5)] xl:w-[calc((100%-4*16px)/5)] flex-shrink-0 group bg-white rounded-2xl border border-slate-200/90 shadow-xs hover:shadow-xl transition-all duration-300 p-2.5 sm:p-3 flex flex-col justify-between overflow-hidden hover:-translate-y-1 cursor-pointer"
                 >
@@ -252,6 +281,20 @@ export function WholesaleDeals({ onSelectProduct }) {
                         Deal of the Day
                       </span>
                     </div>
+
+                    {/* Top-Right Wishlist / Like Button */}
+                    <button
+                      onClick={(e) => handleWishlistToggle(e, deal)}
+                      className="absolute top-2 right-2 z-10 w-7 h-7 rounded-full bg-white/90 backdrop-blur-md text-slate-400 hover:text-rose-500 shadow-xs flex items-center justify-center transition-all active:scale-90 cursor-pointer"
+                      aria-label="Add to Wishlist"
+                    >
+                      <Heart
+                        className={cn(
+                          "w-3.5 h-3.5 transition-colors",
+                          isInWishlist ? "fill-rose-500 text-rose-500" : "text-slate-400"
+                        )}
+                      />
+                    </button>
                   </div>
 
                   {/* Content (NO DESCRIPTION) */}

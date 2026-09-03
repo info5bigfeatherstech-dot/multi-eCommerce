@@ -1,11 +1,13 @@
 "use client";
 
 import React, { useState, useRef } from "react";
+import { useNavigate } from "react-router-dom";
 import { useAppDispatch, useAppSelector } from "@/store/hooks";
 import { addItem } from "@/store/slices/cartSlice";
 import { setCartDrawerOpen } from "@/store/slices/uiSlice";
 import { toggleWishlist } from "@/store/slices/wishlistSlice";
 import { formatCurrency } from "@/lib/utils";
+import { notifyAddToCart, notifyWishlist } from "@/lib/notify";
 import {
   Flame,
   ShoppingBag,
@@ -21,20 +23,13 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
-const SALE_CATEGORIES = [
-  { id: "all", label: "All Mega Deals" },
-  { id: "electronics", label: "Tech & Gadgets", category: "Electronics & Gadgets" },
-  { id: "kitchen-home", label: "Kitchen & Home", categories: ["Kitchen & Dining", "Home Decor", "Home & Living"] },
-  { id: "personal-travel", label: "Beauty & Travel", categories: ["Beauty & Personal Care", "Travel & Outdoor"] },
-];
-
 export function SaleProductShowcase({ onSelectProduct }) {
   const dispatch = useAppDispatch();
+  const navigate = useNavigate();
   const products = useAppSelector((state) => state.products.items);
   const wishlistItems = useAppSelector((state) => state.wishlist.items);
 
   const scrollContainerRef = useRef(null);
-  const [activeTab, setActiveTab] = useState("all");
   const [addedProductIds, setAddedProductIds] = useState({});
 
   // Filter products that are marked as sale or have high discount
@@ -42,24 +37,30 @@ export function SaleProductShowcase({ onSelectProduct }) {
     (p) => p.isSale || (p.discount && parseInt(p.discount) >= 60)
   );
 
-  const filteredProducts = saleProducts.filter((product) => {
-    if (activeTab === "all") return true;
-    const tabConfig = SALE_CATEGORIES.find((t) => t.id === activeTab);
-    if (!tabConfig) return true;
-    if (tabConfig.category) return product.category === tabConfig.category;
-    if (tabConfig.categories) return tabConfig.categories.includes(product.category);
-    return true;
-  });
-
   const handleAddToCart = (e, product) => {
     e.stopPropagation();
     dispatch(addItem(product));
-    dispatch(setCartDrawerOpen(true));
+    notifyAddToCart(product, {
+      onOpenCart: () => dispatch(setCartDrawerOpen(true)),
+    });
 
     setAddedProductIds((prev) => ({ ...prev, [product.id]: true }));
     setTimeout(() => {
       setAddedProductIds((prev) => ({ ...prev, [product.id]: false }));
     }, 1500);
+  };
+
+  const handleWishlistToggle = (e, product) => {
+    e.stopPropagation();
+    const isCurrentInWishlist = wishlistItems.some(
+      (item) =>
+        (item.slug && product.slug && item.slug === product.slug) ||
+        (item.id && product.id && item.id === product.id)
+    );
+    dispatch(toggleWishlist(product));
+    notifyWishlist(product, !isCurrentInWishlist, {
+      onViewWishlist: () => navigate("/wishlist"),
+    });
   };
 
   const scroll = (direction) => {
@@ -73,15 +74,11 @@ export function SaleProductShowcase({ onSelectProduct }) {
     <section className="py-8">
       <div className="max-w-[1600px] mx-auto px-4">
         {/* Sale Header Box */}
-        <div className="flex flex-col md:flex-row md:items-end justify-between mb-6 gap-4 border-b border-slate-200 pb-5">
+        <div className="mb-6 border-b border-slate-200 pb-5 text-left">
           <div className="space-y-1">
             <div className="flex items-center gap-2">
-              <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-rose-500 text-white font-poppins text-xs font-black uppercase tracking-wider shadow-sm animate-pulse">
-                <Flame className="w-3.5 h-3.5 fill-white" />
-                Mega Clearance Sale
-              </span>
               <span className="text-xs font-poppins font-bold text-rose-600 bg-rose-50 px-2.5 py-0.5 rounded-full border border-rose-200">
-                Up to 75% OFF
+                Sale Up to 75% OFF
               </span>
             </div>
             <h2 className="section-title text-2xl md:text-3xl font-extrabold text-slate-900 mt-1">
@@ -90,27 +87,6 @@ export function SaleProductShowcase({ onSelectProduct }) {
             <p className="text-xs sm:text-sm text-slate-500 font-inter">
               High-volume liquidation wholesale lots directly from verified manufacturers
             </p>
-          </div>
-
-          {/* Category Filter Tabs */}
-          <div className="flex flex-wrap items-center gap-2 bg-slate-100 p-1.5 rounded-2xl border border-slate-200/80">
-            {SALE_CATEGORIES.map((tab) => {
-              const isActive = activeTab === tab.id;
-              return (
-                <button
-                  key={tab.id}
-                  onClick={() => setActiveTab(tab.id)}
-                  className={cn(
-                    "px-3.5 py-1.5 rounded-xl text-xs font-poppins font-bold transition-all whitespace-nowrap",
-                    isActive
-                      ? "bg-rose-600 text-white shadow-sm"
-                      : "text-slate-600 hover:text-slate-900 hover:bg-slate-200/60"
-                  )}
-                >
-                  {tab.label}
-                </button>
-              );
-            })}
           </div>
         </div>
 
@@ -140,13 +116,18 @@ export function SaleProductShowcase({ onSelectProduct }) {
             className="flex gap-3 sm:gap-3.5 lg:gap-3.5 xl:gap-4 overflow-x-auto scrollbar-none scroll-smooth pb-2 pt-1 px-0.5"
             style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}
           >
-            {filteredProducts.map((product) => {
+            {saleProducts.map((product) => {
               const isJustAdded = addedProductIds[product.id];
               const savings = product.originalPrice - product.price;
+              const isInWishlist = wishlistItems.some(
+                (item) =>
+                  (item.slug && product.slug && item.slug === product.slug) ||
+                  (item.id && product.id && item.id === product.id)
+              );
 
               return (
                 <div
-                  key={product.id}
+                  key={product.slug || product.id}
                   onClick={() => onSelectProduct && onSelectProduct(product)}
                   className="w-[210px] sm:w-[calc((100%-2*12px)/3)] md:w-[calc((100%-3*14px)/4)] lg:w-[calc((100%-4*14px)/5)] xl:w-[calc((100%-4*16px)/5)] flex-shrink-0 group bg-white rounded-2xl border border-slate-200/90 shadow-xs hover:shadow-xl transition-all duration-300 p-2.5 sm:p-3 flex flex-col justify-between overflow-hidden hover:-translate-y-1 cursor-pointer"
                 >
@@ -168,6 +149,20 @@ export function SaleProductShowcase({ onSelectProduct }) {
                         Deal of the Day
                       </span>
                     </div>
+
+                    {/* Top-Right Wishlist / Like Button */}
+                    <button
+                      onClick={(e) => handleWishlistToggle(e, product)}
+                      className="absolute top-2 right-2 z-10 w-7 h-7 rounded-full bg-white/90 backdrop-blur-md text-slate-400 hover:text-rose-500 shadow-xs flex items-center justify-center transition-all active:scale-90 cursor-pointer"
+                      aria-label="Add to Wishlist"
+                    >
+                      <Heart
+                        className={cn(
+                          "w-3.5 h-3.5 transition-colors",
+                          isInWishlist ? "fill-rose-500 text-rose-500" : "text-slate-400"
+                        )}
+                      />
+                    </button>
                   </div>
 
                   {/* Content (NO DESCRIPTION) */}

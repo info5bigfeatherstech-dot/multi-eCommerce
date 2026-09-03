@@ -6,23 +6,31 @@ import { fetchCategories } from "@/store/slices/categorySlice";
 import { toggleCategorySidebar, setActiveCategoryNavId } from "@/store/slices/uiSlice";
 import { Grid, ChevronDown } from "lucide-react";
 import Skeleton from "@/components/ui/Skeleton";
+import {
+  DropdownMenu,
+  DropdownMenuTrigger,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+} from "@/components/ui/DropdownMenu";
 import { cn } from "@/lib/utils";
 
 const NAV_ITEMS = [
-  { id: "just-arrived", label: "Just Arrived", isFeatured: true },
-  { id: "under-99", label: "⚡ Under ₹99 Store", isFeatured: true },
-  { id: "mega-sale", label: "🔥 Mega Sale", isFeatured: true },
-  { id: "home-living", label: "Home & Living", isFeatured: false },
-  { id: "kitchen-dining", label: "Kitchen & Dining", isFeatured: false },
-  { id: "electronics-gadgets", label: "Electronics & Gadgets", isFeatured: false },
-  { id: "beauty-care", label: "Beauty & Personal Care", isFeatured: false },
-  { id: "sports-fitness", label: "Sports & Fitness", isFeatured: false },
-  { id: "jewellery-acc", label: "Jewellery & Accessories", isFeatured: false },
-  { id: "home-decor", label: "Home Decor", isFeatured: false },
-  { id: "stationery-office", label: "Stationery, Office & School", isFeatured: false },
-  { id: "gifts-lifestyle", label: "Gifts & Lifestyle", isFeatured: false },
-  { id: "travel-outdoor", label: "Travel & Outdoor", isFeatured: false },
-  { id: "mix-items", label: "Mix Items", isFeatured: false },
+  { slug: "just-arrived", label: "Just Arrived", isFeatured: true },
+  { slug: "under-99", label: "⚡ Under ₹99 Store", isFeatured: true },
+  { slug: "mega-sale", label: "🔥 Mega Sale", isFeatured: true },
+  { slug: "home-living", label: "Home & Living", isFeatured: false },
+  { slug: "kitchen-dining", label: "Kitchen & Dining", isFeatured: false },
+  { slug: "electronics-gadgets", label: "Electronics & Gadgets", isFeatured: false },
+  { slug: "beauty-care", label: "Beauty & Personal Care", isFeatured: false },
+  { slug: "sports-fitness", label: "Sports & Fitness", isFeatured: false },
+  { slug: "jewellery-acc", label: "Jewellery & Accessories", isFeatured: false },
+  { slug: "home-decor", label: "Home Decor", isFeatured: false },
+  { slug: "stationery-office", label: "Stationery, Office & School", isFeatured: false },
+  { slug: "gifts-lifestyle", label: "Gifts & Lifestyle", isFeatured: false },
+  { slug: "travel-outdoor", label: "Travel & Outdoor", isFeatured: false },
+  { slug: "mix-items", label: "Mix Items", isFeatured: false },
 ];
 
 export function CategoryNavBar() {
@@ -64,11 +72,12 @@ export function CategoryNavBar() {
           {/* Horizontal Scrollable Top Category Links */}
           <div className="flex-1 overflow-x-auto no-scrollbar py-1.5 flex items-center gap-1 sm:gap-2">
             {NAV_ITEMS.map((item) => {
-              const isActive = activeCategoryNavId === item.id;
+              const itemSlug = item.slug || item.id;
+              const isActive = activeCategoryNavId === itemSlug;
               return (
                 <button
-                  key={item.id}
-                  onClick={() => dispatch(setActiveCategoryNavId(item.id))}
+                  key={itemSlug}
+                  onClick={() => dispatch(setActiveCategoryNavId(itemSlug))}
                   className={cn(
                     "px-3 py-1 text-xs font-poppins font-semibold whitespace-nowrap transition-colors relative",
                     item.isFeatured
@@ -85,6 +94,33 @@ export function CategoryNavBar() {
                 </button>
               );
             })}
+          </div>
+
+          {/* More Categories Shadcn Dropdown */}
+          <div className="flex-shrink-0 py-1">
+            <DropdownMenu>
+              <DropdownMenuTrigger className="flex items-center gap-1.5 px-3 py-1 text-xs font-poppins font-bold text-slate-200 hover:text-accent rounded-lg hover:bg-white/10 transition-colors focus:outline-none cursor-pointer">
+                <span>More</span>
+                <ChevronDown className="w-3.5 h-3.5 text-slate-300" />
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-56 p-1.5 max-h-80 overflow-y-auto">
+                <DropdownMenuLabel>All Departments</DropdownMenuLabel>
+                <DropdownMenuSeparator />
+                {categories.map((cat) => {
+                  const catSlug = cat.slug || cat.id;
+                  return (
+                    <DropdownMenuItem
+                      key={catSlug}
+                      onClick={() => dispatch(setActiveCategoryNavId(catSlug))}
+                      className="cursor-pointer flex items-center justify-between py-1.5"
+                    >
+                      <span>{cat.name}</span>
+                      <span className="text-[10px] text-slate-400">{cat.itemCount || "100+"}</span>
+                    </DropdownMenuItem>
+                  );
+                })}
+              </DropdownMenuContent>
+            </DropdownMenu>
           </div>
 
         </div>

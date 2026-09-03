@@ -8,19 +8,37 @@ const wishlistSlice = createSlice({
   },
   reducers: {
     addToWishlist: (state, action) => {
-      if (!state.items.some((item) => item.id === action.payload.id)) {
+      const exists = state.items.some(
+        (item) =>
+          (item.slug && action.payload.slug && item.slug === action.payload.slug) ||
+          (item.id && action.payload.id && item.id === action.payload.id)
+      );
+      if (!exists) {
         state.items.push(action.payload);
         state.totalCount = state.items.length;
       }
     },
     removeFromWishlist: (state, action) => {
-      state.items = state.items.filter((item) => item.id !== action.payload);
+      const target = action.payload;
+      state.items = state.items.filter(
+        (item) => item.id !== target && item.slug !== target
+      );
       state.totalCount = state.items.length;
     },
     toggleWishlist: (state, action) => {
-      const exists = state.items.some((item) => item.id === action.payload.id);
+      const exists = state.items.some(
+        (item) =>
+          (item.slug && action.payload.slug && item.slug === action.payload.slug) ||
+          (item.id && action.payload.id && item.id === action.payload.id)
+      );
       if (exists) {
-        state.items = state.items.filter((item) => item.id !== action.payload.id);
+        state.items = state.items.filter(
+          (item) =>
+            !(
+              (item.slug && action.payload.slug && item.slug === action.payload.slug) ||
+              (item.id && action.payload.id && item.id === action.payload.id)
+            )
+        );
       } else {
         state.items.push(action.payload);
       }

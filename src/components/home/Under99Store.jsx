@@ -1,15 +1,19 @@
 "use client";
 
 import React, { useState } from "react";
-import { useAppDispatch } from "@/store/hooks";
+import { useNavigate } from "react-router-dom";
+import { useAppDispatch, useAppSelector } from "@/store/hooks";
 import { addItem } from "@/store/slices/cartSlice";
 import { setCartDrawerOpen } from "@/store/slices/uiSlice";
-import { Check, Sparkles } from "lucide-react";
+import { toggleWishlist } from "@/store/slices/wishlistSlice";
+import { notifyAddToCart, notifyWishlist } from "@/lib/notify";
+import { Check, Sparkles, Heart } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 const DEALS_UNDER_99 = [
   {
     id: "deal-bear-buckle",
+    slug: "bear-button-jeans-buckle",
     name: "Bear Button Jeans Buckle (1 Pair) – Adjustable Alloy Jean Button Replacement",
     category: "Accessories",
     originalPrice: 199,
@@ -20,6 +24,7 @@ const DEALS_UNDER_99 = [
   },
   {
     id: "deal-toothbrush-cover",
+    slug: "plastic-toothbrush-cover-portable",
     name: "1Pc Plastic Toothbrush Cover, Anti Bacterial Toothbrush Case Box, Portable",
     category: "Personal Care",
     originalPrice: 19,
@@ -30,6 +35,7 @@ const DEALS_UNDER_99 = [
   },
   {
     id: "deal-10grid-storage",
+    slug: "10-grid-large-storage-organizer",
     name: "10 Grid Large Plastic Storage Organizer Box – Adjustable Divider Jewelry & Craft",
     category: "Home & Storage",
     originalPrice: 199,
@@ -40,6 +46,7 @@ const DEALS_UNDER_99 = [
   },
   {
     id: "deal-ice-stick-tray",
+    slug: "silicone-ice-stick-tray-mold",
     name: "Silicone Ice Stick Tray – 10 Grid Ice Cube Mold for Bottled Drinks, Water Bottles",
     category: "Kitchen & Dining",
     originalPrice: 159,
@@ -50,6 +57,7 @@ const DEALS_UNDER_99 = [
   },
   {
     id: "deal-climbing-hooks",
+    slug: "leaf-shape-climbing-plant-hooks",
     name: "10Pcs Leaf Shape Climbing Plant, Wall Vine Climbing Plant Support Hook Self-Adhesive",
     category: "Home Decor",
     originalPrice: 99,
@@ -60,6 +68,7 @@ const DEALS_UNDER_99 = [
   },
   {
     id: "deal-wall-hooks-10",
+    slug: "self-adhesive-wall-hooks-10pcs",
     name: "Self-Adhesive Wall Hooks (10 Pcs) – Round Hooks for Keys, Towels, Kitchen & Door",
     category: "Home & Living",
     originalPrice: 99,
@@ -70,6 +79,7 @@ const DEALS_UNDER_99 = [
   },
   {
     id: "deal-sweat-pads-10",
+    slug: "underarm-sweat-pads-10pcs",
     name: "10 Pcs Underarm Sweat Pads – Disposable Armpit Guards for Clothing Protection",
     category: "Personal Care",
     originalPrice: 199,
@@ -80,6 +90,7 @@ const DEALS_UNDER_99 = [
   },
   {
     id: "deal-food-covers-75",
+    slug: "disposable-food-cover-set-75pcs",
     name: "Disposable Food Cover Set – Kitchen & Dining Hygiene Essentials (Pack of 75 Pcs)",
     category: "Kitchen & Dining",
     originalPrice: 199,
@@ -90,6 +101,7 @@ const DEALS_UNDER_99 = [
   },
   {
     id: "deal-hanging-organizer",
+    slug: "16-pocket-hanging-wardrobe-organizer",
     name: "Premium 16 Pocket Hanging Wardrobe Organizer – Cupboard Storage for Socks & Accessories",
     category: "Home & Storage",
     originalPrice: 199,
@@ -100,6 +112,7 @@ const DEALS_UNDER_99 = [
   },
   {
     id: "deal-food-clips-18",
+    slug: "18-pcs-plastic-food-clips-set",
     name: "18 Pcs Food Clips Set – Plastic Snack & Bag Sealing Clips in 3 Sizes (Large, Medium, Small)",
     category: "Kitchen & Dining",
     originalPrice: 99,
@@ -112,17 +125,34 @@ const DEALS_UNDER_99 = [
 
 export function Under99Store({ onSelectProduct }) {
   const dispatch = useAppDispatch();
+  const navigate = useNavigate();
+  const wishlistItems = useAppSelector((state) => state.wishlist.items);
   const [addedIds, setAddedIds] = useState({});
 
   const handleAddToCart = (e, item) => {
     e.stopPropagation();
     dispatch(addItem(item));
-    dispatch(setCartDrawerOpen(true));
+    notifyAddToCart(item, {
+      onOpenCart: () => dispatch(setCartDrawerOpen(true)),
+    });
 
     setAddedIds((prev) => ({ ...prev, [item.id]: true }));
     setTimeout(() => {
       setAddedIds((prev) => ({ ...prev, [item.id]: false }));
     }, 1200);
+  };
+
+  const handleWishlistToggle = (e, item) => {
+    e.stopPropagation();
+    const isCurrentInWishlist = wishlistItems.some(
+      (w) =>
+        (w.slug && item.slug && w.slug === item.slug) ||
+        (w.id && item.id && w.id === item.id)
+    );
+    dispatch(toggleWishlist(item));
+    notifyWishlist(item, !isCurrentInWishlist, {
+      onViewWishlist: () => navigate("/wishlist"),
+    });
   };
 
   return (
@@ -135,9 +165,7 @@ export function Under99Store({ onSelectProduct }) {
               <span className="text-xs font-poppins font-bold uppercase tracking-wider text-accent">
                 Wholesale Budget Steals
               </span>
-              <span className="inline-flex items-center gap-1 text-[10px] font-bold bg-accent/10 text-accent px-2.5 py-0.5 rounded-full border border-accent/20">
-                <Sparkles className="w-3 h-3" /> Zero MOQ
-              </span>
+          
             </div>
             <h2 className="text-2xl sm:text-3xl font-poppins font-extrabold text-slate-900 tracking-tight">
               Find Deals Under <span className="text-accent">₹99</span>
@@ -158,14 +186,19 @@ export function Under99Store({ onSelectProduct }) {
         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4 sm:gap-5">
           {DEALS_UNDER_99.map((item) => {
             const isAdded = addedIds[item.id];
+            const isInWishlist = wishlistItems.some(
+              (w) =>
+                (w.slug && item.slug && w.slug === item.slug) ||
+                (w.id && item.id && w.id === item.id)
+            );
 
             return (
               <div
-                key={item.id}
+                key={item.slug || item.id}
                 onClick={() => onSelectProduct && onSelectProduct(item)}
                 className="group cursor-pointer flex flex-col justify-between space-y-3 bg-white p-2.5 rounded-2xl border border-slate-200/80 shadow-xs hover:shadow-xl hover:border-accent/40 transition-all duration-300"
               >
-                {/* Image Container with Top-Right Circular Badge */}
+                {/* Image Container with Top-Left Badge & Top-Right Wishlist Button */}
                 <div className="relative aspect-square w-full rounded-xl overflow-hidden bg-slate-50 border border-slate-100">
                   <img
                     src={item.imageUrl}
@@ -174,10 +207,24 @@ export function Under99Store({ onSelectProduct }) {
                     loading="lazy"
                   />
 
-                  {/* Circular Discount Badge (Top Right) in Brand Accent Coral Color */}
-                  <div className="absolute top-2.5 right-2.5 min-w-[34px] h-[34px] px-1.5 rounded-full bg-accent text-white font-poppins font-extrabold text-[11px] flex items-center justify-center shadow-md leading-none">
+                  {/* Circular Discount Badge (Top Left) */}
+                  <div className="absolute top-2 left-2 min-w-[32px] h-[32px] px-1 rounded-full bg-accent text-white font-poppins font-extrabold text-[10px] flex items-center justify-center shadow-md leading-none">
                     {item.discountBadge}
                   </div>
+
+                  {/* Top-Right Wishlist / Like Button */}
+                  <button
+                    onClick={(e) => handleWishlistToggle(e, item)}
+                    className="absolute top-2 right-2 z-10 w-7 h-7 rounded-full bg-white/90 backdrop-blur-md text-slate-400 hover:text-rose-500 shadow-xs flex items-center justify-center transition-all active:scale-90 cursor-pointer"
+                    aria-label="Add to Wishlist"
+                  >
+                    <Heart
+                      className={cn(
+                        "w-3.5 h-3.5 transition-colors",
+                        isInWishlist ? "fill-rose-500 text-rose-500" : "text-slate-400"
+                      )}
+                    />
+                  </button>
                 </div>
 
                 {/* Text Content (Left Aligned) */}

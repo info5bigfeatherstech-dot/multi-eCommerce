@@ -1,10 +1,13 @@
 "use client";
 
 import React, { useState } from "react";
-import { useAppDispatch } from "@/store/hooks";
+import { useParams, useNavigate } from "react-router-dom";
+import { useAppDispatch, useAppSelector } from "@/store/hooks";
 import { addItem } from "@/store/slices/cartSlice";
 import { setCartDrawerOpen } from "@/store/slices/uiSlice";
-import { formatCurrency } from "@/lib/utils";
+import { toggleWishlist } from "@/store/slices/wishlistSlice";
+import { formatCurrency, cn } from "@/lib/utils";
+import { notifyAddToCart, notifyWishlist } from "@/lib/notify";
 import {
   Star,
   Truck,
@@ -14,6 +17,7 @@ import {
   ArrowLeft,
   Check,
   ShieldCheck,
+  Heart,
 } from "lucide-react";
 import Button from "@/components/ui/Button";
 
@@ -25,11 +29,18 @@ const COLOR_OPTIONS = [
   { id: "blue", name: "Sky Blue", bg: "bg-sky-300", border: "border-sky-400" },
 ];
 
-export default function ProductDetail({ product, onBack }) {
+export default function ProductDetail({ product: propProduct, onBack: propOnBack }) {
   const dispatch = useAppDispatch();
+  const navigate = useNavigate();
+  const { slug } = useParams();
+  const products = useAppSelector((state) => state.products.items);
+  const wishlistItems = useAppSelector((state) => state.wishlist.items);
+
+  const matchedProduct =
+    propProduct || products?.find((p) => p.slug === slug || p.id === slug);
 
   // Default fallback product if none passed
-  const currentProduct = product || {
+  const currentProduct = matchedProduct || {
     id: "prod-airpods-max",
     name: "AirPods Max — High-Fidelity Over-Ear Headphones",
     category: "Mobile & Electronics",
@@ -54,15 +65,34 @@ export default function ProductDetail({ product, onBack }) {
 
   const imagesList = currentProduct.images || [currentProduct.imageUrl];
 
+  const isInWishlist = wishlistItems.some(
+    (item) =>
+      (item.slug && currentProduct.slug && item.slug === currentProduct.slug) ||
+      (item.id && currentProduct.id && item.id === currentProduct.id)
+  );
+
   const [selectedImage, setSelectedImage] = useState(imagesList[0]);
   const [selectedColor, setSelectedColor] = useState(COLOR_OPTIONS[0].id);
   const [quantity, setQuantity] = useState(1);
   const [pincode, setPincode] = useState("");
   const [pincodeChecked, setPincodeChecked] = useState(false);
+  const [isAdded, setIsAdded] = useState(false);
 
   const handleAddToCart = () => {
     dispatch(addItem({ ...currentProduct, quantity }));
-    dispatch(setCartDrawerOpen(true));
+    setIsAdded(true);
+    notifyAddToCart(currentProduct, {
+      onOpenCart: () => dispatch(setCartDrawerOpen(true)),
+    });
+    setTimeout(() => setIsAdded(false), 1500);
+  };
+
+  const handleToggleWishlist = () => {
+    const nextIsAdded = !isInWishlist;
+    dispatch(toggleWishlist(currentProduct));
+    notifyWishlist(currentProduct, nextIsAdded, {
+      onViewWishlist: () => navigate("/wishlist"),
+    });
   };
 
   const handleBuyNow = () => {
@@ -77,8 +107,8 @@ export default function ProductDetail({ product, onBack }) {
       <div className="flex flex-wrap items-center justify-between gap-4 mb-6 text-xs text-slate-500 font-inter">
         <div className="flex items-center gap-2 flex-wrap">
           <button
-            onClick={onBack}
-            className="flex items-center gap-1.5 text-slate-700 hover:text-primary font-bold transition-colors mr-2"
+            onClick={propOnBack || (() => navigate("/"))}
+            className="flex items-center gap-1.5 text-slate-700 hover:text-primary font-bold transition-colors mr-2 cursor-pointer"
           >
             <ArrowLeft className="w-4 h-4" />
             <span>Back</span>
@@ -105,12 +135,25 @@ export default function ProductDetail({ product, onBack }) {
         <div className="lg:col-span-6 xl:col-span-7 space-y-4">
           
           {/* Hero Main Image Container */}
-          <div className="relative w-full h-[400px] sm:h-[500px] lg:h-[540px] bg-slate-100/90 rounded-3xl overflow-hidden flex items-center justify-center p-6 border border-slate-200/80 shadow-inner">
+          <div className="relative w-full h-[400px] sm:h-[500px] lg:h-[540px] bg-slate-100/90 rounded-3xl overflow-hidden flex items-center justify-center p-6 border border-slate-200/80 shadow-inner group">
             <img
               src={selectedImage}
               alt={currentProduct.name}
               className="max-h-full max-w-full object-contain drop-shadow-xl transition-all duration-300 hover:scale-105"
             />
+            {/* Top-Right Wishlist Heart Button */}
+            <button
+              onClick={handleToggleWishlist}
+              className="absolute top-4 right-4 z-10 w-10 h-10 rounded-full bg-white/90 backdrop-blur-md shadow-md flex items-center justify-center transition-all hover:scale-110 active:scale-90 cursor-pointer"
+              aria-label="Toggle Wishlist"
+            >
+              <Heart
+                className={cn(
+                  "w-5 h-5 transition-colors",
+                  isInWishlist ? "fill-rose-500 text-rose-500" : "text-slate-400 hover:text-rose-500"
+                )}
+              />
+            </button>
           </div>
 
           {/* 4-Thumbnail Row */}
@@ -243,19 +286,36 @@ export default function ProductDetail({ product, onBack }) {
             </div>
           </div>
 
-          {/* CTA Action Buttons */}
-          <div className="grid grid-cols-2 gap-3 pt-2">
+          {/* CTA Action Buttons + Wishlist Button */}
+          <div className="flex items-center gap-3 pt-2">
             <button
               onClick={handleBuyNow}
-              className="w-full py-3.5 px-6 rounded-full bg-[#064e3b] hover:bg-[#04392b] active:scale-95 text-white font-bold text-sm transition-all shadow-md flex items-center justify-center gap-2"
+              className="flex-1 py-3.5 px-6 rounded-full bg-[#064e3b] hover:bg-[#04392b] active:scale-95 text-white font-bold text-sm transition-all shadow-md flex items-center justify-center gap-2 cursor-pointer"
             >
               Buy Now
             </button>
             <button
               onClick={handleAddToCart}
-              className="w-full py-3.5 px-6 rounded-full border-2 border-[#064e3b] text-[#064e3b] hover:bg-[#064e3b]/5 active:scale-95 font-bold text-sm transition-all flex items-center justify-center gap-2"
+              className={cn(
+                "flex-1 py-3.5 px-6 rounded-full border-2 font-bold text-sm transition-all flex items-center justify-center gap-2 cursor-pointer active:scale-95",
+                isAdded
+                  ? "bg-emerald-600 border-emerald-600 text-white"
+                  : "border-[#064e3b] text-[#064e3b] hover:bg-[#064e3b]/5"
+              )}
             >
-              Add to Cart
+              {isAdded ? "Added to Cart ✓" : "Add to Cart"}
+            </button>
+            <button
+              onClick={handleToggleWishlist}
+              title={isInWishlist ? "Remove from Wishlist" : "Save to Wishlist"}
+              className={cn(
+                "w-12 h-12 rounded-full border flex items-center justify-center transition-all cursor-pointer shadow-xs active:scale-90 flex-shrink-0",
+                isInWishlist
+                  ? "bg-rose-50 border-rose-200 text-rose-600"
+                  : "bg-slate-50 border-slate-200 text-slate-500 hover:text-rose-500 hover:border-rose-200"
+              )}
+            >
+              <Heart className={cn("w-5 h-5", isInWishlist && "fill-rose-500 text-rose-500")} />
             </button>
           </div>
 

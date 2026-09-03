@@ -6,39 +6,39 @@ import { ArrowRight, Sparkles, Layers, ChevronRight } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 const fallbackImageMap = {
-  "cat-home-living": "https://images.unsplash.com/photo-1583847268964-b28dc8f51f92?auto=format&fit=crop&w=600&q=80",
-  "cat-kitchen-dining": "https://images.unsplash.com/photo-1556911220-e15b29be8c8f?auto=format&fit=crop&w=600&q=80",
-  "cat-electronics-gadgets": "https://images.unsplash.com/photo-1505740420928-5e560c06d30e?auto=format&fit=crop&w=600&q=80",
-  "cat-beauty-personal-care": "https://images.unsplash.com/photo-1522337360788-8b13dee7a37e?auto=format&fit=crop&w=600&q=80",
-  "cat-sports-fitness": "https://images.unsplash.com/photo-1517838277536-f5f99be501cd?auto=format&fit=crop&w=600&q=80",
-  "cat-jewellery-accessories": "https://images.unsplash.com/photo-1599643478518-a784e5dc4c8f?auto=format&fit=crop&w=600&q=80",
-  "cat-home-decor": "https://images.unsplash.com/photo-1534349762230-e0cadf78f5da?auto=format&fit=crop&w=600&q=80",
-  "cat-stationery-office-school": "https://images.unsplash.com/photo-1585776245991-cf89dd7fc73a?auto=format&fit=crop&w=600&q=80",
-  "cat-gifts-lifestyle": "https://images.unsplash.com/photo-1549465220-1a8b9238cd48?auto=format&fit=crop&w=600&q=80",
-  "cat-travel-outdoor": "https://images.unsplash.com/photo-1488646953014-85cb44e25828?auto=format&fit=crop&w=600&q=80",
-  "cat-mix-items": "https://images.unsplash.com/photo-1526170375885-4d8ecf77b99f?auto=format&fit=crop&w=600&q=80",
+  "home-living": "https://images.unsplash.com/photo-1583847268964-b28dc8f51f92?auto=format&fit=crop&w=600&q=80",
+  "kitchen-dining": "https://images.unsplash.com/photo-1556911220-e15b29be8c8f?auto=format&fit=crop&w=600&q=80",
+  "electronics-gadgets": "https://images.unsplash.com/photo-1505740420928-5e560c06d30e?auto=format&fit=crop&w=600&q=80",
+  "beauty-personal-care": "https://images.unsplash.com/photo-1522335789203-aabd1fc54bc9?auto=format&fit=crop&w=600&q=80",
+  "sports-fitness": "https://images.unsplash.com/photo-1517838277536-f5f99be501cd?auto=format&fit=crop&w=600&q=80",
+  "jewellery-accessories": "https://images.unsplash.com/photo-1599643478518-a784e5dc4c8f?auto=format&fit=crop&w=600&q=80",
+  "home-decor": "https://images.unsplash.com/photo-1534349762230-e0cadf78f5da?auto=format&fit=crop&w=600&q=80",
+  "stationery-office-school": "https://images.unsplash.com/photo-1585776245991-cf89dd7fc73a?auto=format&fit=crop&w=600&q=80",
+  "gifts-lifestyle": "https://images.unsplash.com/photo-1549465220-1a8b9238cd48?auto=format&fit=crop&w=600&q=80",
+  "travel-outdoor": "https://images.unsplash.com/photo-1488646953014-85cb44e25828?auto=format&fit=crop&w=600&q=80",
+  "mix-items": "https://images.unsplash.com/photo-1526170375885-4d8ecf77b99f?auto=format&fit=crop&w=600&q=80",
 };
 
 const tagMap = {
-  "cat-home-living": "Popular",
-  "cat-kitchen-dining": "Best Value",
-  "cat-electronics-gadgets": "Top Tech",
-  "cat-beauty-personal-care": "Trending",
-  "cat-sports-fitness": "Fitness",
-  "cat-jewellery-accessories": "Bestseller",
-  "cat-home-decor": "Aesthetic",
-  "cat-stationery-office-school": "Office",
-  "cat-gifts-lifestyle": "Gifting",
-  "cat-travel-outdoor": "Outdoor",
-  "cat-mix-items": "Bulk Deals",
+  "home-living": "Popular",
+  "kitchen-dining": "Best Value",
+  "electronics-gadgets": "Top Tech",
+  "beauty-personal-care": "Trending",
+  "sports-fitness": "Fitness",
+  "jewellery-accessories": "Bestseller",
+  "home-decor": "Aesthetic",
+  "stationery-office-school": "Office",
+  "gifts-lifestyle": "Gifting",
+  "travel-outdoor": "Outdoor",
+  "mix-items": "Bulk Deals",
 };
 
 export function CategoryGrid({ onSelectCategory }) {
   const categories = useAppSelector((state) => state.categories.items);
   const [imageErrors, setImageErrors] = useState({});
 
-  const handleImageError = (id) => {
-    setImageErrors((prev) => ({ ...prev, [id]: true }));
+  const handleImageError = (slug) => {
+    setImageErrors((prev) => ({ ...prev, [slug]: true }));
   };
 
   return (
@@ -51,9 +51,7 @@ export function CategoryGrid({ onSelectCategory }) {
               <span className="text-xs font-poppins font-bold uppercase tracking-wider text-accent">
                 Explore Collections
               </span>
-              <span className="inline-flex items-center gap-1 text-[10px] font-semibold bg-accent/10 text-accent px-2 py-0.5 rounded-full">
-                <Sparkles className="w-3 h-3" /> 11 Departments
-              </span>
+              
             </div>
             <h2 className="section-title text-2xl md:text-3xl font-extrabold text-slate-900 mt-1">
               Shop By Category
@@ -75,17 +73,18 @@ export function CategoryGrid({ onSelectCategory }) {
         {/* Categories Visual Image Grid */}
         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3.5 sm:gap-4">
           {categories.map((cat) => {
+            const slug = cat.slug || cat.id;
             const imgSrc =
-              (!imageErrors[cat.id] && (cat.imageUrl || fallbackImageMap[cat.id])) ||
-              fallbackImageMap[cat.id] ||
+              (!imageErrors[slug] && (cat.imageUrl || fallbackImageMap[slug])) ||
+              fallbackImageMap[slug] ||
               "https://images.unsplash.com/photo-1526170375885-4d8ecf77b99f?auto=format&fit=crop&w=600&q=80";
 
-            const tag = cat.tag || tagMap[cat.id] || "Wholesale";
+            const tag = cat.tag || tagMap[slug] || "Wholesale";
 
             return (
               <div
-                key={cat.id}
-                onClick={() => onSelectCategory && onSelectCategory(cat.slug)}
+                key={slug}
+                onClick={() => onSelectCategory && onSelectCategory(slug)}
                 className="group relative rounded-2xl bg-white border border-slate-200/90 shadow-sm hover:shadow-xl hover:border-accent/40 transition-all duration-300 cursor-pointer flex flex-col overflow-hidden hover:-translate-y-1"
               >
                 {/* Image Showcase Container */}
@@ -93,7 +92,7 @@ export function CategoryGrid({ onSelectCategory }) {
                   <img
                     src={imgSrc}
                     alt={cat.name}
-                    onError={() => handleImageError(cat.id)}
+                    onError={() => handleImageError(slug)}
                     className="w-full h-full object-cover object-center group-hover:scale-110 transition-transform duration-700 ease-out"
                     loading="lazy"
                   />
