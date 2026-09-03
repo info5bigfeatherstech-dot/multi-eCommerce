@@ -1,12 +1,12 @@
 import React from "react";
 import { FolderTree, Image, Tag, Shield } from "lucide-react";
 
-export default function AdminDashboardPage() {
+export default function AdminDashboard() {
   return (
     <div className="flex-1 p-8 max-w-7xl mx-auto space-y-6">
       <div className="space-y-1">
         <h2 className="text-2xl font-poppins font-bold text-white">
-          Admin Control Center Placeholder
+          Admin Control Center
         </h2>
         <p className="text-slate-400 text-sm">
           Redux Toolkit slices (`categorySlice`, `bannerSlice`, `offerSlice`, `trustBadgeSlice`) are pre-configured with async CRUD thunks ready for live API integration.

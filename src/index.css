@@ -2,23 +2,52 @@
 @tailwind components;
 @tailwind utilities;
 
+@font-face {
+  font-family: 'geograph-regular';
+  src: local('geograph-regular'),
+       local('Geograph Regular'),
+       local('Geograph-Regular'),
+       local('Geograph'),
+       url('/fonts/geograph-regular.woff2') format('woff2'),
+       url('/fonts/geograph-regular.woff') format('woff'),
+       url('/fonts/geograph-regular.ttf') format('truetype');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Geograph';
+  src: local('geograph-regular'),
+       local('Geograph Regular'),
+       local('Geograph-Regular'),
+       local('Geograph'),
+       url('/fonts/geograph-regular.woff2') format('woff2'),
+       url('/fonts/geograph-regular.woff') format('woff'),
+       url('/fonts/geograph-regular.ttf') format('truetype');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
 :root {
-  --font-albert-sans: 'Albert Sans', sans-serif;
-  --font-poppins: 'Albert Sans', sans-serif;
-  --font-inter: 'Albert Sans', sans-serif;
+  --font-geograph: 'geograph-regular', 'Geograph', sans-serif;
+  --font-albert-sans: 'geograph-regular', 'Geograph', 'Albert Sans', sans-serif;
+  --font-poppins: 'geograph-regular', 'Geograph', 'Albert Sans', sans-serif;
+  --font-inter: 'geograph-regular', 'Geograph', 'Albert Sans', sans-serif;
 }
 
 @layer base {
-  body {
+  html, body {
     background-color: #F8FAFC;
     color: #0F172A;
-    font-family: var(--font-albert-sans), sans-serif;
+    font-family: 'geograph-regular', 'Geograph', var(--font-geograph), var(--font-albert-sans), sans-serif;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
   }
 
-  h1, h2, h3, h4, h5, h6, button, input {
-    font-family: var(--font-albert-sans), sans-serif;
+  h1, h2, h3, h4, h5, h6, button, input, select, textarea {
+    font-family: 'geograph-regular', 'Geograph', var(--font-geograph), var(--font-albert-sans), sans-serif;
   }
 }
 

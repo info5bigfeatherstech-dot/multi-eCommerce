@@ -2,7 +2,7 @@ import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 import { api } from "@/lib/axios";
 import categoriesData from "@/data/categories.json";
 
-const USE_MOCK = typeof process === "undefined" || !process.env || process.env.NEXT_PUBLIC_USE_MOCK !== "false";
+const USE_MOCK = import.meta.env?.VITE_USE_MOCK !== "false";
 
 // Async Thunks
 export const fetchCategories = createAsyncThunk(

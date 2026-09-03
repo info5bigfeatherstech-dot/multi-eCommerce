@@ -21,10 +21,12 @@ module.exports = {
         },
       },
       fontFamily: {
-        sans: ["Albert Sans", "sans-serif"],
-        "albert-sans": ["Albert Sans", "sans-serif"],
-        poppins: ["Poppins", "sans-serif"],
-        inter: ["Inter", "sans-serif"],
+        sans: ["'geograph-regular'", "Geograph", "Albert Sans", "sans-serif"],
+        geograph: ["'geograph-regular'", "Geograph", "sans-serif"],
+        "geograph-regular": ["'geograph-regular'", "Geograph", "sans-serif"],
+        "albert-sans": ["'geograph-regular'", "Geograph", "Albert Sans", "sans-serif"],
+        poppins: ["'geograph-regular'", "Geograph", "Poppins", "sans-serif"],
+        inter: ["'geograph-regular'", "Geograph", "Inter", "sans-serif"],
       },
       keyframes: {
         marquee: {
