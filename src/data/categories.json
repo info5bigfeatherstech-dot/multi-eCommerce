@@ -1,0 +1,152 @@
+[
+  {
+    "id": "cat-home-living",
+    "slug": "home-living",
+    "name": "Home & Living",
+    "icon": "Home",
+    "isFeatured": true,
+    "itemCount": 3240,
+    "subCategories": [
+      { "id": "sub-cleaning", "name": "Cleaning Supplies & Mops", "slug": "cleaning-supplies", "itemCount": 540, "isPopular": true },
+      { "id": "sub-organizers", "name": "Storage & Organizers", "slug": "storage-organizers", "itemCount": 820, "isPopular": true },
+      { "id": "sub-laundry", "name": "Laundry Baskets & Hangers", "slug": "laundry-essentials", "itemCount": 410, "isPopular": false },
+      { "id": "sub-bathroom", "name": "Bathroom Accessories", "slug": "bathroom-accessories", "itemCount": 630, "isPopular": true }
+    ]
+  },
+  {
+    "id": "cat-kitchen-dining",
+    "slug": "kitchen-dining",
+    "name": "Kitchen & Dining",
+    "icon": "Utensils",
+    "isFeatured": true,
+    "itemCount": 2150,
+    "subCategories": [
+      { "id": "sub-storage-jars", "name": "Storage Containers & Jars", "slug": "storage-jars", "itemCount": 680, "isPopular": true },
+      { "id": "sub-choppers", "name": "Vegetable Choppers & Cutters", "slug": "choppers-cutters", "itemCount": 490, "isPopular": true },
+      { "id": "sub-cookware-tools", "name": "Kitchen Utensils & Gadgets", "slug": "kitchen-utensils", "itemCount": 580, "isPopular": false },
+      { "id": "sub-bottles", "name": "Water Bottles & Flasks", "slug": "water-bottles", "itemCount": 400, "isPopular": false }
+    ]
+  },
+  {
+    "id": "cat-electronics-gadgets",
+    "slug": "electronics-gadgets",
+    "name": "Electronics & Gadgets",
+    "icon": "Smartphone",
+    "isFeatured": true,
+    "itemCount": 2890,
+    "subCategories": [
+      { "id": "sub-cables-chargers", "name": "USB Cables & Fast Chargers", "slug": "cables-chargers", "itemCount": 890, "isPopular": true },
+      { "id": "sub-mobile-stands", "name": "Mobile Holders & Stands", "slug": "mobile-holders", "itemCount": 640, "isPopular": true },
+      { "id": "sub-audio-buds", "name": "Bluetooth Earbuds & Speakers", "slug": "earbuds-speakers", "itemCount": 780, "isPopular": true },
+      { "id": "sub-smartwatch", "name": "Smartwatches & Straps", "slug": "smartwatches", "itemCount": 580, "isPopular": false }
+    ]
+  },
+  {
+    "id": "cat-beauty-personal-care",
+    "slug": "beauty-personal-care",
+    "name": "Beauty & Personal Care",
+    "icon": "Sparkles",
+    "isFeatured": true,
+    "itemCount": 1250,
+    "subCategories": [
+      { "id": "sub-skincare", "name": "Skincare & Face Wash", "slug": "skincare", "itemCount": 380, "isPopular": true },
+      { "id": "sub-makeup", "name": "Beauty & Makeup Tools", "slug": "makeup-tools", "itemCount": 290, "isPopular": true },
+      { "id": "sub-grooming", "name": "Hair Trimmers & Shavers", "slug": "trimmers-shavers", "itemCount": 310, "isPopular": false },
+      { "id": "sub-wellness", "name": "Personal Care & Hygiene", "slug": "personal-care", "itemCount": 270, "isPopular": false }
+    ]
+  },
+  {
+    "id": "cat-sports-fitness",
+    "slug": "sports-fitness",
+    "name": "Sports & Fitness",
+    "icon": "Dumbbell",
+    "isFeatured": false,
+    "itemCount": 780,
+    "subCategories": [
+      { "id": "sub-gym-gear", "name": "Resistance Bands & Dumbbells", "slug": "resistance-bands", "itemCount": 340, "isPopular": true },
+      { "id": "sub-yoga-mats", "name": "Yoga Mats & Water Shakers", "slug": "yoga-mats", "itemCount": 260, "isPopular": false },
+      { "id": "sub-outdoor-sports", "name": "Badminton & Cricket Accessories", "slug": "badminton-accessories", "itemCount": 180, "isPopular": false }
+    ]
+  },
+  {
+    "id": "cat-jewellery-accessories",
+    "slug": "jewellery-accessories",
+    "name": "Jewellery & Accessories",
+    "icon": "Gem",
+    "isFeatured": true,
+    "itemCount": 1840,
+    "subCategories": [
+      { "id": "sub-necklaces", "name": "Fashion Necklaces & Sets", "slug": "necklaces", "itemCount": 540, "isPopular": true },
+      { "id": "sub-earrings", "name": "Trendy Earrings & Studs", "slug": "earrings", "itemCount": 620, "isPopular": true },
+      { "id": "sub-bangles", "name": "Bracelets & Bangles", "slug": "bangles", "itemCount": 410, "isPopular": false },
+      { "id": "sub-hair-acc", "name": "Hair Accessories & Clips", "slug": "hair-accessories", "itemCount": 270, "isPopular": false }
+    ]
+  },
+  {
+    "id": "cat-home-decor",
+    "slug": "home-decor",
+    "name": "Home Decor",
+    "icon": "Palette",
+    "isFeatured": true,
+    "itemCount": 1560,
+    "subCategories": [
+      { "id": "sub-wall-art", "name": "Wall Art & Frames", "slug": "wall-art", "itemCount": 430, "isPopular": true },
+      { "id": "sub-lighting", "name": "Decorative Lights & Lamps", "slug": "decorative-lighting", "itemCount": 520, "isPopular": true },
+      { "id": "sub-showpieces", "name": "Showpieces & Figurines", "slug": "showpieces", "itemCount": 360, "isPopular": false },
+      { "id": "sub-vases", "name": "Vases & Artificial Flowers", "slug": "vases-flowers", "itemCount": 250, "isPopular": false }
+    ]
+  },
+  {
+    "id": "cat-stationery-office-school",
+    "slug": "stationery-office-school",
+    "name": "Stationery, Office & School",
+    "icon": "FileText",
+    "isFeatured": false,
+    "itemCount": 920,
+    "subCategories": [
+      { "id": "sub-notebooks", "name": "Diaries & Organizers", "slug": "diaries-organizers", "itemCount": 310, "isPopular": true },
+      { "id": "sub-pens-markers", "name": "Pens, Highlighters & Markers", "slug": "pens-markers", "itemCount": 280, "isPopular": false },
+      { "id": "sub-desk-supplies", "name": "Desk Tidy & Calculators", "slug": "desk-supplies", "itemCount": 190, "isPopular": false },
+      { "id": "sub-school-bags", "name": "School Supplies & Pencil Cases", "slug": "school-supplies", "itemCount": 140, "isPopular": true }
+    ]
+  },
+  {
+    "id": "cat-gifts-lifestyle",
+    "slug": "gifts-lifestyle",
+    "name": "Gifts & Lifestyle",
+    "icon": "Gift",
+    "isFeatured": true,
+    "itemCount": 1140,
+    "subCategories": [
+      { "id": "sub-custom-gifts", "name": "Personalized & Novelty Gifts", "slug": "novelty-gifts", "itemCount": 390, "isPopular": true },
+      { "id": "sub-keychains", "name": "Keychains & Wallets", "slug": "keychains-wallets", "itemCount": 410, "isPopular": true },
+      { "id": "sub-party-decor", "name": "Party Props & Birthday Decor", "slug": "party-props", "itemCount": 340, "isPopular": false }
+    ]
+  },
+  {
+    "id": "cat-travel-outdoor",
+    "slug": "travel-outdoor",
+    "name": "Travel & Outdoor",
+    "icon": "Compass",
+    "isFeatured": false,
+    "itemCount": 860,
+    "subCategories": [
+      { "id": "sub-travel-bags", "name": "Luggage Tags & Travel Organizers", "slug": "travel-organizers", "itemCount": 310, "isPopular": true },
+      { "id": "sub-camping", "name": "Camping Gear & Flasks", "slug": "camping-gear", "itemCount": 280, "isPopular": true },
+      { "id": "sub-car-accessories", "name": "Car Accessories & Cushions", "slug": "car-accessories", "itemCount": 270, "isPopular": false }
+    ]
+  },
+  {
+    "id": "cat-mix-items",
+    "slug": "mix-items",
+    "name": "Mix Items",
+    "icon": "Package",
+    "isFeatured": false,
+    "itemCount": 4500,
+    "subCategories": [
+      { "id": "sub-clearance", "name": "Clearance Stock", "slug": "clearance-stock", "itemCount": 1800, "isPopular": true },
+      { "id": "sub-combo-packs", "name": "Bulk Combo Offers", "slug": "bulk-combos", "itemCount": 1500, "isPopular": true },
+      { "id": "sub-assorted", "name": "Assorted Wholesale Lots", "slug": "assorted-lots", "itemCount": 1200, "isPopular": false }
+    ]
+  }
+]

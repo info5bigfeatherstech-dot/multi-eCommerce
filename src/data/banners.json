@@ -1,0 +1,38 @@
+[
+  {
+    "id": "banner-1",
+    "title": "FREE SHIPPING",
+    "subtitle": "OVER ₹599",
+    "badge": "WHOLESALE DIRECT",
+    "tag": "FREE SHIPPING",
+    "ctaText": "Explore Deals",
+    "ctaLink": "/category/home-living",
+    "secondaryCtaText": "Bulk Catalog",
+    "bgColor": "from-amber-100 via-amber-50 to-orange-100",
+    "imageUrl": "https://images.unsplash.com/photo-1586528116311-ad8dd3c8310d?auto=format&fit=crop&w=1200&q=80"
+  },
+  {
+    "id": "banner-2",
+    "title": "NO MOQ REQUIRED",
+    "subtitle": "BUY 1 OR 1,000 UNITS AT SAME LOW PRICE",
+    "badge": "ZERO MOQ",
+    "tag": "BEST VALUE",
+    "ctaText": "Shop Wholesale",
+    "ctaLink": "/category/kitchen-dining",
+    "secondaryCtaText": "View Prices",
+    "bgColor": "from-slate-100 via-blue-50 to-slate-200",
+    "imageUrl": "https://images.unsplash.com/photo-1441986300917-64674bd600d8?auto=format&fit=crop&w=1200&q=80"
+  },
+  {
+    "id": "banner-3",
+    "title": "100% GST INCLUSIVE",
+    "subtitle": "NO EXTRA CHARGES AT CHECKOUT",
+    "badge": "GST INVOICE READY",
+    "tag": "TAX SAVINGS",
+    "ctaText": "Order Stock",
+    "ctaLink": "/category/electronics-gadgets",
+    "secondaryCtaText": "Download Invoice",
+    "bgColor": "from-emerald-50 via-teal-50 to-slate-100",
+    "imageUrl": "https://images.unsplash.com/photo-1581092160607-ee22621dd758?auto=format&fit=crop&w=1200&q=80"
+  }
+]

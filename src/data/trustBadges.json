@@ -1,0 +1,38 @@
+[
+  {
+    "id": "badge-1",
+    "title": "Lowest Prices Direct",
+    "subtitle": "On Everything in Stock",
+    "description": "Direct factory partnerships ensure unmatched wholesale pricing with no middlemen.",
+    "icon": "Tag",
+    "badgeText": "BEST VALUE",
+    "bgColor": "bg-amber-50",
+    "borderColor": "border-amber-200/80",
+    "iconBg": "bg-amber-100",
+    "iconColor": "text-amber-700"
+  },
+  {
+    "id": "badge-2",
+    "title": "GST Inclusive Invoice",
+    "subtitle": "No Extra Charges at Checkout",
+    "description": "Get transparent tax breakup with instant GST input tax credit for your business.",
+    "icon": "ShieldCheck",
+    "badgeText": "100% VERIFIED",
+    "bgColor": "bg-blue-50",
+    "borderColor": "border-blue-200/80",
+    "iconBg": "bg-blue-100",
+    "iconColor": "text-blue-700"
+  },
+  {
+    "id": "badge-3",
+    "title": "Zero MOQ Required",
+    "subtitle": "Buy 1 or 1,000 Units",
+    "description": "Order small sample quantities or bulk inventory at the exact same transparent rates.",
+    "icon": "Truck",
+    "badgeText": "FLEXIBLE",
+    "bgColor": "bg-emerald-50",
+    "borderColor": "border-emerald-200/80",
+    "iconBg": "bg-emerald-100",
+    "iconColor": "text-emerald-700"
+  }
+]
