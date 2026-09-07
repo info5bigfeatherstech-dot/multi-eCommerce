@@ -37,7 +37,7 @@ export function SearchBar() {
             <SelectValue placeholder="Category" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="all">All Categories</SelectItem>
+            <SelectItem value="all">Categories</SelectItem>
             <SelectItem value="home-living">Home & Living</SelectItem>
             <SelectItem value="kitchen-dining">Kitchen & Dining</SelectItem>
             <SelectItem value="electronics-gadgets">Electronics & Gadgets</SelectItem>

@@ -5,7 +5,7 @@ const uiSlice = createSlice({
   initialState: {
     isCategorySidebarOpen: true,
     activeFlyoutCategoryId: "cat-home-living",
-    activeCategoryNavId: "just-arrived",
+    activeCategoryNavId: null,
     searchQuery: "",
     isMobileDrawerOpen: false,
     isCartDrawerOpen: false,
