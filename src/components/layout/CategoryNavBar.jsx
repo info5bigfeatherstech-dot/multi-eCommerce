@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useEffect, useRef } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import { useAppDispatch, useAppSelector } from "@/store/hooks";
 import { fetchCategories } from "@/store/slices/categorySlice";
 import { toggleCategorySidebar, setActiveCategoryNavId } from "@/store/slices/uiSlice";
@@ -34,46 +34,68 @@ const FEATURED_ITEMS = [
 
 const CATEGORY_DISPLAY_NAMES = {
   "home-living": "Home & Living",
-  "kitchen-dining": "Kitchen",
-  "electronics-gadgets": "Electronics",
-  "beauty-personal-care": "Beauty",
-  "sports-fitness": "Fitness",
-  "jewellery-acc": "Jewellery",
-  "home-decor": "Decor",
-  "stationery-office": "Stationery",
-  "gifts-lifestyle": "Gifts",
-  "travel-outdoor": "Travel",
-  "mix-items": "Clearance",
+  "kitchen-dining": "Kitchen & Dining",
+  "electronics-gadgets": "Electronics & Gadgets",
+  "beauty-personal-care": "Beauty & Personal Care",
+  "sports-fitness": "Sports & Fitness",
+  "jewellery-accessories": "Jewellery & Accessories",
+  "jewellery-acc": "Jewellery & Accessories",
+  "home-decor": "Home Decor",
+  "stationery-office-school": "Stationery, Office & School",
+  "stationery-office": "Stationery, Office & School",
+  "gifts-lifestyle": "Gifts & Lifestyle",
+  "travel-outdoor": "Travel & Outdoor",
+  "mix-items": "Mix Items",
 };
 
 const ALL_CATEGORIES = [
   { slug: "home-living", name: "Home & Living" },
-  { slug: "kitchen-dining", name: "Kitchen" },
-  { slug: "electronics-gadgets", name: "Electronics" },
-  { slug: "beauty-personal-care", name: "Beauty" },
-  { slug: "sports-fitness", name: "Fitness" },
-  { slug: "jewellery-acc", name: "Jewellery" },
-  { slug: "home-decor", name: "Decor" },
-  { slug: "stationery-office", name: "Stationery" },
-  { slug: "gifts-lifestyle", name: "Gifts" },
-  { slug: "travel-outdoor", name: "Travel" },
-  { slug: "mix-items", name: "Clearance" },
+  { slug: "kitchen-dining", name: "Kitchen & Dining" },
+  { slug: "electronics-gadgets", name: "Electronics & Gadgets" },
+  { slug: "beauty-personal-care", name: "Beauty & Personal Care" },
+  { slug: "sports-fitness", name: "Sports & Fitness" },
+  { slug: "jewellery-accessories", name: "Jewellery & Accessories" },
+  { slug: "home-decor", name: "Home Decor" },
+  { slug: "stationery-office-school", name: "Stationery, Office & School" },
+  { slug: "gifts-lifestyle", name: "Gifts & Lifestyle" },
+  { slug: "travel-outdoor", name: "Travel & Outdoor" },
+  { slug: "mix-items", name: "Mix Items" },
 ];
 
 export function CategoryNavBar() {
   const dispatch = useAppDispatch();
   const navigate = useNavigate();
+  const location = useLocation();
   const scrollRef = useRef(null);
   const { items: categories, status } = useAppSelector((state) => state.categories);
-  const { isCategorySidebarOpen, activeCategoryNavId } = useAppSelector(
-    (state) => state.ui
-  );
+  const { isCategorySidebarOpen } = useAppSelector((state) => state.ui);
+
+  // Derive active category directly from current route URL
+  const categoryMatch = location.pathname.match(/^\/category\/([^/]+)/);
+  const activeCategoryNavId = categoryMatch ? categoryMatch[1] : null;
 
   useEffect(() => {
     if (status === "idle") {
       dispatch(fetchCategories());
     }
   }, [dispatch, status]);
+
+  useEffect(() => {
+    dispatch(setActiveCategoryNavId(activeCategoryNavId));
+  }, [activeCategoryNavId, dispatch]);
+
+  useEffect(() => {
+    const el = scrollRef.current;
+    if (!el) return;
+    const onWheel = (e) => {
+      if (e.deltaY !== 0) {
+        e.preventDefault();
+        el.scrollLeft += e.deltaY;
+      }
+    };
+    el.addEventListener("wheel", onWheel, { passive: false });
+    return () => el.removeEventListener("wheel", onWheel);
+  }, []);
 
   const handleNavClick = (slug) => {
     dispatch(setActiveCategoryNavId(slug));
@@ -165,7 +187,11 @@ export function CategoryNavBar() {
             {/* Normal Category Links for All Departments */}
             {displayCategories.map((cat) => {
               const catSlug = cat.slug || cat.id;
-              const isActive = activeCategoryNavId === catSlug;
+              const isActive =
+                Boolean(activeCategoryNavId) &&
+                (activeCategoryNavId === catSlug ||
+                  (catSlug === "jewellery-accessories" && activeCategoryNavId === "jewellery-acc") ||
+                  (catSlug === "stationery-office-school" && activeCategoryNavId === "stationery-office"));
               const displayName = CATEGORY_DISPLAY_NAMES[catSlug] || cat.name;
 
               return (

@@ -41,7 +41,7 @@ const SLUG_TO_NAME_MAP = {
   "stationery-office": "Stationery, Office & School",
   "gifts-lifestyle": "Gifts & Lifestyle",
   "travel-outdoor": "Travel & Outdoor",
-  "mix-items": "Mix Items & Clearance",
+  "mix-items": "Mix Items",
   "under-99": "Deals Under ₹99",
   "mega-sale": "Mega Sale Wholesale",
   "just-arrived": "Just Arrived Collection",
