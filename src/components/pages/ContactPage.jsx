@@ -341,20 +341,22 @@ export function ContactPage({ onBack: propOnBack }) {
                 />
               </div>
 
-              <button
-                type="submit"
-                disabled={isSubmitting}
-                className="w-full py-3 rounded-xl bg-accent hover:bg-accent-hover text-white font-poppins font-bold text-xs flex items-center justify-center gap-2 transition-all shadow-md hover:shadow-lg disabled:opacity-70"
-              >
-                {isSubmitting ? (
-                  <span>Sending Message...</span>
-                ) : (
-                  <>
-                    <Send className="w-4 h-4" />
-                    <span>Send Message to Support</span>
-                  </>
-                )}
-              </button>
+              <div className="pt-2 flex items-center justify-start">
+                <button
+                  type="submit"
+                  disabled={isSubmitting}
+                  className="inline-flex items-center justify-center gap-2 px-6 py-2.5 rounded-xl bg-accent hover:bg-accent-hover text-white font-poppins font-bold text-xs transition-all shadow-sm hover:shadow-md active:scale-95 disabled:opacity-70 cursor-pointer"
+                >
+                  {isSubmitting ? (
+                    <span>Sending Message...</span>
+                  ) : (
+                    <>
+                      <Send className="w-3.5 h-3.5" />
+                      <span>Send Message to Support</span>
+                    </>
+                  )}
+                </button>
+              </div>
             </form>
           )}
         </div>

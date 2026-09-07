@@ -46,47 +46,46 @@ export function Header() {
   );
 
   return (
-    <div className="w-full max-w-[1600px] mx-auto px-4 py-1">
-      <header className="sticky top-0 z-40 bg-gradient-to-r from-primary via-primary-700 to-primary text-white shadow-xl border border-primary-light/40 rounded-2xl px-4 sm:px-5 py-2.5 transition-all">
-        <div className="flex items-center justify-between gap-3 lg:gap-6">
+    <header className="w-full sticky top-0 z-40 bg-gradient-to-r from-primary via-primary-700 to-primary text-white shadow-md border-b border-white/10 transition-all">
+      <div className="w-full px-4 sm:px-6 py-2.5 flex items-center justify-between gap-3 lg:gap-6">
 
-          {/* Logo & Mobile Menu */}
-          <div className="flex items-center gap-3 flex-shrink-0">
-            <button
-              onClick={() => dispatch(toggleMobileDrawer())}
-              aria-label="Toggle Mobile Menu"
-              className="lg:hidden p-2 rounded-lg bg-primary-light/40 hover:bg-primary-light text-white focus:outline-none"
-            >
-              <Menu className="w-5 h-5 stroke-[2]" />
-            </button>
+        {/* Logo & Mobile Menu */}
+        <div className="flex items-center gap-3 flex-shrink-0">
+          <button
+            onClick={() => dispatch(toggleMobileDrawer())}
+            aria-label="Toggle Mobile Menu"
+            className="lg:hidden p-2 rounded-lg bg-primary-light/40 hover:bg-primary-light text-white focus:outline-none"
+          >
+            <Menu className="w-5 h-5 stroke-[2]" />
+          </button>
 
-            <Link
-              to="/"
-              className="flex items-center gap-2 group text-left focus:outline-none"
-            >
-              <div className="h-10 w-10 rounded-xl bg-accent flex items-center justify-center text-white shadow-md group-hover:scale-105 transition-transform duration-200">
-                <Store className="w-6 h-6 stroke-[2]" />
-              </div>
-              <div className="flex flex-col">
-                <div className="flex items-center gap-1.5">
-                  <span className="font-poppins font-black text-xl tracking-tight text-white group-hover:text-accent transition-colors">
-                    {siteConfig.name}
-                  </span>
-                  <span className="hidden sm:inline-flex items-center justify-center p-0.5 rounded-full bg-accent/20 text-accent">
-                    <ShieldCheck className="w-3.5 h-3.5 stroke-[2.5]" />
-                  </span>
-                </div>
-                <span className="font-poppins text-[9px] font-black tracking-widest text-accent uppercase mt-0.5">
-                  {siteConfig.logoSubtext}
+          <Link
+            to="/"
+            className="flex items-center gap-2 group text-left focus:outline-none"
+          >
+            <div className="h-10 w-10 rounded-xl bg-accent flex items-center justify-center text-white shadow-md group-hover:scale-105 transition-transform duration-200">
+              <Store className="w-6 h-6 stroke-[2]" />
+            </div>
+            <div className="flex flex-col">
+              <div className="flex items-center gap-1.5">
+                <span className="font-poppins font-black text-xl tracking-tight text-white group-hover:text-accent transition-colors">
+                  {siteConfig.name}
+                </span>
+                <span className="hidden sm:inline-flex items-center justify-center p-0.5 rounded-full bg-accent/20 text-accent">
+                  <ShieldCheck className="w-3.5 h-3.5 stroke-[2.5]" />
                 </span>
               </div>
-            </Link>
-          </div>
+              <span className="font-poppins text-[9px] font-black tracking-widest text-accent uppercase mt-0.5">
+                {siteConfig.logoSubtext}
+              </span>
+            </div>
+          </Link>
+        </div>
 
-          {/* Center: Search Bar */}
-          <div className="flex-1 max-w-md hidden md:block">
-            <SearchBar />
-          </div>
+        {/* Center: Search Bar */}
+        <div className="flex-1 max-w-2xl mx-2 hidden md:block">
+          <SearchBar />
+        </div>
 
           {/* Right of Search Bar: Dropshipping & Inquiry Buttons (Navigate directly to their page) */}
           <div className="hidden lg:flex items-center gap-2.5 flex-shrink-0">
@@ -247,7 +246,6 @@ export function Header() {
         </div>
 
       </header>
-    </div>
   );
 }
 

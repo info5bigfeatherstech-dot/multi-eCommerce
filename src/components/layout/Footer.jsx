@@ -250,7 +250,7 @@ export function Footer() {
         </div>
 
         {/* Bottom Bar: Copyright & Payment Badges */}
-        <div className="flex flex-col sm:flex-row items-center justify-between gap-4 pt-4 text-xs text-slate-400 font-inter">
+        {/* <div className="flex flex-col sm:flex-row items-center justify-between gap-4 pt-4 text-xs text-slate-400 font-inter">
           <p>© 2026 ApexMart Wholesale. All Rights Reserved.</p>
           <div className="flex items-center gap-3 text-slate-300">
             <span className="text-[11px] text-slate-500">Secured Payments:</span>
@@ -260,7 +260,7 @@ export function Footer() {
             <span className="px-2 py-1 bg-primary-light/40 rounded text-[10px] font-bold text-white">NetBanking</span>
             <span className="px-2 py-1 bg-primary-light/40 rounded text-[10px] font-bold text-white">COD</span>
           </div>
-        </div>
+        </div> */}
 
       </div>
 

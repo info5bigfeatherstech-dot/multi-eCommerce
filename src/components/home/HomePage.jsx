@@ -82,7 +82,7 @@ export function HomePage() {
       <FeaturedCollection onSelectProduct={handleSelectProduct} />
 
       {/* 8. Customer Trust & Wholesale Testimonials */}
-      <CustomerTrust />
+      {/* <CustomerTrust /> */}
     </>
   );
 }

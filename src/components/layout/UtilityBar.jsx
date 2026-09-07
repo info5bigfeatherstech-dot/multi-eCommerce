@@ -18,8 +18,8 @@ export function UtilityBar() {
   }, [dispatch, status]);
 
   return (
-    <div className="w-full max-w-[1600px] mx-auto px-4 py-1">
-      <div className="bg-primary text-white text-xs py-1.5 px-4 rounded-xl border border-primary-light/40 shadow-sm flex items-center justify-between gap-4">
+    <div className="w-full bg-[#0d1727] text-white border-b border-white/10 shadow-xs">
+      <div className="w-full px-4 sm:px-6 py-1.5 flex items-center justify-between gap-4 text-xs">
         
         {/* Left: Help & Location Pill */}
         <div className="flex items-center gap-3 flex-shrink-0">

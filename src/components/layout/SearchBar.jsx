@@ -28,7 +28,7 @@ export function SearchBar() {
   return (
     <form
       onSubmit={handleSearchSubmit}
-      className="relative flex items-center w-full max-w-lg mx-auto shadow-md rounded-full bg-white p-1 border border-slate-200/80 focus-within:ring-2 focus-within:ring-accent/50 focus-within:border-accent transition-all duration-300"
+      className="relative flex items-center w-full shadow-md rounded-full bg-white p-1 border border-slate-200/80 focus-within:ring-2 focus-within:ring-accent/50 focus-within:border-accent transition-all duration-300"
     >
       {/* Shadcn Select Category Dropdown */}
       <div className="hidden sm:block w-32 flex-shrink-0 border-r border-slate-200/80 pr-1">

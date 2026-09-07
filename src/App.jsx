@@ -48,7 +48,7 @@ export default function App() {
       <CategoryNavBar />
 
       {/* Main Content Area: Routed with React Router */}
-      <main className="flex-1 max-w-[1600px] w-full mx-auto px-4 pt-2 pb-6">
+      <main className="flex-1 max-w-[1600px] w-full mx-auto px-4 pt-4 pb-8">
         <Routes>
           <Route path="/" element={<HomePage />} />
           <Route path="/dropshipping" element={<DropshippingPage />} />

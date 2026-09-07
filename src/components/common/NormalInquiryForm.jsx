@@ -162,30 +162,32 @@ export function NormalInquiryForm({ onSubmitted, isCompact = false }) {
         />
       </div>
 
-      {/* Submit Button */}
-      <Button
-        type="submit"
-        variant="coral"
-        size="sm"
-        disabled={isSubmitting}
-        className="w-full py-2.5 rounded-xl font-poppins font-bold text-xs uppercase tracking-wider shadow-xs hover:shadow-md transition-all active:scale-98 flex items-center justify-center gap-1.5"
-      >
-        {isSubmitting ? (
-          <span>Sending Inquiry...</span>
-        ) : (
-          <>
-            <Send className="w-3.5 h-3.5 stroke-[2.2]" />
-            <span>Send Normal Inquiry</span>
-          </>
-        )}
-      </Button>
+      {/* Submit Button & Features */}
+      <div className="pt-2 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+        <Button
+          type="submit"
+          variant="coral"
+          size="sm"
+          disabled={isSubmitting}
+          className="w-fit inline-flex px-6 py-2.5 rounded-xl font-poppins font-bold text-xs uppercase tracking-wider shadow-xs hover:shadow-md transition-all active:scale-98 items-center justify-center gap-1.5 cursor-pointer"
+        >
+          {isSubmitting ? (
+            <span>Sending Inquiry...</span>
+          ) : (
+            <>
+              <Send className="w-3.5 h-3.5 stroke-[2.2]" />
+              <span>Send Normal Inquiry</span>
+            </>
+          )}
+        </Button>
 
-      <div className="flex items-center justify-between text-[10px] font-inter text-slate-400 pt-1">
-        <span className="flex items-center gap-1">
-          <ShieldCheck className="w-3 h-3 text-emerald-600" />
-          Direct Factory Response
-        </span>
-        <span>Replies in ~2 Hours</span>
+        <div className="flex items-center gap-4 text-[10px] font-inter text-slate-400">
+          <span className="flex items-center gap-1">
+            <ShieldCheck className="w-3 h-3 text-emerald-600" />
+            Direct Factory Response
+          </span>
+          <span>Replies in ~2 Hours</span>
+        </div>
       </div>
     </form>
   );
