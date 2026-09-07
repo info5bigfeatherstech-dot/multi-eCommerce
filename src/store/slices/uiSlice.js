@@ -9,6 +9,8 @@ const uiSlice = createSlice({
     searchQuery: "",
     isMobileDrawerOpen: false,
     isCartDrawerOpen: false,
+    isAuthModalOpen: false,
+    authModalTab: "login", // "login" | "register"
     currentView: "home", // "home" | "product" | "wishlist" | "contact" | "inquiry"
   },
   reducers: {
@@ -42,6 +44,16 @@ const uiSlice = createSlice({
     setCartDrawerOpen: (state, action) => {
       state.isCartDrawerOpen = action.payload;
     },
+    openAuthModal: (state, action) => {
+      state.isAuthModalOpen = true;
+      state.authModalTab = action.payload ?? "login";
+    },
+    closeAuthModal: (state) => {
+      state.isAuthModalOpen = false;
+    },
+    setAuthModalTab: (state, action) => {
+      state.authModalTab = action.payload;
+    },
   },
 });
 
@@ -56,6 +68,9 @@ export const {
   setMobileDrawerOpen,
   toggleCartDrawer,
   setCartDrawerOpen,
+  openAuthModal,
+  closeAuthModal,
+  setAuthModalTab,
 } = uiSlice.actions;
 
 export default uiSlice.reducer;

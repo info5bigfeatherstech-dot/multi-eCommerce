@@ -20,6 +20,7 @@ import Toaster from "./components/ui/Toaster";
 import { useAppDispatch, useAppSelector } from "./store/hooks";
 import { setMobileDrawerOpen } from "./store/slices/uiSlice";
 import { Store, X } from "lucide-react";
+import AuthModal from "./components/auth/AuthModal";
 
 export default function App() {
   const dispatch = useAppDispatch();
@@ -99,6 +100,9 @@ export default function App() {
           </div>
         </div>
       )}
+
+      {/* Auth Login / Register Modal (global popup) */}
+      <AuthModal />
 
       {/* Main Footer Component */}
       <Footer />

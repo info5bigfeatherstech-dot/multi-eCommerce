@@ -27,7 +27,7 @@ import {
   Sparkles,
   Truck,
 } from "lucide-react";
-import { toggleMobileDrawer, toggleCartDrawer } from "@/store/slices/uiSlice";
+import { toggleMobileDrawer, toggleCartDrawer, openAuthModal } from "@/store/slices/uiSlice";
 import {
   DropdownMenu,
   DropdownMenuTrigger,
@@ -147,7 +147,10 @@ export function Header() {
               <DropdownMenuContent align="end" className="w-48">
                 <DropdownMenuLabel>Business Account</DropdownMenuLabel>
                 <DropdownMenuSeparator />
-                <DropdownMenuItem className="gap-2">
+                <DropdownMenuItem
+                  className="gap-2 cursor-pointer"
+                  onClick={() => dispatch(openAuthModal("login"))}
+                >
                   <User className="w-4 h-4 text-accent" />
                   <span>Sign In / Register</span>
                 </DropdownMenuItem>
