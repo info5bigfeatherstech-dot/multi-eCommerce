@@ -386,29 +386,29 @@ export default function ProductDetail({ product: propProduct, onBack: propOnBack
           )}
 
           {/* CTA Action Buttons + Wishlist Button */}
-          <div className="flex items-center gap-3 pt-2">
+          <div className="flex items-center gap-2 sm:gap-3 pt-2">
             <button
               onClick={handleBuyNow}
-              className="flex-1 py-3.5 px-6 rounded-full bg-slate-900 hover:bg-black active:scale-95 text-white font-poppins font-bold text-sm transition-all shadow-md flex items-center justify-center gap-2 cursor-pointer"
+              className="flex-1 py-3.5 px-3 sm:px-6 rounded-full bg-slate-900 hover:bg-black active:scale-95 text-white font-poppins font-bold text-xs sm:text-sm whitespace-nowrap transition-all shadow-md flex items-center justify-center gap-2 cursor-pointer"
             >
               Buy Now
             </button>
             <button
               onClick={handleAddToCart}
               className={cn(
-                "flex-1 py-3.5 px-6 rounded-full border-2 font-poppins font-bold text-sm transition-all flex items-center justify-center gap-2 cursor-pointer active:scale-95",
+                "flex-1 py-3.5 px-3 sm:px-6 rounded-full border-2 font-poppins font-bold text-xs sm:text-sm whitespace-nowrap transition-all flex items-center justify-center gap-2 cursor-pointer active:scale-95",
                 isAdded
                   ? "bg-emerald-600 border-emerald-600 text-white"
                   : "border-accent bg-accent hover:bg-accent-hover text-white shadow-md hover:shadow-lg"
               )}
             >
-              {isAdded ? "Added to Cart ✓" : "Add to Cart"}
+              {isAdded ? "Added ✓" : "Add to Cart"}
             </button>
             <button
               onClick={handleToggleWishlist}
               title={isInWishlist ? "Remove from Wishlist" : "Save to Wishlist"}
               className={cn(
-                "w-12 h-12 rounded-full border flex items-center justify-center transition-all cursor-pointer shadow-2xs active:scale-90 flex-shrink-0",
+                "w-11 h-11 sm:w-12 sm:h-12 rounded-full border flex items-center justify-center transition-all cursor-pointer shadow-2xs active:scale-90 flex-shrink-0",
                 isInWishlist
                   ? "bg-rose-50 border-rose-200 text-rose-600"
                   : "bg-slate-50 border-slate-200 text-slate-500 hover:text-rose-500 hover:border-rose-200"

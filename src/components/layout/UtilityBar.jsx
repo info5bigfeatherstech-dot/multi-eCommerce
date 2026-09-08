@@ -19,7 +19,7 @@ export function UtilityBar() {
 
   return (
     <div className="w-full bg-[#0d1727] text-white border-b border-white/10 shadow-xs">
-      <div className="w-full px-4 sm:px-6 py-1.5 flex items-center justify-between gap-4 text-xs">
+      <div className="w-full px-3 sm:px-6 py-1.5 flex items-center justify-between gap-2 sm:gap-4 text-xs">
         
         {/* Left: Help & Location Pill */}
         <div className="flex items-center gap-3 flex-shrink-0">

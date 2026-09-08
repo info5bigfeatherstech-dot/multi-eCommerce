@@ -286,7 +286,7 @@ export const ProfileAddressesTab = React.memo(function ProfileAddressesTab() {
                   />
                 </div>
 
-                <div className="grid grid-cols-2 gap-2">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                   <div>
                     <label className="block text-[11px] font-poppins font-semibold text-slate-600 uppercase">
                       Contact Person
@@ -351,7 +351,7 @@ export const ProfileAddressesTab = React.memo(function ProfileAddressesTab() {
                   />
                 </div>
 
-                <div className="grid grid-cols-3 gap-2">
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
                   <div>
                     <label className="block text-[11px] font-poppins font-semibold text-slate-600 uppercase">
                       City

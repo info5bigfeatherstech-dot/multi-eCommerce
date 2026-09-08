@@ -92,20 +92,20 @@ export function SaleProductShowcase({ onSelectProduct }) {
 
         {/* Carousel Container with Left/Right Arrows */}
         <div className="relative group/carousel">
-          {/* Left Arrow Button */}
+          {/* Left Arrow Button — hidden on mobile to avoid overflow */}
           <button
             onClick={() => scroll("left")}
             aria-label="Scroll left"
-            className="absolute -left-3 sm:-left-4 top-1/2 -translate-y-1/2 z-20 w-9 h-9 sm:w-10 sm:h-10 rounded-full bg-white border border-slate-200 text-slate-700 hover:text-accent hover:border-accent shadow-lg flex items-center justify-center transition-all hover:scale-110 active:scale-95 cursor-pointer"
+            className="hidden sm:flex absolute -left-4 top-1/2 -translate-y-1/2 z-20 w-9 h-9 sm:w-10 sm:h-10 rounded-full bg-white border border-slate-200 text-slate-700 hover:text-accent hover:border-accent shadow-lg items-center justify-center transition-all hover:scale-110 active:scale-95 cursor-pointer"
           >
             <ChevronLeft className="w-5 h-5 stroke-[2.2]" />
           </button>
 
-          {/* Right Arrow Button */}
+          {/* Right Arrow Button — hidden on mobile to avoid overflow */}
           <button
             onClick={() => scroll("right")}
             aria-label="Scroll right"
-            className="absolute -right-3 sm:-right-4 top-1/2 -translate-y-1/2 z-20 w-9 h-9 sm:w-10 sm:h-10 rounded-full bg-white border border-slate-200 text-slate-700 hover:text-accent hover:border-accent shadow-lg flex items-center justify-center transition-all hover:scale-110 active:scale-95 cursor-pointer"
+            className="hidden sm:flex absolute -right-4 top-1/2 -translate-y-1/2 z-20 w-9 h-9 sm:w-10 sm:h-10 rounded-full bg-white border border-slate-200 text-slate-700 hover:text-accent hover:border-accent shadow-lg items-center justify-center transition-all hover:scale-110 active:scale-95 cursor-pointer"
           >
             <ChevronRight className="w-5 h-5 stroke-[2.2]" />
           </button>
@@ -129,7 +129,7 @@ export function SaleProductShowcase({ onSelectProduct }) {
                 <div
                   key={product.slug || product.id}
                   onClick={() => onSelectProduct && onSelectProduct(product)}
-                  className="w-[210px] sm:w-[calc((100%-2*12px)/3)] md:w-[calc((100%-3*14px)/4)] lg:w-[calc((100%-4*14px)/5)] xl:w-[calc((100%-4*16px)/5)] flex-shrink-0 group bg-white rounded-2xl border border-slate-200/90 shadow-xs hover:shadow-xl transition-all duration-300 p-2.5 sm:p-3 flex flex-col justify-between overflow-hidden hover:-translate-y-1 cursor-pointer"
+                  className="w-[165px] sm:w-[calc((100%-2*12px)/3)] md:w-[calc((100%-3*14px)/4)] lg:w-[calc((100%-4*14px)/5)] xl:w-[calc((100%-4*16px)/5)] flex-shrink-0 group bg-white rounded-2xl border border-slate-200/90 shadow-xs hover:shadow-xl transition-all duration-300 p-2.5 sm:p-3 flex flex-col justify-between overflow-hidden hover:-translate-y-1 cursor-pointer"
                 >
                   {/* Product Image Showcase with Rounded Corners & Dual Badges */}
                   <div className="relative aspect-[16/11] sm:aspect-[4/3] w-full rounded-xl overflow-hidden bg-slate-100 mb-2.5">

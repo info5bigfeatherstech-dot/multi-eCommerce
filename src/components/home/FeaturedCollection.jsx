@@ -101,17 +101,17 @@ export function FeaturedCollection({ onSelectProduct }) {
 
         {/* 4-Column Responsive Grid (8 Products) */}
         {status === "loading" ? (
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+          <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-6">
             {[1, 2, 3, 4, 5, 6, 7, 8].map((i) => (
-              <div key={i} className="space-y-3 bg-white p-4 rounded-2xl border border-slate-200">
-                <Skeleton className="w-full h-64 rounded-xl" />
+              <div key={i} className="space-y-3 bg-white p-3 sm:p-4 rounded-2xl border border-slate-200">
+                <Skeleton className="w-full h-36 sm:h-52 md:h-64 rounded-xl" />
                 <Skeleton className="h-4 w-3/4" />
                 <Skeleton className="h-4 w-1/2" />
               </div>
             ))}
           </div>
         ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+          <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-6">
             {displayedProducts.map((product) => {
               const isInWishlist = wishlistItems.some((item) => item.id === product.id);
               const isJustAdded = addedProductIds[product.id];
@@ -146,7 +146,7 @@ export function FeaturedCollection({ onSelectProduct }) {
                   </button>
 
                   {/* Product Image Container */}
-                  <div className="relative w-full h-64 rounded-xl overflow-hidden bg-slate-100 mb-4">
+                  <div className="relative w-full h-36 sm:h-52 md:h-64 rounded-xl overflow-hidden bg-slate-100 mb-3 sm:mb-4">
                     <img
                       src={product.imageUrl}
                       alt={product.name}

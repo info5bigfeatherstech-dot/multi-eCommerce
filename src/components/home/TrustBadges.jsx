@@ -18,9 +18,9 @@ export function TrustBadges() {
 
   if (status === "loading") {
     return (
-      <div className="flex flex-col gap-3 h-[440px] justify-between">
+      <div className="grid grid-cols-1 sm:grid-cols-3 lg:flex lg:flex-col gap-3 lg:h-[440px] justify-between">
         {[1, 2, 3].map((i) => (
-          <Skeleton key={i} className="w-full h-full rounded-2xl bg-slate-200" />
+          <Skeleton key={i} className="w-full h-24 lg:h-full rounded-2xl bg-slate-200" />
         ))}
       </div>
     );
@@ -57,7 +57,7 @@ export function TrustBadges() {
   ];
 
   return (
-    <div className="flex flex-col justify-between gap-3 h-[440px]">
+    <div className="grid grid-cols-1 sm:grid-cols-3 lg:flex lg:flex-col justify-between gap-3 lg:h-[440px]">
       {displayBadges.map((badge) => {
         const IconComponent = badge.icon;
 

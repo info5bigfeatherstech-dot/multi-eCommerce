@@ -42,10 +42,10 @@ export function CategoryGrid({ onSelectCategory }) {
   };
 
   return (
-    <section id="shop-by-category-section" className="py-8">
-      <div className="max-w-[1600px] mx-auto px-4">
+    <section id="shop-by-category-section" className="py-6 sm:py-8">
+      <div className="max-w-[1600px] mx-auto px-1 sm:px-4">
         {/* Section Header */}
-        <div className="flex flex-col sm:flex-row sm:items-end justify-between mb-6 gap-3">
+        <div className="flex flex-col sm:flex-row sm:items-end justify-between mb-5 sm:mb-6 gap-3">
           <div>
             <div className="flex items-center gap-2">
               <span className="text-xs font-poppins font-bold uppercase tracking-wider text-accent">
@@ -53,7 +53,7 @@ export function CategoryGrid({ onSelectCategory }) {
               </span>
               
             </div>
-            <h2 className="section-title text-2xl md:text-3xl font-extrabold text-slate-900 mt-1">
+            <h2 className="section-title text-xl sm:text-2xl md:text-3xl font-extrabold text-slate-900 mt-1">
               Shop By Category
             </h2>
             <p className="text-xs sm:text-sm text-slate-500 font-inter mt-1">
@@ -63,7 +63,7 @@ export function CategoryGrid({ onSelectCategory }) {
 
           <button
             onClick={() => onSelectCategory && onSelectCategory("all")}
-            className="self-start sm:self-end flex items-center gap-1.5 text-xs font-poppins font-bold text-accent hover:text-accent-hover group transition-colors"
+            className="self-start sm:self-end flex items-center gap-1.5 text-xs font-poppins font-bold text-accent hover:text-accent-hover group transition-colors py-1 cursor-pointer"
           >
             <span>View All Departments</span>
             <ChevronRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
@@ -71,7 +71,7 @@ export function CategoryGrid({ onSelectCategory }) {
         </div>
 
         {/* Categories Visual Image Grid */}
-        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3.5 sm:gap-4">
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-2.5 sm:gap-4">
           {categories.map((cat) => {
             const slug = cat.slug || cat.id;
             const imgSrc =

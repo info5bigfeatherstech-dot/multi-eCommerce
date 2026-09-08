@@ -74,68 +74,72 @@ export const ProfileSidebar = React.memo(function ProfileSidebar({
   };
 
   return (
-    <div className="bg-white rounded-3xl border border-slate-200/80 shadow-xs p-3 sm:p-4 space-y-1">
-      {tabs.map((t) => {
-        const Icon = t.icon;
-        const isActive = activeTab === t.id;
+    <div className="bg-white rounded-3xl border border-slate-200/80 shadow-xs p-2 sm:p-3 lg:p-4">
+      {/* On mobile/tablet: horizontal scrollable tab strip; on lg+: vertical list */}
+      <div className="flex lg:flex-col gap-1.5 lg:space-y-1 overflow-x-auto lg:overflow-x-visible no-scrollbar pb-0.5 lg:pb-0">
+        {tabs.map((t) => {
+          const Icon = t.icon;
+          const isActive = activeTab === t.id;
 
-        return (
-          <button
-            key={t.id}
-            type="button"
-            onClick={() => handleTabClick(t)}
-            className={cn(
-              "w-full flex items-start justify-between gap-3 p-3 rounded-2xl text-left transition-all duration-150 cursor-pointer group",
-              isActive
-                ? "bg-accent/10 text-accent font-semibold shadow-2xs border border-accent/20"
-                : "text-slate-600 hover:text-slate-900 hover:bg-slate-50"
-            )}
-          >
-            <div className="flex items-start gap-3.5 min-w-0">
-              <div
-                className={cn(
-                  "w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0 transition-colors mt-0.5",
-                  isActive
-                    ? "bg-accent text-white"
-                    : "bg-slate-100 text-slate-500 group-hover:text-slate-700"
-                )}
-              >
-                <Icon size={17} />
+          return (
+            <button
+              key={t.id}
+              type="button"
+              onClick={() => handleTabClick(t)}
+              className={cn(
+                "flex-shrink-0 flex items-center gap-2 lg:gap-3 px-3 py-2 lg:py-3 rounded-xl lg:rounded-2xl text-left transition-all duration-150 cursor-pointer group",
+                "lg:w-full lg:items-start lg:justify-between",
+                isActive
+                  ? "bg-accent/10 text-accent font-semibold shadow-2xs border border-accent/20"
+                  : "text-slate-600 hover:text-slate-900 hover:bg-slate-50"
+              )}
+            >
+              <div className="flex items-center gap-2 lg:gap-3.5 min-w-0">
+                <div
+                  className={cn(
+                    "w-8 h-8 lg:w-9 lg:h-9 rounded-xl flex items-center justify-center flex-shrink-0 transition-colors",
+                    isActive
+                      ? "bg-accent text-white"
+                      : "bg-slate-100 text-slate-500 group-hover:text-slate-700"
+                  )}
+                >
+                  <Icon size={17} />
+                </div>
+                <div className="min-w-0">
+                  <p className="font-poppins text-xs sm:text-sm font-bold whitespace-nowrap lg:truncate leading-tight">
+                    {t.label}
+                  </p>
+                  <p className="hidden lg:block text-[11px] text-slate-400 font-inter truncate mt-0.5">
+                    {t.desc}
+                  </p>
+                </div>
               </div>
-              <div className="min-w-0">
-                <p className="font-poppins text-xs sm:text-sm font-bold truncate leading-tight">
-                  {t.label}
-                </p>
-                <p className="text-[11px] text-slate-400 font-inter truncate mt-0.5">
-                  {t.desc}
-                </p>
-              </div>
-            </div>
 
-            {t.badge !== null && t.badge !== undefined && (
-              <span
-                className={cn(
-                  "text-[10px] font-poppins font-black px-2 py-0.5 rounded-full flex-shrink-0 mt-1 shadow-2xs",
-                  t.badgeColor
-                )}
-              >
-                {t.badge}
-              </span>
-            )}
-          </button>
-        );
-      })}
+              {t.badge !== null && t.badge !== undefined && (
+                <span
+                  className={cn(
+                    "text-[10px] font-poppins font-black px-2 py-0.5 rounded-full flex-shrink-0 lg:mt-1 shadow-2xs",
+                    t.badgeColor
+                  )}
+                >
+                  {t.badge}
+                </span>
+              )}
+            </button>
+          );
+        })}
+      </div>
 
       <div className="pt-2 border-t border-slate-100 mt-2">
         <button
           type="button"
           onClick={onSignOut}
-          className="w-full flex items-center gap-3 p-3 rounded-2xl text-left text-rose-600 hover:bg-rose-50 font-poppins text-xs sm:text-sm font-semibold transition-colors cursor-pointer"
+          className="flex-shrink-0 lg:w-full flex items-center gap-2 lg:gap-3 px-3 py-2 lg:py-3 rounded-xl lg:rounded-2xl text-left text-rose-600 hover:bg-rose-50 font-poppins text-xs sm:text-sm font-semibold transition-colors cursor-pointer"
         >
-          <div className="w-9 h-9 rounded-xl bg-rose-100/70 text-rose-600 flex items-center justify-center flex-shrink-0">
+          <div className="w-8 h-8 lg:w-9 lg:h-9 rounded-xl bg-rose-100/70 text-rose-600 flex items-center justify-center flex-shrink-0">
             <LogOut size={17} />
           </div>
-          <span>Sign Out</span>
+          <span className="whitespace-nowrap">Sign Out</span>
         </button>
       </div>
     </div>

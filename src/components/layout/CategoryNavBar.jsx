@@ -56,12 +56,12 @@ export function CategoryNavBar() {
 
   return (
     <nav className="w-full bg-[#121f38] text-white border-b border-slate-800 shadow-sm transition-all">
-      <div className="w-full px-4 sm:px-6 py-1.5 flex items-center gap-3 sm:gap-4">
+      <div className="w-full px-3 sm:px-6 py-1.5 flex items-center gap-2 sm:gap-4 overflow-x-auto no-scrollbar">
         {/* 1. Shop By Category Button */}
         <button
           type="button"
           onClick={handleShopByCategoryClick}
-          className="flex items-center gap-1.5 px-3.5 py-1.5 bg-accent hover:bg-accent-hover text-white font-poppins font-bold text-xs rounded-lg transition-all shadow-xs flex-shrink-0 cursor-pointer active:scale-95 group ml-4 sm:ml-10"
+          className="flex items-center gap-1.5 px-3 py-1.5 bg-accent hover:bg-accent-hover text-white font-poppins font-bold text-xs rounded-lg transition-all shadow-xs flex-shrink-0 cursor-pointer active:scale-95 group"
           title="Shop By Category"
         >
           <Grid className="w-3.5 h-3.5 text-white group-hover:rotate-90 transition-transform duration-300" />
@@ -69,10 +69,10 @@ export function CategoryNavBar() {
         </button>
 
         {/* 2. Subtle Divider */}
-        <div className="h-4 w-px bg-white/20 mx-1 sm:mx-2 flex-shrink-0" />
+        <div className="h-4 w-px bg-white/20 mx-0.5 sm:mx-2 flex-shrink-0" />
 
         {/* 3. Featured Pills: Only Just Arrived and Mega Sale */}
-        <div className="flex items-center gap-4 sm:gap-6 flex-wrap">
+        <div className="flex items-center gap-2 sm:gap-4 flex-nowrap">
           {FEATURED_ITEMS.map((item) => {
             const itemSlug = item.slug;
             const isActive = location.pathname === `/category/${itemSlug}`;
