@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React from "react";
 import { useNavigate } from "react-router-dom";
 import {
   Truck,
@@ -8,43 +8,16 @@ import {
   ShieldCheck,
   Package,
   Sparkles,
-  CheckCircle2,
-  Share2,
-  Clock,
   Coins,
-  ChevronDown,
-  Layers,
-  ShoppingBag,
 } from "lucide-react";
 import DropshippingForm from "@/components/common/DropshippingForm";
-import { cn } from "@/lib/utils";
-
-const DROPSHIP_FAQS = [
-  {
-    q: "How does Blind Dropshipping work with your warehouse?",
-    a: "When your customer places an order on your Shopify or Instagram store, you submit the order with us. We pack the item in neutral, unbranded packaging with your store's return address and invoice. Our factory branding NEVER appears on the package.",
-  },
-  {
-    q: "Is there any upfront fee or Minimum Order Quantity (MOQ)?",
-    a: "Absolutely ZERO upfront fee and ZERO MOQ! You can dropship even a single item at true wholesale factory price. You only pay when you make a sale.",
-  },
-  {
-    q: "Do you provide automated CSV feeds or product images?",
-    a: "Yes! All verified dropshipping partners receive high-resolution product photography, video creatives for ads, and live CSV product catalog feeds with real-time stock numbers.",
-  },
-  {
-    q: "What courier partners do you use for shipping across India?",
-    a: "We ship via Delhivery, BlueDart, XpressBees, and DTDC Air. Orders placed before 2:00 PM are dispatched same-day with live tracking IDs updated within 4 hours.",
-  },
-];
 
 export function DropshippingPage({ onBack: propOnBack }) {
   const navigate = useNavigate();
-  const [openFaqIndex, setOpenFaqIndex] = useState(null);
   const handleBack = propOnBack || (() => navigate("/"));
 
   return (
-    <div className="py-6 space-y-10 animate-fadeIn">
+    <div className="w-full max-w-6xl mx-auto py-6 space-y-10 animate-fadeIn">
       {/* Top Header & Back Button */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-200 pb-5">
         <button
@@ -133,104 +106,18 @@ export function DropshippingPage({ onBack: propOnBack }) {
         </div>
       </div>
 
-      {/* Main Content: Form + Sidebar */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
-        {/* Dropshipping Form Container */}
-        <div className="lg:col-span-8 bg-white rounded-3xl border border-slate-200 p-6 sm:p-10 shadow-sm space-y-6">
-          <div className="border-b border-slate-100 pb-4 space-y-1">
-            <h3 className="font-poppins font-bold text-lg text-slate-900">
-              Apply for Dropshipping Partner Account
-            </h3>
-            <p className="text-xs font-inter text-slate-500">
-              Fill in your store details below. Our onboarding team activates your catalog access within 2 hours.
-            </p>
-          </div>
-
-          <DropshippingForm />
+      {/* Main Content: Centered Form */}
+      <div className="max-w-3xl mx-auto w-full bg-white rounded-3xl border border-slate-200 p-6 sm:p-10 shadow-sm space-y-6">
+        <div className="border-b border-slate-100 pb-4 space-y-1">
+          <h3 className="font-poppins font-bold text-lg text-slate-900">
+            Apply for Dropshipping Partner Account
+          </h3>
+          <p className="text-xs font-inter text-slate-500">
+            Fill in your store details below. Our onboarding team activates your catalog access within 2 hours.
+          </p>
         </div>
 
-        {/* Sidebar Info & How It Works */}
-        <div className="lg:col-span-4 space-y-6">
-          <div className="bg-gradient-to-br from-primary via-primary-700 to-primary text-white rounded-3xl p-6 shadow-md space-y-4">
-            <span className="text-[10px] font-poppins font-bold uppercase tracking-wider text-accent">
-              Fast 3-Step Process
-            </span>
-            <h4 className="font-poppins font-bold text-lg text-white">
-              How Dropshipping Works
-            </h4>
-
-            <div className="space-y-4 text-xs font-inter">
-              <div className="flex items-start gap-3">
-                <div className="w-6 h-6 rounded-full bg-accent text-white font-poppins font-black text-xs flex items-center justify-center flex-shrink-0 mt-0.5">
-                  1
-                </div>
-                <div>
-                  <strong className="text-white block font-poppins text-xs">List Our Products</strong>
-                  <span className="text-slate-300 text-[11px]">
-                    Import our catalog photos & descriptions to your Shopify, WooCommerce, or Instagram store.
-                  </span>
-                </div>
-              </div>
-
-              <div className="flex items-start gap-3">
-                <div className="w-6 h-6 rounded-full bg-accent text-white font-poppins font-black text-xs flex items-center justify-center flex-shrink-0 mt-0.5">
-                  2
-                </div>
-                <div>
-                  <strong className="text-white block font-poppins text-xs">Receive Customer Order</strong>
-                  <span className="text-slate-300 text-[11px]">
-                    Collect retail payment from your customer at your chosen price margin.
-                  </span>
-                </div>
-              </div>
-
-              <div className="flex items-start gap-3">
-                <div className="w-6 h-6 rounded-full bg-accent text-white font-poppins font-black text-xs flex items-center justify-center flex-shrink-0 mt-0.5">
-                  3
-                </div>
-                <div>
-                  <strong className="text-white block font-poppins text-xs">We Blind-Ship Directly</strong>
-                  <span className="text-slate-300 text-[11px]">
-                    Pay us factory price. We package and dispatch directly to your customer with your tracking.
-                  </span>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* Dropshipping FAQs Accordion */}
-          <div className="bg-white rounded-3xl border border-slate-200 p-6 shadow-xs space-y-4">
-            <h4 className="font-poppins font-bold text-sm text-slate-900 border-b border-slate-100 pb-2">
-              Frequently Asked Questions
-            </h4>
-            <div className="space-y-2">
-              {DROPSHIP_FAQS.map((faq, idx) => {
-                const isOpen = openFaqIndex === idx;
-                return (
-                  <div key={idx} className="border border-slate-100 rounded-xl overflow-hidden">
-                    <button
-                      onClick={() => setOpenFaqIndex(isOpen ? null : idx)}
-                      className="w-full text-left p-3 flex items-center justify-between gap-2 text-xs font-poppins font-bold text-slate-800 hover:bg-slate-50 transition-colors"
-                    >
-                      <span>{faq.q}</span>
-                      <ChevronDown
-                        className={cn(
-                          "w-4 h-4 text-slate-400 transition-transform duration-200 flex-shrink-0",
-                          isOpen && "rotate-180 text-accent"
-                        )}
-                      />
-                    </button>
-                    {isOpen && (
-                      <div className="p-3 pt-0 text-[11px] font-inter text-slate-500 leading-relaxed bg-slate-50/50">
-                        {faq.a}
-                      </div>
-                    )}
-                  </div>
-                );
-              })}
-            </div>
-          </div>
-        </div>
+        <DropshippingForm />
       </div>
     </div>
   );

@@ -18,9 +18,6 @@ import { cn } from "@/lib/utils";
 
 export function HomePage() {
   const navigate = useNavigate();
-  const isCategorySidebarOpen = useAppSelector(
-    (state) => state.ui.isCategorySidebarOpen
-  );
 
   const handleSelectProduct = (product) => {
     const slug = product.slug || product.id;
@@ -33,24 +30,15 @@ export function HomePage() {
 
   return (
     <>
-      {/* Top Hero Grid Area */}
+      {/* Top Hero Grid Area: Category Sidebar on left, Banner in middle, Trust Badges on right */}
       <div className="flex flex-col lg:flex-row gap-4 items-start">
-        {/* Category Sidebar */}
-        {isCategorySidebarOpen && (
-          <div className="hidden lg:block animate-fadeIn flex-shrink-0">
-            <CategorySidebar />
-          </div>
-        )}
+        {/* Category Sidebar - Permanently docked on the left corner matching image height */}
+        <div className="hidden lg:block flex-shrink-0 w-64">
+          <CategorySidebar />
+        </div>
 
-        {/* Hero Banner Carousel */}
-        <div
-          className={cn(
-            "w-full transition-all duration-300",
-            isCategorySidebarOpen
-              ? "lg:w-[calc(100%-16rem-18rem-2rem)]"
-              : "lg:w-[calc(100%-18rem-1rem)]"
-          )}
-        >
+        {/* Hero Banner Carousel - Dynamically takes remaining width with flex-1 */}
+        <div className="w-full flex-1 min-w-0 transition-all duration-300">
           <HeroBanner />
         </div>
 

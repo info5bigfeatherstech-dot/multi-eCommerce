@@ -1,9 +1,15 @@
 "use client";
 
 import React from "react";
+import { useNavigate } from "react-router-dom";
+import { useAppDispatch } from "@/store/hooks";
+import { setCategorySidebarOpen } from "@/store/slices/uiSlice";
 import { ArrowRight, Sparkles, Tag, ShieldCheck } from "lucide-react";
 
-export function CategoryFlyout({ category }) {
+export function CategoryFlyout({ category, onClose }) {
+  const navigate = useNavigate();
+  const dispatch = useAppDispatch();
+
   if (!category || !category.subCategories || category.subCategories.length === 0) {
     return null;
   }
@@ -13,8 +19,20 @@ export function CategoryFlyout({ category }) {
   const col1 = category.subCategories.slice(0, half);
   const col2 = category.subCategories.slice(half);
 
+  const handleSubClick = (subSlug) => {
+    navigate(`/category/${category.slug}/${subSlug}`);
+    if (onClose) onClose();
+    else dispatch(setCategorySidebarOpen(false));
+  };
+
+  const handleViewAll = () => {
+    navigate(`/category/${category.slug}`);
+    if (onClose) onClose();
+    else dispatch(setCategorySidebarOpen(false));
+  };
+
   return (
-    <div className="absolute left-[calc(100%+12px)] top-0 z-50 w-[460px] bg-white/95 backdrop-blur-md text-slate-800 shadow-2xl rounded-2xl border border-slate-200 p-5 animate-fadeIn flex flex-col justify-between">
+    <div className="absolute left-[calc(100%+8px)] top-0 z-50 w-[460px] bg-white text-slate-800 shadow-2xl rounded-2xl border border-slate-200 p-5 animate-fadeIn flex flex-col justify-between before:absolute before:-left-3 before:top-0 before:bottom-0 before:w-3 before:content-['']">
       <div>
         {/* Category Header */}
         <div className="flex items-center justify-between border-b border-slate-100 pb-3 mb-3">
@@ -38,31 +56,33 @@ export function CategoryFlyout({ category }) {
         <div className="grid grid-cols-2 gap-x-6 gap-y-2">
           <div className="space-y-2">
             {col1.map((sub) => (
-              <a
+              <button
                 key={sub.id}
-                href={`/category/${category.slug}/${sub.slug}`}
-                className="group flex items-center justify-between p-1.5 rounded-lg hover:bg-slate-50 font-poppins text-xs text-slate-700 hover:text-accent transition-all"
+                type="button"
+                onClick={() => handleSubClick(sub.slug)}
+                className="w-full text-left group flex items-center justify-between p-1.5 rounded-lg hover:bg-slate-50 font-poppins text-xs text-slate-700 hover:text-accent transition-all cursor-pointer"
               >
                 <span className="font-medium line-clamp-1">{sub.name}</span>
                 {sub.isPopular && (
                   <Sparkles className="w-3 h-3 text-accent flex-shrink-0 opacity-0 group-hover:opacity-100 transition-opacity" />
                 )}
-              </a>
+              </button>
             ))}
           </div>
 
           <div className="space-y-2">
             {col2.map((sub) => (
-              <a
+              <button
                 key={sub.id}
-                href={`/category/${category.slug}/${sub.slug}`}
-                className="group flex items-center justify-between p-1.5 rounded-lg hover:bg-slate-50 font-poppins text-xs text-slate-700 hover:text-accent transition-all"
+                type="button"
+                onClick={() => handleSubClick(sub.slug)}
+                className="w-full text-left group flex items-center justify-between p-1.5 rounded-lg hover:bg-slate-50 font-poppins text-xs text-slate-700 hover:text-accent transition-all cursor-pointer"
               >
                 <span className="font-medium line-clamp-1">{sub.name}</span>
                 {sub.isPopular && (
                   <Sparkles className="w-3 h-3 text-accent flex-shrink-0 opacity-0 group-hover:opacity-100 transition-opacity" />
                 )}
-              </a>
+              </button>
             ))}
           </div>
         </div>
@@ -79,12 +99,13 @@ export function CategoryFlyout({ category }) {
             <div className="text-[10px] text-slate-300">Claim 100% Tax Input Credit</div>
           </div>
         </div>
-        <a
-          href={`/category/${category.slug}`}
-          className="text-[11px] font-poppins font-bold text-white bg-accent hover:bg-accent-hover px-3 py-1 rounded-lg shadow-sm transition-all whitespace-nowrap"
+        <button
+          type="button"
+          onClick={handleViewAll}
+          className="text-[11px] font-poppins font-bold text-white bg-accent hover:bg-accent-hover px-3 py-1 rounded-lg shadow-sm transition-all whitespace-nowrap cursor-pointer"
         >
           View All
-        </a>
+        </button>
       </div>
     </div>
   );

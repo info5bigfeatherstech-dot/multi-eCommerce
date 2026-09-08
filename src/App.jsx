@@ -13,6 +13,7 @@ import WishlistPage from "./components/wishlist/WishlistPage";
 import ProductDetail from "./components/product/ProductDetail";
 import CheckoutPage from "./components/pages/CheckoutPage";
 import CategoryPage from "./components/pages/CategoryPage";
+import ProfilePage from "./components/pages/ProfilePage";
 import CartDrawer from "./components/cart/CartDrawer";
 import Footer from "./components/layout/Footer";
 import ScrollToTop from "./components/common/ScrollToTop";
@@ -48,8 +49,8 @@ export default function App() {
       {/* 3. Category Navigation Bar */}
       <CategoryNavBar />
 
-      {/* Main Content Area: Routed with React Router */}
-      <main className="flex-1 max-w-[1600px] w-full mx-auto px-4 pt-4 pb-8">
+      {/* Main Content Area: Routed with React Router (Entire Width) */}
+      <main className="flex-1 w-full px-4 sm:px-6 pt-4 pb-8">
         <Routes>
           <Route path="/" element={<HomePage />} />
           <Route path="/dropshipping" element={<DropshippingPage />} />
@@ -57,6 +58,8 @@ export default function App() {
           <Route path="/contact" element={<ContactPage />} />
           <Route path="/wishlist" element={<WishlistPage />} />
           <Route path="/checkout" element={<CheckoutPage />} />
+          <Route path="/profile" element={<ProfilePage />} />
+          <Route path="/profile/:tab" element={<ProfilePage />} />
           <Route path="/category/:slug" element={<CategoryPage />} />
           <Route path="/category/:slug/:subSlug" element={<CategoryPage />} />
           <Route path="/product/:slug" element={<ProductDetail />} />

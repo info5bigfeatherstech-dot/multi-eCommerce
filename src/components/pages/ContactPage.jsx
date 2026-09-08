@@ -80,7 +80,7 @@ export function ContactPage({ onBack: propOnBack }) {
   };
 
   return (
-    <div className="py-6 space-y-10 animate-fadeIn">
+    <div className="w-full max-w-6xl mx-auto py-6 space-y-10 animate-fadeIn">
       {/* Top Header & Back Button */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-200 pb-5">
         <button

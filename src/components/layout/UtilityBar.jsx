@@ -64,31 +64,7 @@ export function UtilityBar() {
           )}
         </div>
 
-        {/* Right: App Store Badges */}
-        <div className="flex items-center gap-2 flex-shrink-0">
-          <a
-            href="#playstore"
-            className="flex items-center gap-1.5 bg-black hover:bg-slate-900 text-white px-2.5 py-1 rounded-md text-[11px] font-poppins font-medium transition-all border border-slate-800"
-            title="GET IT ON Google Play"
-          >
-            <img
-              src="https://upload.wikimedia.org/wikipedia/commons/7/78/Google_Play_Store_badge_EN.svg"
-              alt="Google Play"
-              className="h-4 object-contain"
-            />
-          </a>
-          <a
-            href="#appstore"
-            className="flex items-center gap-1.5 bg-black hover:bg-slate-900 text-white px-2.5 py-1 rounded-md text-[11px] font-poppins font-medium transition-all border border-slate-800"
-            title="Download on the App Store"
-          >
-            <img
-              src="https://upload.wikimedia.org/wikipedia/commons/3/3c/Download_on_the_App_Store_Badge.svg"
-              alt="App Store"
-              className="h-4 object-contain"
-            />
-          </a>
-        </div>
+        
 
       </div>
     </div>

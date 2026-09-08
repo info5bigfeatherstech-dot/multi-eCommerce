@@ -13,7 +13,6 @@ import {
   Sparkles,
   ArrowLeft,
   CheckCircle2,
-  ShieldCheck,
   Send,
   HelpCircle,
   Clock,
@@ -78,7 +77,7 @@ export function InquiryPage({ onBack: propOnBack }) {
   };
 
   return (
-    <div className="py-6 space-y-10 animate-fadeIn">
+    <div className="w-full max-w-6xl mx-auto py-6 space-y-10 animate-fadeIn">
       {/* Header & Back Button */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-200 pb-5">
         <button
@@ -169,10 +168,8 @@ export function InquiryPage({ onBack: propOnBack }) {
           </div>
         </div>
       ) : (
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
-          {/* Main Inquiry Form */}
-          <div className="lg:col-span-8 bg-white rounded-3xl border border-slate-200 p-6 sm:p-8 shadow-sm space-y-8">
-            <form onSubmit={handleSubmit} className="space-y-6">
+        <div className="max-w-4xl mx-auto w-full bg-white rounded-3xl border border-slate-200 p-6 sm:p-10 shadow-sm space-y-8">
+          <form onSubmit={handleSubmit} className="space-y-6">
               {/* Section 1: Business Profile */}
               <div className="space-y-4">
                 <div className="flex items-center gap-2 border-b border-slate-100 pb-3">
@@ -407,89 +404,6 @@ export function InquiryPage({ onBack: propOnBack }) {
                 )}
               </button>
             </form>
-          </div>
-
-          {/* Right Information & Perks Panel */}
-          <div className="lg:col-span-4 space-y-6">
-            {/* Wholesale Tier Card */}
-            <div className="p-6 rounded-3xl bg-slate-900 text-white shadow-xl space-y-4">
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-xl bg-accent/20 flex items-center justify-center text-accent">
-                  <Coins className="w-5 h-5" />
-                </div>
-                <div>
-                  <h3 className="font-poppins font-bold text-base text-white">Tiered Volume Pricing</h3>
-                  <p className="text-xs text-slate-400 font-inter">Direct factory wholesale slab benefits</p>
-                </div>
-              </div>
-
-              <div className="space-y-2.5 pt-2 border-t border-slate-800 text-xs font-inter">
-                <div className="flex justify-between items-center p-2 rounded-xl bg-white/5">
-                  <span className="text-slate-300">50 - 100 Units:</span>
-                  <span className="text-accent font-bold">Standard Wholesale</span>
-                </div>
-                <div className="flex justify-between items-center p-2 rounded-xl bg-white/5">
-                  <span className="text-slate-300">100 - 500 Units:</span>
-                  <span className="text-emerald-400 font-bold">Extra 8% Off</span>
-                </div>
-                <div className="flex justify-between items-center p-2 rounded-xl bg-white/5">
-                  <span className="text-slate-300">500 - 2000 Units:</span>
-                  <span className="text-emerald-400 font-bold">Extra 15% Off</span>
-                </div>
-                <div className="flex justify-between items-center p-2 rounded-xl bg-white/5">
-                  <span className="text-slate-300">2000+ Units:</span>
-                  <span className="text-yellow-400 font-bold">Direct Factory Import Rate</span>
-                </div>
-              </div>
-            </div>
-
-            {/* Wholesale Guarantees */}
-            <div className="p-6 rounded-3xl bg-white border border-slate-200 shadow-sm space-y-4">
-              <h3 className="font-poppins font-bold text-sm text-slate-900 flex items-center gap-2">
-                <ShieldCheck className="w-4 h-4 text-emerald-600" />
-                Why B2B Wholesale Buyers Choose Us
-              </h3>
-
-              <div className="space-y-3 text-xs font-inter text-slate-600">
-                <div className="flex items-start gap-2.5">
-                  <div className="w-5 h-5 rounded-full bg-emerald-50 text-emerald-600 flex items-center justify-center flex-shrink-0 mt-0.5">
-                    ✓
-                  </div>
-                  <p><strong>Guaranteed Lowest Price:</strong> If you find a lower wholesale rate for identical specs, we beat it.</p>
-                </div>
-
-                <div className="flex items-start gap-2.5">
-                  <div className="w-5 h-5 rounded-full bg-blue-50 text-blue-600 flex items-center justify-center flex-shrink-0 mt-0.5">
-                    ✓
-                  </div>
-                  <p><strong>Fast Dispatch Hub:</strong> Naroda, Ahmedabad warehouse dispatches up to 5,000 cartons daily.</p>
-                </div>
-
-                <div className="flex items-start gap-2.5">
-                  <div className="w-5 h-5 rounded-full bg-amber-50 text-amber-600 flex items-center justify-center flex-shrink-0 mt-0.5">
-                    ✓
-                  </div>
-                  <p><strong>Sample Testing:</strong> Order single-piece samples to inspect quality before placing container orders.</p>
-                </div>
-              </div>
-            </div>
-
-            {/* Quick WhatsApp Support */}
-            <div className="p-5 rounded-3xl bg-gradient-to-r from-emerald-600 to-teal-700 text-white shadow-md space-y-2 text-center">
-              <h4 className="font-poppins font-bold text-sm">Need a Fast Quote on WhatsApp?</h4>
-              <p className="text-xs text-emerald-100 font-inter">
-                Send SKU screenshots to our wholesale executive for instant rates.
-              </p>
-              <a
-                href="https://wa.me/919876543210?text=Hello%20Wholesale%20Team%2C%20I%20need%20a%20bulk%20quote"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="inline-block mt-1 px-4 py-2 rounded-xl bg-white text-emerald-800 font-poppins font-bold text-xs hover:bg-emerald-50 transition-colors shadow-sm"
-              >
-                Open WhatsApp Chat
-              </a>
-            </div>
-          </div>
         </div>
       )}
     </div>

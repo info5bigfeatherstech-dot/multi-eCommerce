@@ -4,7 +4,7 @@ import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAppDispatch, useAppSelector } from "@/store/hooks";
 import { fetchCategories } from "@/store/slices/categorySlice";
-import { setActiveFlyoutCategoryId } from "@/store/slices/uiSlice";
+import { setActiveFlyoutCategoryId, setCategorySidebarOpen } from "@/store/slices/uiSlice";
 import CategoryFlyout from "./CategoryFlyout";
 import Skeleton from "@/components/ui/Skeleton";
 import {
@@ -38,11 +38,10 @@ const iconMap = {
   Package,
 };
 
-export function CategorySidebar({ isMobile = false }) {
+export function CategorySidebar({ isMobile = false, onClose }) {
   const dispatch = useAppDispatch();
   const navigate = useNavigate();
   const { items: categories, status } = useAppSelector((state) => state.categories);
-  const { activeFlyoutCategoryId } = useAppSelector((state) => state.ui);
 
   const [hoveredId, setHoveredId] = useState(null);
 
@@ -52,36 +51,48 @@ export function CategorySidebar({ isMobile = false }) {
     }
   }, [dispatch, status]);
 
-  // Robust active category selection using proper slug
-  const currentActiveSlug =
-    hoveredId ||
-    activeFlyoutCategoryId ||
-    (categories[0] && (categories[0].slug || categories[0].id)) ||
-    "home-living";
-
-  const activeCategoryObject =
-    categories.find((c) => c.slug === currentActiveSlug || c.id === currentActiveSlug) || categories[0];
+  const activeCategoryObject = hoveredId
+    ? categories.find((c) => c.slug === hoveredId || c.id === hoveredId)
+    : null;
 
   const handleCategoryHover = (catSlug) => {
     setHoveredId(catSlug);
     dispatch(setActiveFlyoutCategoryId(catSlug));
   };
 
+  const handleCategoryClick = (catSlug) => {
+    navigate(`/category/${catSlug}`);
+    if (onClose) onClose();
+    else dispatch(setCategorySidebarOpen(false));
+  };
+
   return (
     <div
       className={cn(
-        "relative bg-white border border-slate-200/80 shadow-md rounded-2xl flex flex-col justify-between overflow-visible z-30",
-        isMobile ? "w-full shadow-none border-none" : "w-64 flex-shrink-0"
+        "relative bg-white border border-slate-200/90 shadow-sm rounded-2xl flex flex-col justify-between overflow-visible z-30",
+        isMobile ? "w-full shadow-none border-none" : "w-64 h-[440px] flex-shrink-0"
       )}
       onMouseLeave={() => setHoveredId(null)}
     >
-      {/* Seamless Docked Category List (No duplicate header) */}
-      <div className="p-2 space-y-0.5">
+      {/* 1. DeoDap-Style Top Navy Header */}
+      {!isMobile && (
+        <div className="bg-[#121f38] text-white px-3.5 py-2.5 flex items-center justify-between flex-shrink-0 rounded-t-2xl">
+          <div className="flex items-center gap-2">
+            <Grid className="w-4 h-4 text-accent" />
+            <span className="font-poppins font-bold text-xs uppercase tracking-wider">
+              Shop By Category
+            </span>
+          </div>
+        </div>
+      )}
+
+      {/* 2. Docked Category List (Fits evenly inside h-[440px]) */}
+      <div className="p-1.5 flex-1 overflow-y-auto no-scrollbar flex flex-col justify-between">
         {status === "loading" ? (
-          <div className="p-2 space-y-3">
+          <div className="p-2 space-y-2">
             {[1, 2, 3, 4, 5, 6, 7, 8, 9].map((n) => (
               <div key={n} className="flex items-center justify-between">
-                <Skeleton className="h-4 w-36" />
+                <Skeleton className="h-3.5 w-32" />
                 <Skeleton className="h-3 w-3" />
               </div>
             ))}
@@ -90,35 +101,33 @@ export function CategorySidebar({ isMobile = false }) {
           categories.map((category) => {
             const catSlug = category.slug || category.id;
             const IconComponent = iconMap[category.icon] || Package;
-            const isActive =
-              activeCategoryObject &&
-              (activeCategoryObject.slug === catSlug || activeCategoryObject.id === catSlug);
+            const isActive = hoveredId === catSlug;
 
             return (
               <div
                 key={catSlug}
                 onMouseEnter={() => handleCategoryHover(catSlug)}
-                onClick={() => navigate(`/category/${catSlug}`)}
+                onClick={() => handleCategoryClick(catSlug)}
                 className={cn(
-                  "group flex items-center justify-between px-3 py-2 rounded-xl cursor-pointer transition-colors font-poppins text-xs font-medium",
+                  "group flex items-center justify-between px-2.5 py-1.5 rounded-lg cursor-pointer transition-colors font-poppins text-xs font-medium",
                   isActive
                     ? "bg-rose-50 text-accent font-semibold"
                     : "text-slate-700 hover:bg-slate-50 hover:text-primary"
                 )}
               >
-                <div className="flex items-center gap-2.5">
+                <div className="flex items-center gap-2.5 min-w-0">
                   <IconComponent
                     className={cn(
-                      "w-4 h-4 stroke-[1.8]",
+                      "w-3.5 h-3.5 flex-shrink-0 stroke-[1.8]",
                       isActive ? "text-accent" : "text-slate-500 group-hover:text-primary"
                     )}
                   />
-                  <span className="line-clamp-1">{category.name}</span>
+                  <span className="truncate">{category.name}</span>
                 </div>
 
                 <ChevronRight
                   className={cn(
-                    "w-3.5 h-3.5 stroke-[2]",
+                    "w-3.5 h-3.5 flex-shrink-0 stroke-[2]",
                     isActive ? "text-accent" : "text-slate-300 group-hover:text-slate-500"
                   )}
                 />
@@ -128,24 +137,33 @@ export function CategorySidebar({ isMobile = false }) {
         )}
       </div>
 
-      {/* Bottom Button: View All Categories */}
-      <div className="p-2 border-t border-slate-100">
-        <a
-          href="#"
+      {/* 3. Bottom Button: View All Categories */}
+      <div className="p-1.5 border-t border-slate-100 bg-slate-50/60 rounded-b-2xl flex-shrink-0">
+        <button
           onClick={(e) => {
             e.preventDefault();
-            window.scrollTo({ top: 0, behavior: "smooth" });
+            navigate("/");
+            setTimeout(() => {
+              const el = document.getElementById("shop-by-category-section");
+              if (el) {
+                el.scrollIntoView({ behavior: "smooth" });
+              } else {
+                window.scrollTo({ top: 450, behavior: "smooth" });
+              }
+            }, 100);
+            if (onClose) onClose();
+            else dispatch(setCategorySidebarOpen(false));
           }}
-          className="flex items-center gap-2 w-full py-2 px-3 rounded-xl hover:bg-slate-100 text-slate-800 font-poppins text-xs font-bold transition-all"
+          className="flex items-center gap-2 w-full py-1.5 px-2.5 rounded-lg hover:bg-slate-200/60 text-slate-800 font-poppins text-xs font-bold transition-all text-left cursor-pointer"
         >
-          <Grid className="w-4 h-4 text-slate-700" />
+          <Grid className="w-3.5 h-3.5 text-accent" />
           <span>View All Categories</span>
-        </a>
+        </button>
       </div>
 
-      {/* Desktop Floating Submenu Flyout */}
-      {!isMobile && activeCategoryObject && (
-        <CategoryFlyout category={activeCategoryObject} />
+      {/* 4. Desktop Floating Submenu Flyout (Only when category is hovered) */}
+      {!isMobile && hoveredId && activeCategoryObject && (
+        <CategoryFlyout category={activeCategoryObject} onClose={onClose} />
       )}
     </div>
   );

@@ -1,5 +1,14 @@
 import { createSlice } from "@reduxjs/toolkit";
 
+const savedUser = (() => {
+  try {
+    const raw = typeof window !== "undefined" ? localStorage.getItem("apexmart_user") : null;
+    return raw ? JSON.parse(raw) : null;
+  } catch {
+    return null;
+  }
+})();
+
 const uiSlice = createSlice({
   name: "ui",
   initialState: {
@@ -12,6 +21,8 @@ const uiSlice = createSlice({
     isAuthModalOpen: false,
     authModalTab: "login", // "login" | "register"
     currentView: "home", // "home" | "product" | "wishlist" | "contact" | "inquiry"
+    user: savedUser,
+    isAuthenticated: Boolean(savedUser),
   },
   reducers: {
     setCurrentView: (state, action) => {
@@ -54,6 +65,20 @@ const uiSlice = createSlice({
     setAuthModalTab: (state, action) => {
       state.authModalTab = action.payload;
     },
+    loginSuccess: (state, action) => {
+      state.user = action.payload;
+      state.isAuthenticated = true;
+      try {
+        localStorage.setItem("apexmart_user", JSON.stringify(action.payload));
+      } catch {}
+    },
+    logout: (state) => {
+      state.user = null;
+      state.isAuthenticated = false;
+      try {
+        localStorage.removeItem("apexmart_user");
+      } catch {}
+    },
   },
 });
 
@@ -71,6 +96,8 @@ export const {
   openAuthModal,
   closeAuthModal,
   setAuthModalTab,
+  loginSuccess,
+  logout,
 } = uiSlice.actions;
 
 export default uiSlice.reducer;

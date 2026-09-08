@@ -26,8 +26,10 @@ import {
   Coins,
   Sparkles,
   Truck,
+  MapPin,
 } from "lucide-react";
-import { toggleMobileDrawer, toggleCartDrawer, openAuthModal } from "@/store/slices/uiSlice";
+import { toggleMobileDrawer, toggleCartDrawer, openAuthModal, logout } from "@/store/slices/uiSlice";
+import { toast } from "sonner";
 import {
   DropdownMenu,
   DropdownMenuTrigger,
@@ -40,6 +42,7 @@ import {
 export function Header() {
   const dispatch = useAppDispatch();
   const navigate = useNavigate();
+  const { isAuthenticated, user } = useAppSelector((state) => state.ui);
   const wishlistCount = useAppSelector((state) => state.wishlist.totalCount);
   const { totalCount: cartCount, totalAmount: cartAmount } = useAppSelector(
     (state) => state.cart
@@ -131,11 +134,16 @@ export function Header() {
 
             {/* Account Dropdown (Shadcn DropdownMenu) */}
             <DropdownMenu>
-              <DropdownMenuTrigger className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-white/5 hover:bg-white/15 border border-white/10 text-left transition-all duration-200 focus:outline-none shadow-xs hover:border-white/20">
-                <User className="w-5 h-5 text-white stroke-[2]" />
+              <DropdownMenuTrigger className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-white/5 hover:bg-white/15 border border-white/10 text-left transition-all duration-200 focus:outline-none shadow-xs hover:border-white/20 cursor-pointer">
+                <div className="relative flex items-center justify-center">
+                  <User className="w-5 h-5 text-white stroke-[2]" />
+                  {isAuthenticated && (
+                    <span className="absolute -bottom-0.5 -right-0.5 w-2 h-2 rounded-full bg-emerald-400 ring-2 ring-[#121f38]" />
+                  )}
+                </div>
                 <div className="flex flex-col leading-tight hidden sm:flex">
-                  <span className="text-[10px] font-poppins font-medium text-slate-300">
-                    Hello, Sign in
+                  <span className="text-[10px] font-poppins font-medium text-slate-300 truncate max-w-[110px]">
+                    {isAuthenticated ? `Hello, ${user?.name?.split(" ")[0] || "Partner"}` : "Hello, Sign in"}
                   </span>
                   <span className="text-xs font-poppins font-bold text-white flex items-center gap-1">
                     <span>Account</span>
@@ -144,36 +152,116 @@ export function Header() {
                 </div>
               </DropdownMenuTrigger>
 
-              <DropdownMenuContent align="end" className="w-48">
-                <DropdownMenuLabel>Business Account</DropdownMenuLabel>
-                <DropdownMenuSeparator />
-                <DropdownMenuItem
-                  className="gap-2 cursor-pointer"
-                  onClick={() => dispatch(openAuthModal("login"))}
-                >
-                  <User className="w-4 h-4 text-accent" />
-                  <span>Sign In / Register</span>
-                </DropdownMenuItem>
-                <DropdownMenuItem className="gap-2">
-                  <Package className="w-4 h-4 text-blue-500" />
-                  <span>Wholesale Orders</span>
-                </DropdownMenuItem>
-                <DropdownMenuItem className="gap-2">
-                  <FileText className="w-4 h-4 text-emerald-500" />
-                  <span>GST Invoices</span>
-                </DropdownMenuItem>
-                <DropdownMenuItem
-                  onClick={() => navigate("/contact")}
-                  className="gap-2 cursor-pointer"
-                >
-                  <Headphones className="w-4 h-4 text-accent" />
-                  <span>Help & Contact Desk</span>
-                </DropdownMenuItem>
-                <DropdownMenuSeparator />
-                <DropdownMenuItem className="gap-2 text-rose-600 focus:text-rose-600">
-                  <LogOut className="w-4 h-4" />
-                  <span>Sign Out</span>
-                </DropdownMenuItem>
+              <DropdownMenuContent align="end" className="w-56 p-1.5 shadow-xl">
+                {isAuthenticated ? (
+                  <>
+                    <div
+                      onClick={() => navigate("/profile")}
+                      className="px-3 py-2 border-b border-slate-100 mb-1 rounded-xl hover:bg-slate-50 transition-colors cursor-pointer group"
+                    >
+                      <div className="flex items-center justify-between">
+                        <p className="text-[10px] font-poppins font-semibold text-slate-400 uppercase tracking-wider">
+                          Signed in as
+                        </p>
+                        <span className="text-[10px] text-accent font-semibold flex items-center gap-0.5 group-hover:translate-x-0.5 transition-transform">
+                          Profile &rarr;
+                        </span>
+                      </div>
+                      <p className="text-xs font-poppins font-bold text-slate-900 truncate">
+                        {user?.name || "Wholesale Partner"}
+                      </p>
+                      <p className="text-[10px] text-slate-500 font-inter truncate">
+                        {user?.email || "Verified Retailer"}
+                      </p>
+                    </div>
+
+                    <DropdownMenuItem
+                      onClick={() => navigate("/profile")}
+                      className="gap-2.5 cursor-pointer font-medium"
+                    >
+                      <User className="w-4 h-4 text-accent" />
+                      <span>My Profile</span>
+                    </DropdownMenuItem>
+
+                    <DropdownMenuItem
+                      onClick={() => navigate("/profile/addresses")}
+                      className="gap-2.5 cursor-pointer font-medium"
+                    >
+                      <MapPin className="w-4 h-4 text-amber-500" />
+                      <span>Delivery Addresses</span>
+                    </DropdownMenuItem>
+
+                    <DropdownMenuItem className="gap-2.5 cursor-pointer font-medium">
+                      <Package className="w-4 h-4 text-blue-500" />
+                      <span>Wholesale Orders</span>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem className="gap-2.5 cursor-pointer font-medium">
+                      <FileText className="w-4 h-4 text-emerald-500" />
+                      <span>GST Invoices</span>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem
+                      onClick={() => navigate("/contact")}
+                      className="gap-2.5 cursor-pointer font-medium"
+                    >
+                      <Headphones className="w-4 h-4 text-accent" />
+                      <span>Help & Contact Desk</span>
+                    </DropdownMenuItem>
+
+                    <DropdownMenuSeparator className="my-1" />
+
+                    {/* ONLY SHOWN WHEN LOGGED IN */}
+                    <DropdownMenuItem
+                      onClick={() => {
+                        dispatch(logout());
+                        toast.success("You have been signed out successfully.");
+                      }}
+                      className="gap-2.5 text-rose-600 focus:text-rose-600 focus:bg-rose-50 cursor-pointer font-medium"
+                    >
+                      <LogOut className="w-4 h-4" />
+                      <span>Sign Out</span>
+                    </DropdownMenuItem>
+                  </>
+                ) : (
+                  <>
+                    <DropdownMenuLabel className="text-[11px] font-poppins uppercase tracking-wider text-slate-400 px-3 py-1">
+                      Business Account
+                    </DropdownMenuLabel>
+                    <DropdownMenuSeparator className="my-1" />
+
+                    {/* ONLY SHOWN WHEN NOT LOGGED IN */}
+                    <DropdownMenuItem
+                      className="gap-2.5 cursor-pointer font-semibold text-accent focus:text-accent focus:bg-accent/10"
+                      onClick={() => dispatch(openAuthModal("login"))}
+                    >
+                      <User className="w-4 h-4" />
+                      <span>Sign In / Register</span>
+                    </DropdownMenuItem>
+
+                    <DropdownMenuItem
+                      onClick={() => navigate("/profile")}
+                      className="gap-2.5 cursor-pointer font-medium"
+                    >
+                      <User className="w-4 h-4 text-slate-500" />
+                      <span>My Profile</span>
+                    </DropdownMenuItem>
+
+                    <DropdownMenuItem
+                      onClick={() => navigate("/profile/addresses")}
+                      className="gap-2.5 cursor-pointer font-medium"
+                    >
+                      <MapPin className="w-4 h-4 text-slate-500" />
+                      <span>Delivery Addresses</span>
+                    </DropdownMenuItem>
+
+                    <DropdownMenuItem
+                      onClick={() => navigate("/contact")}
+                      className="gap-2.5 cursor-pointer font-medium"
+                    >
+                      <Headphones className="w-4 h-4 text-slate-500" />
+                      <span>Help & Contact Desk</span>
+                    </DropdownMenuItem>
+                  </>
+                )}
               </DropdownMenuContent>
             </DropdownMenu>
 
