@@ -52,9 +52,9 @@ export function CartDrawer() {
         className="w-full sm:max-w-md md:max-w-[460px] h-full flex flex-col p-0 border-l border-slate-200/80 bg-white z-50 shadow-2xl"
       >
         <DrawerHeader className="sr-only">
-          <DrawerTitle>Wholesale Shopping Cart</DrawerTitle>
+          <DrawerTitle>Shopping Cart</DrawerTitle>
           <DrawerDescription>
-            Review and adjust quantities of your selected wholesale items before checkout.
+            Review and adjust quantities of your selected items before checkout.
           </DrawerDescription>
         </DrawerHeader>
 
@@ -67,7 +67,7 @@ export function CartDrawer() {
             <div>
               <div className="flex items-center gap-2">
                 <span className="font-poppins font-bold text-base text-white">
-                  My Wholesale Cart
+                  My Cart
                 </span>
                 <span className="bg-accent text-white font-poppins text-xs font-black px-2 py-0.5 rounded-full">
                   {totalCount}
@@ -98,7 +98,7 @@ export function CartDrawer() {
               {totalAmount >= freeShippingThreshold ? (
                 <span className="text-accent font-poppins font-bold text-xs flex items-center gap-1">
                   <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
-                  Unlocked Free Wholesale Express Shipping!
+                  Unlocked Free Express Shipping!
                 </span>
               ) : (
                 <span className="text-xs">
@@ -129,7 +129,7 @@ export function CartDrawer() {
                 Your cart is empty
               </p>
               <p className="text-xs font-inter text-slate-400 max-w-xs leading-relaxed">
-                Add products from the Deals Under ₹99 or Best Sellers to start your wholesale order.
+                Add products from the Deals Under ₹99 or Best Sellers to start your order.
               </p>
               <DrawerClose asChild>
                 <button

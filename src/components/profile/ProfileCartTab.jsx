@@ -10,8 +10,6 @@ import {
   Trash2,
   ArrowRight,
   ShieldCheck,
-  Tag,
-  CheckCircle2,
   Package,
 } from "lucide-react";
 import { toast } from "sonner";
@@ -25,14 +23,10 @@ export const ProfileCartTab = React.memo(function ProfileCartTab() {
 
   const freeShippingThreshold = 599;
   const isFreeShipping = totalAmount >= freeShippingThreshold;
-  const progressPercent = Math.min(
-    100,
-    Math.round((totalAmount / freeShippingThreshold) * 100)
-  );
 
   const handleClearCart = () => {
     dispatch(clearCart());
-    toast.success("Wholesale cart cleared.");
+    toast.success("Cart cleared.");
   };
 
   const handleProceedToCheckout = () => {
@@ -46,10 +40,10 @@ export const ProfileCartTab = React.memo(function ProfileCartTab() {
           <ShoppingBag size={30} />
         </div>
         <h3 className="font-poppins font-bold text-lg text-slate-900 mb-1">
-          Your Wholesale Cart is Empty
+          Your Cart is Empty
         </h3>
         <p className="text-xs sm:text-sm text-slate-500 font-inter max-w-sm mx-auto mb-6 leading-relaxed">
-          You haven't added any products to your cart yet. Explore our wholesale catalog or deals to place bulk orders.
+          You haven't added any products to your cart yet. Explore our catalog or deals to place orders.
         </p>
         <button
           type="button"
@@ -57,7 +51,7 @@ export const ProfileCartTab = React.memo(function ProfileCartTab() {
           className="inline-flex items-center gap-2 px-6 py-2.5 rounded-xl bg-accent hover:bg-accent-hover text-white font-poppins text-xs sm:text-sm font-bold shadow-md shadow-accent/20 transition-all cursor-pointer"
         >
           <Package size={15} />
-          <span>Browse Wholesale Catalog</span>
+          <span>Browse Catalog</span>
         </button>
       </div>
     );
@@ -74,13 +68,13 @@ export const ProfileCartTab = React.memo(function ProfileCartTab() {
           <div>
             <h2 className="font-poppins font-bold text-lg text-slate-900 flex items-center gap-2">
               <ShoppingBag className="w-5 h-5 text-accent" />
-              <span>My Wholesale Cart</span>
+              <span>My Cart</span>
               <span className="text-xs font-poppins font-bold bg-accent/10 text-accent px-2.5 py-0.5 rounded-full">
                 {totalCount} {totalCount === 1 ? "Item" : "Items"}
               </span>
             </h2>
             <p className="text-xs text-slate-500 font-inter mt-0.5">
-              Direct factory pricing with wholesale slab discounts
+              Direct factory pricing with slab discounts
             </p>
           </div>
 
@@ -92,34 +86,6 @@ export const ProfileCartTab = React.memo(function ProfileCartTab() {
             <Trash2 size={13} />
             <span>Clear Cart</span>
           </button>
-        </div>
-
-        {/* Free Shipping Progress */}
-        <div className="bg-orange-50/80 p-3.5 rounded-2xl border border-orange-100/80 mb-6">
-          <div className="flex items-center justify-between text-xs font-inter mb-1.5">
-            <div className="flex items-center gap-1.5">
-              <Tag className="w-3.5 h-3.5 text-accent flex-shrink-0" />
-              {isFreeShipping ? (
-                <span className="text-accent font-poppins font-bold text-xs flex items-center gap-1">
-                  <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
-                  Free Wholesale Express Shipping Unlocked!
-                </span>
-              ) : (
-                <span className="text-slate-700">
-                  Add <strong className="text-accent font-poppins font-bold">{formatCurrency(freeShippingThreshold - totalAmount)}</strong> more for <strong>Free Express Shipping</strong>
-                </span>
-              )}
-            </div>
-            <span className="font-poppins font-bold text-slate-500 text-[11px]">
-              {progressPercent}%
-            </span>
-          </div>
-          <div className="w-full bg-slate-200/80 h-1.5 rounded-full overflow-hidden">
-            <div
-              className="bg-gradient-to-r from-amber-500 to-accent h-full rounded-full transition-all duration-500"
-              style={{ width: `${progressPercent}%` }}
-            />
-          </div>
         </div>
 
         {/* Cart Item Cards */}
@@ -157,7 +123,7 @@ export const ProfileCartTab = React.memo(function ProfileCartTab() {
                       </span>
                     )}
                     <span className="text-[10px] font-poppins font-bold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-md border border-emerald-200/60">
-                      Wholesale Price
+                      Best Price
                     </span>
                   </div>
                   <p className="text-[11px] text-slate-400 font-inter mt-1">
@@ -219,7 +185,7 @@ export const ProfileCartTab = React.memo(function ProfileCartTab() {
 
         <div className="space-y-2.5 text-xs font-inter text-slate-600 mb-5">
           <div className="flex justify-between">
-            <span>Wholesale Items Subtotal</span>
+            <span>Items Subtotal</span>
             <span className="font-poppins font-bold text-slate-900">
               {formatCurrency(totalAmount)}
             </span>
@@ -265,7 +231,7 @@ export const ProfileCartTab = React.memo(function ProfileCartTab() {
             onClick={handleProceedToCheckout}
             className="flex-1 py-3 px-6 rounded-xl bg-accent hover:bg-accent-hover text-white font-poppins text-xs sm:text-sm font-bold shadow-md shadow-accent/25 hover:shadow-lg transition-all flex items-center justify-center gap-2 cursor-pointer"
           >
-            <span>Proceed to Wholesale Checkout</span>
+            <span>Proceed to Checkout</span>
             <ArrowRight size={16} />
           </button>
           <button

@@ -34,7 +34,7 @@ export const ProfileWishlistTab = React.memo(function ProfileWishlistTab() {
         imageUrl: product.imageUrl || product.image,
       })
     );
-    toast.success(`"${product.name || product.title}" added to wholesale cart! 🛒`);
+    toast.success(`"${product.name || product.title}" added to cart! 🛒`);
   };
 
   const handleMoveAllToCart = () => {

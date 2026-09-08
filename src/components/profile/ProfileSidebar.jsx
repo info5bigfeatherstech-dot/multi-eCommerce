@@ -38,7 +38,7 @@ export const ProfileSidebar = React.memo(function ProfileSidebar({
     {
       id: "cart",
       path: "/profile/cart",
-      label: "My Wholesale Cart",
+      label: "My Cart",
       icon: ShoppingBag,
       desc: "Review items & proceed to checkout",
       badge: cartCount > 0 ? cartCount : null,

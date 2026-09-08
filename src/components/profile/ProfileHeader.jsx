@@ -1,13 +1,7 @@
 import React, { useMemo } from "react";
-import { useNavigate } from "react-router-dom";
-import { useAppSelector } from "@/store/hooks";
-import { CheckCircle2, Mail, Phone, ShoppingBag, Heart, MapPin } from "lucide-react";
+import { CheckCircle2, Mail, Phone } from "lucide-react";
 
 export const ProfileHeader = React.memo(function ProfileHeader({ user }) {
-  const navigate = useNavigate();
-  const cartCount = useAppSelector((state) => state.cart.totalCount);
-  const wishlistCount = useAppSelector((state) => state.wishlist.totalCount);
-
   const initials = useMemo(() => {
     if (!user?.name) return "AP";
     const parts = user.name.trim().split(" ");
@@ -54,49 +48,6 @@ export const ProfileHeader = React.memo(function ProfileHeader({ user }) {
               )}
             </div>
           </div>
-        </div>
-
-        {/* Quick Action Navigation Pills */}
-        <div className="flex items-center gap-2 sm:gap-3 flex-wrap">
-          <button
-            type="button"
-            onClick={() => navigate("/profile/cart")}
-            className="flex items-center gap-2 px-3.5 py-2 rounded-2xl bg-slate-50 hover:bg-orange-50/60 border border-slate-200/80 hover:border-accent/40 text-slate-700 hover:text-accent font-poppins text-xs font-semibold transition-all cursor-pointer shadow-2xs group"
-            title="View Cart"
-          >
-            <ShoppingBag size={15} className="text-accent group-hover:scale-110 transition-transform" />
-            <span>Cart</span>
-            {cartCount > 0 && (
-              <span className="bg-accent text-white text-[10px] font-black px-1.5 py-0.5 rounded-full leading-none">
-                {cartCount}
-              </span>
-            )}
-          </button>
-
-          <button
-            type="button"
-            onClick={() => navigate("/profile/wishlist")}
-            className="flex items-center gap-2 px-3.5 py-2 rounded-2xl bg-slate-50 hover:bg-rose-50/60 border border-slate-200/80 hover:border-rose-300 text-slate-700 hover:text-rose-600 font-poppins text-xs font-semibold transition-all cursor-pointer shadow-2xs group"
-            title="View Wishlist"
-          >
-            <Heart size={15} className="text-rose-500 group-hover:scale-110 transition-transform" />
-            <span>Wishlist</span>
-            {wishlistCount > 0 && (
-              <span className="bg-rose-500 text-white text-[10px] font-black px-1.5 py-0.5 rounded-full leading-none">
-                {wishlistCount}
-              </span>
-            )}
-          </button>
-
-          <button
-            type="button"
-            onClick={() => navigate("/profile/addresses")}
-            className="flex items-center gap-1.5 px-3.5 py-2 rounded-2xl bg-slate-50 hover:bg-slate-100 border border-slate-200/80 text-slate-700 font-poppins text-xs font-semibold transition-all cursor-pointer shadow-2xs group"
-            title="Manage Addresses"
-          >
-            <MapPin size={15} className="text-slate-500 group-hover:scale-110 transition-transform" />
-            <span>Addresses</span>
-          </button>
         </div>
       </div>
     </div>
