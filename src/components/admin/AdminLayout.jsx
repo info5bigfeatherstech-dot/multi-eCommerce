@@ -58,6 +58,9 @@ import {
   UserPlus,
   Activity,
   LifeBuoy,
+  Settings,
+  Cpu,
+  PlayCircle,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
@@ -109,6 +112,8 @@ export default function AdminLayout() {
   const [isReviewsExpanded, setIsReviewsExpanded] = useState(true);
   const [isStaffExpanded, setIsStaffExpanded] = useState(true);
   const [isSupportExpanded, setIsSupportExpanded] = useState(true);
+  const [isSettingsExpanded, setIsSettingsExpanded] = useState(true);
+  const [isDemoExpanded, setIsDemoExpanded] = useState(true);
 
   const pendingReviewsCount = (productReviews || []).filter((r) => r?.status === "Pending").length;
   const activeStaffCount = (staffMembers || []).filter((s) => s?.status === "Active").length;
@@ -514,6 +519,80 @@ export default function AdminLayout() {
       path: "/admin/support/reports",
       description: "Support performance resolution reports",
       icon: BarChart3,
+    },
+  ];
+
+  const settingsSubItems = [
+    {
+      name: "General Settings",
+      path: "/admin/settings/general",
+      description: "Basic website business settings",
+      icon: Store,
+      exact: true,
+    },
+    {
+      name: "Payment Settings",
+      path: "/admin/settings/payments",
+      description: "Payment gateways and payment configuration",
+      icon: CreditCard,
+    },
+    {
+      name: "Shipping Settings",
+      path: "/admin/settings/shipping",
+      description: "Shipping, courier, shipping label and delivery settings",
+      icon: Truck,
+    },
+    {
+      name: "Tax/GST",
+      path: "/admin/settings/tax",
+      description: "Tax and GST configuration",
+      icon: FileSpreadsheet,
+    },
+    {
+      name: "Notifications",
+      path: "/admin/settings/notifications",
+      description: "Notification channels and preferences",
+      icon: Bell,
+    },
+    {
+      name: "Integrations",
+      path: "/admin/settings/integrations",
+      description: "Third-party APIs and integrations",
+      icon: Sliders,
+    },
+    {
+      name: "Security",
+      path: "/admin/settings/security",
+      description: "Login, access and security controls",
+      icon: ShieldCheck,
+    },
+  ];
+
+  const demoSubItems = [
+    {
+      name: "Demo Dashboard",
+      path: "/admin/demo/dashboard",
+      description: "For Demo sample dashboard",
+      icon: Sparkles,
+      exact: true,
+    },
+    {
+      name: "Demo Products",
+      path: "/admin/demo/products",
+      description: "For Showing Sample products",
+      icon: Boxes,
+    },
+    {
+      name: "Demo Orders",
+      path: "/admin/demo/orders",
+      description: "Sample orders and workflow",
+      icon: Truck,
+    },
+    {
+      name: "Demo Features",
+      path: "/admin/demo/features",
+      description: "demonstration of System features",
+      icon: Cpu,
     },
   ];
 
@@ -1699,6 +1778,129 @@ export default function AdminLayout() {
                             {item.badge}
                           </span>
                         )}
+                      </Link>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+
+            {/* Settings Accordion Parent */}
+            <div className="space-y-1 mt-2">
+              <button
+                type="button"
+                onClick={() => setIsSettingsExpanded(!isSettingsExpanded)}
+                className="w-full flex items-center justify-between px-3 py-2.5 rounded-xl text-xs font-poppins font-bold text-slate-800 hover:bg-slate-100 transition-colors cursor-pointer group"
+              >
+                <div className="flex items-center gap-2.5">
+                  <div className="p-1.5 rounded-lg bg-orange-50 text-accent group-hover:bg-accent group-hover:text-white transition-colors">
+                    <Settings className="w-4 h-4" />
+                  </div>
+                  <span className="text-sm text-slate-900">Settings</span>
+                </div>
+                <div className="flex items-center gap-1.5">
+                  {isSettingsExpanded ? (
+                    <ChevronDown className="w-4 h-4 text-slate-400 transition-transform" />
+                  ) : (
+                    <ChevronRight className="w-4 h-4 text-slate-400 transition-transform" />
+                  )}
+                </div>
+              </button>
+
+              {/* Settings Submenu links */}
+              {isSettingsExpanded && (
+                <div className="pl-4 pr-1 py-1 space-y-1 border-l-2 border-slate-200 ml-5 animate-fadeIn">
+                  {settingsSubItems.map((item) => {
+                    const isActive = item.exact
+                      ? location.pathname === item.path
+                      : location.pathname.startsWith(item.path);
+                    const ItemIcon = item.icon;
+
+                    return (
+                      <Link
+                        key={item.path}
+                        to={item.path}
+                        onClick={() => setIsSidebarOpen(false)}
+                        className={cn(
+                          "flex items-center justify-between px-3 py-2 rounded-xl text-xs font-poppins font-semibold transition-all group",
+                          isActive
+                            ? "bg-accent text-white shadow-xs font-bold"
+                            : "text-slate-600 hover:bg-slate-100 hover:text-slate-900"
+                        )}
+                      >
+                        <div className="flex items-center gap-2 min-w-0">
+                          <ItemIcon className={cn("w-3.5 h-3.5 flex-shrink-0", isActive ? "text-white" : "text-slate-400 group-hover:text-accent")} />
+                          <span className="truncate">{item.name}</span>
+                        </div>
+                        {item.badge !== undefined && item.badge !== null && (
+                          <span
+                            className={cn(
+                              "px-1.5 py-0.2 rounded-full text-[9px] font-bold",
+                              isActive
+                                ? "bg-white/25 text-white"
+                                : item.badgeColor || "bg-slate-100 text-slate-700"
+                            )}
+                          >
+                            {item.badge}
+                          </span>
+                        )}
+                      </Link>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+
+            {/* Demo Accordion Parent */}
+            <div className="space-y-1 pt-2">
+              <button
+                type="button"
+                onClick={() => setIsDemoExpanded(!isDemoExpanded)}
+                className="w-full flex items-center justify-between px-3 py-2.5 rounded-xl text-xs font-poppins font-bold text-slate-800 hover:bg-slate-100 transition-colors cursor-pointer group"
+              >
+                <div className="flex items-center gap-2.5">
+                  <div className="p-1.5 rounded-lg bg-amber-50 text-amber-600 group-hover:bg-amber-600 group-hover:text-white transition-colors">
+                    <Sparkles className="w-4 h-4" />
+                  </div>
+                  <span className="truncate">Demo Sandbox</span>
+                </div>
+                <div className="flex items-center gap-1.5">
+                  <span className="px-1.5 py-0.5 rounded-full text-[9px] font-bold bg-amber-100 text-amber-800">
+                    Live
+                  </span>
+                  {isDemoExpanded ? (
+                    <ChevronDown className="w-4 h-4 text-slate-400 transition-transform" />
+                  ) : (
+                    <ChevronRight className="w-4 h-4 text-slate-400 transition-transform" />
+                  )}
+                </div>
+              </button>
+
+              {/* Demo Submenu links */}
+              {isDemoExpanded && (
+                <div className="pl-4 pr-1 py-1 space-y-1 border-l-2 border-slate-200 ml-5 animate-fadeIn">
+                  {demoSubItems.map((item) => {
+                    const isActive = item.exact
+                      ? location.pathname === item.path
+                      : location.pathname.startsWith(item.path);
+                    const ItemIcon = item.icon;
+
+                    return (
+                      <Link
+                        key={item.path}
+                        to={item.path}
+                        onClick={() => setIsSidebarOpen(false)}
+                        className={cn(
+                          "flex items-center justify-between px-3 py-2 rounded-xl text-xs font-poppins font-semibold transition-all group",
+                          isActive
+                            ? "bg-accent text-white shadow-xs font-bold"
+                            : "text-slate-600 hover:bg-slate-100 hover:text-slate-900"
+                        )}
+                      >
+                        <div className="flex items-center gap-2 min-w-0">
+                          <ItemIcon className={cn("w-3.5 h-3.5 flex-shrink-0", isActive ? "text-white" : "text-slate-400 group-hover:text-accent")} />
+                          <span className="truncate">{item.name}</span>
+                        </div>
                       </Link>
                     );
                   })}

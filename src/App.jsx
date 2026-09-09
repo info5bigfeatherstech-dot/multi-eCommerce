@@ -97,6 +97,17 @@ import SupportTicketsView from "./components/admin/support/SupportTicketsView";
 import CustomerQueriesView from "./components/admin/support/CustomerQueriesView";
 import CustomerComplaintsView from "./components/admin/support/CustomerComplaintsView";
 import SupportReportsView from "./components/admin/support/SupportReportsView";
+import GeneralSettingsView from "./components/admin/settings/GeneralSettingsView";
+import PaymentSettingsView from "./components/admin/settings/PaymentSettingsView";
+import ShippingSettingsView from "./components/admin/settings/ShippingSettingsView";
+import TaxGstSettingsView from "./components/admin/settings/TaxGstSettingsView";
+import NotificationSettingsView from "./components/admin/settings/NotificationSettingsView";
+import IntegrationsSettingsView from "./components/admin/settings/IntegrationsSettingsView";
+import SecuritySettingsView from "./components/admin/settings/SecuritySettingsView";
+import DemoDashboardView from "./components/admin/demo/DemoDashboardView";
+import DemoProductsView from "./components/admin/demo/DemoProductsView";
+import DemoOrdersView from "./components/admin/demo/DemoOrdersView";
+import DemoFeaturesView from "./components/admin/demo/DemoFeaturesView";
 
 export default function App() {
   const dispatch = useAppDispatch();
@@ -237,6 +248,23 @@ export default function App() {
             <Route path="support/queries" element={<CustomerQueriesView />} />
             <Route path="support/complaints" element={<CustomerComplaintsView />} />
             <Route path="support/reports" element={<SupportReportsView />} />
+
+            {/* Settings Sub-module */}
+            <Route path="settings" element={<Navigate to="/admin/settings/general" replace />} />
+            <Route path="settings/general" element={<GeneralSettingsView />} />
+            <Route path="settings/payments" element={<PaymentSettingsView />} />
+            <Route path="settings/shipping" element={<ShippingSettingsView />} />
+            <Route path="settings/tax" element={<TaxGstSettingsView />} />
+            <Route path="settings/notifications" element={<NotificationSettingsView />} />
+            <Route path="settings/integrations" element={<IntegrationsSettingsView />} />
+            <Route path="settings/security" element={<SecuritySettingsView />} />
+
+            {/* Demo Sub-module */}
+            <Route path="demo" element={<Navigate to="/admin/demo/dashboard" replace />} />
+            <Route path="demo/dashboard" element={<DemoDashboardView />} />
+            <Route path="demo/products" element={<DemoProductsView />} />
+            <Route path="demo/orders" element={<DemoOrdersView />} />
+            <Route path="demo/features" element={<DemoFeaturesView />} />
           </Route>
           <Route path="*" element={<Navigate to="/admin/orders" replace />} />
         </Routes>

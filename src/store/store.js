@@ -23,6 +23,8 @@ import adminMarketingReducer from "./slices/adminMarketingSlice";
 import adminReviewsReducer from "./slices/adminReviewsSlice";
 import adminStaffReducer from "./slices/adminStaffSlice";
 import adminSupportReducer from "./slices/adminSupportSlice";
+import adminSettingsReducer from "./slices/adminSettingsSlice";
+import adminDemoReducer from "./slices/adminDemoSlice";
 
 export const store = configureStore({
   reducer: {
@@ -50,6 +52,8 @@ export const store = configureStore({
     adminReviews: adminReviewsReducer,
     adminStaff: adminStaffReducer,
     adminSupport: adminSupportReducer,
+    adminSettings: adminSettingsReducer,
+    adminDemo: adminDemoReducer,
   },
   devTools: typeof process !== "undefined" && process.env && process.env.NODE_ENV !== "production",
 });
