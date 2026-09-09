@@ -26,7 +26,7 @@ export function TopBanner() {
       <div className="bg-gradient-to-r from-accent via-coral-hover to-accent text-white text-xs py-2 px-4 rounded-xl shadow-sm border border-white/10 flex items-center justify-between gap-4">
         
         {/* Left Badge */}
-        <div className="hidden lg:flex items-center gap-1.5 bg-white/20 backdrop-blur-md text-white font-poppins font-extrabold px-2.5 py-0.5 rounded-full text-[10px] tracking-wide uppercase border border-white/30">
+        <div className="hidden lg:flex items-center gap-1.5 bg-white/20 backdrop-blur-md text-white font-poppins font-bold px-2.5 py-0.5 rounded-full text-[10px] tracking-wide uppercase border border-white/30">
           <Sparkles className="w-3 h-3 text-white animate-pulse" />
           <span>Mega Wholesale Fest</span>
         </div>
@@ -34,7 +34,7 @@ export function TopBanner() {
         {/* Center Text & Timer */}
         <div className="flex-1 flex items-center justify-center gap-3 text-center flex-wrap">
           <p className="font-poppins font-medium text-xs sm:text-sm">
-            <strong className="font-extrabold">LIGHTNING SALE LIVE!</strong> Get Extra Up to{" "}
+            <strong className="font-bold">LIGHTNING SALE LIVE!</strong> Get Extra Up to{" "}
             <span className="font-black text-amber-200 underline decoration-amber-200/60">65% OFF</span> + 100% Instant GST Input Credit!
           </p>
 

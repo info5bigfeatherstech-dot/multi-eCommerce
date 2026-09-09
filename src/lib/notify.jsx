@@ -46,7 +46,7 @@ export function notifyAddToCart(product, { onOpenCart } = {}) {
         <h4 className="font-poppins font-bold text-xs text-slate-900 truncate leading-tight">
           {name}
         </h4>
-        <p className="text-[11px] font-poppins font-extrabold text-accent mt-0.5">
+        <p className="text-[11px] font-poppins font-bold text-accent mt-0.5">
           {formatCurrency(price)}
         </p>
       </div>

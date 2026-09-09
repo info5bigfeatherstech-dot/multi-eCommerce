@@ -244,7 +244,7 @@ export default function AuthModal() {
             <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-accent to-orange-600 flex items-center justify-center shadow-md shadow-accent/25 text-white">
               <Store size={20} strokeWidth={2.3} />
             </div>
-            <span className="font-poppins font-extrabold text-xl text-slate-900 tracking-tight">
+            <span className="font-poppins font-bold text-xl text-slate-900 tracking-tight">
               {brandName}
             </span>
           </div>

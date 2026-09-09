@@ -110,7 +110,7 @@ export default function DemoDashboardView() {
                 <h1 className="text-xl font-poppins font-black text-slate-900 tracking-tight">
                   Interactive Demo Showcase
                 </h1>
-                <span className="px-2 py-0.5 rounded-full text-[10px] font-extrabold uppercase tracking-wide bg-amber-100 text-amber-800 border border-amber-200">
+                <span className="px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wide bg-amber-100 text-amber-800 border border-amber-200">
                   Live Sandbox
                 </span>
               </div>

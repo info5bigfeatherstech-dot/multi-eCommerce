@@ -85,7 +85,7 @@ export function CategoryNavBar() {
                 className={cn(
                   "group flex items-center gap-1.5 px-3 py-1 rounded-lg text-xs font-poppins font-semibold whitespace-nowrap transition-all duration-150 cursor-pointer flex-shrink-0 border",
                   isActive
-                    ? "bg-white text-slate-900 border-white shadow-xs font-extrabold"
+                    ? "bg-white text-slate-900 border-white shadow-xs font-bold"
                     : item.variant === "special"
                     ? "bg-emerald-500/20 text-emerald-200 hover:bg-emerald-500/30 border-emerald-400/30 font-bold hover:scale-102"
                     : "bg-rose-500/20 text-rose-200 hover:bg-rose-500/30 border-rose-500/30 font-bold hover:scale-102"

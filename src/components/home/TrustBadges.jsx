@@ -74,7 +74,7 @@ export function TrustBadges() {
                 <IconComponent className="w-6 h-6 stroke-[2]" />
               </div>
 
-              <span className="text-[10px] font-poppins font-extrabold uppercase tracking-wider px-2.5 py-0.5 rounded-full bg-white/90 text-slate-700 border border-slate-200 shadow-2xs">
+              <span className="text-[10px] font-poppins font-bold uppercase tracking-wider px-2.5 py-0.5 rounded-full bg-white/90 text-slate-700 border border-slate-200 shadow-2xs">
                 {badge.stat}
               </span>
             </div>

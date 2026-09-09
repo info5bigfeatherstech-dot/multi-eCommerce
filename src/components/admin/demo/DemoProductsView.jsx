@@ -180,7 +180,7 @@ export default function DemoProductsView() {
                 <h1 className="text-xl font-poppins font-black text-slate-900 tracking-tight">
                   Sample Multi-Tier Products
                 </h1>
-                <span className="px-2 py-0.5 rounded-full text-[10px] font-extrabold uppercase tracking-wide bg-blue-100 text-blue-800 border border-blue-200">
+                <span className="px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wide bg-blue-100 text-blue-800 border border-blue-200">
                   {filteredProducts.length} Items Showcase
                 </span>
               </div>

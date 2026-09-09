@@ -47,7 +47,7 @@ export function DropshippingPage({ onBack: propOnBack }) {
         <span className="text-xs font-poppins font-bold uppercase tracking-wider text-accent">
           Direct Manufacturer Reselling
         </span>
-        <h1 className="text-3xl sm:text-4xl font-poppins font-black text-slate-900 tracking-tight">
+        <h1 className="text-3xl sm:text-4xl font-poppins font-bold text-slate-900 tracking-tight">
           Dropshipping Partner Application
         </h1>
         <p className="text-sm sm:text-base text-slate-500 font-inter leading-relaxed">
@@ -56,7 +56,7 @@ export function DropshippingPage({ onBack: propOnBack }) {
       </div>
 
       {/* 4 Feature Highlights */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+      {/* <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         <div className="p-5 rounded-2xl bg-white border border-slate-200/80 shadow-xs space-y-2">
           <div className="w-10 h-10 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center">
             <Truck className="w-5 h-5" />
@@ -104,7 +104,7 @@ export function DropshippingPage({ onBack: propOnBack }) {
             Ready-to-upload product photography, ad creatives, and 1-click Shopify import files.
           </p>
         </div>
-      </div>
+      </div> */}
 
       {/* Main Content: Centered Form */}
       <div className="max-w-3xl mx-auto w-full bg-white rounded-3xl border border-slate-200 p-6 sm:p-10 shadow-sm space-y-6">

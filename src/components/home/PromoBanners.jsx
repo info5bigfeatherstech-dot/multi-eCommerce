@@ -67,7 +67,7 @@ export function PromoBanners({ onSelectCategory }) {
 
                 {/* Top Badge */}
                 <div className="relative z-10 flex items-center justify-between">
-                  <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/10 backdrop-blur-md border border-white/20 font-poppins text-[10px] font-extrabold uppercase tracking-widest text-slate-100">
+                  <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/10 backdrop-blur-md border border-white/20 font-poppins text-[10px] font-bold uppercase tracking-widest text-slate-100">
                     <IconComponent className={`w-3.5 h-3.5 ${item.accentColor}`} />
                     {item.badge}
                   </span>

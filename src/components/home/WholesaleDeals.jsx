@@ -202,7 +202,7 @@ export function WholesaleDeals({ onSelectProduct }) {
           </div>
 
           {/* Live Countdown Timer */}
-          <div className="flex items-center gap-2 bg-slate-900 text-white px-4 py-2 rounded-2xl shadow-sm border border-slate-800 self-start sm:self-auto">
+          {/* <div className="flex items-center gap-2 bg-slate-900 text-white px-4 py-2 rounded-2xl shadow-sm border border-slate-800 self-start sm:self-auto">
             <div className="flex items-center gap-1.5 text-xs font-poppins font-bold text-slate-300">
               <Clock className="w-3.5 h-3.5 text-accent animate-spin-slow" />
               <span>Ends In:</span>
@@ -220,7 +220,7 @@ export function WholesaleDeals({ onSelectProduct }) {
                 {String(timeLeft.seconds).padStart(2, "0")}s
               </span>
             </div>
-          </div>
+          </div> */}
         </div>
 
         {/* Carousel Container with Left/Right Arrows */}

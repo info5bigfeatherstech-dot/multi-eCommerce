@@ -71,7 +71,7 @@ export function CustomerTrust() {
           <span className="text-xs font-poppins font-bold uppercase tracking-wider text-accent">
             Trusted By Retailers
           </span>
-          <h2 className="section-title text-2xl md:text-3xl font-extrabold text-slate-900">
+          <h2 className="section-title text-2xl md:text-3xl font-bold text-slate-900">
             What Our Wholesale Buyers Say
           </h2>
           <p className="text-xs text-slate-500 font-inter">

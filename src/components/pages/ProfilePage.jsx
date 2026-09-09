@@ -62,7 +62,7 @@ export function ProfilePage() {
         <div className="w-14 h-14 rounded-2xl bg-accent/10 text-accent flex items-center justify-center mx-auto mb-4">
           <User size={28} />
         </div>
-        <h2 className="font-poppins font-extrabold text-xl text-slate-900 mb-1.5">
+        <h2 className="font-poppins font-bold text-xl text-slate-900 mb-1.5">
           Wholesale Account Profile
         </h2>
         <p className="text-xs sm:text-sm text-slate-500 font-inter mb-6 leading-relaxed">

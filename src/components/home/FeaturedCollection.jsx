@@ -75,11 +75,8 @@ export function FeaturedCollection({ onSelectProduct }) {
               <span className="text-xs font-poppins font-bold uppercase tracking-wider text-accent">
                 Handpicked Wholesale
               </span>
-              <span className="inline-flex items-center gap-1 text-[10px] font-bold bg-accent/10 text-accent px-2 py-0.5 rounded-full">
-                <Sparkles className="w-3 h-3" /> Zero MOQ
-              </span>
             </div>
-            <h2 className="section-title text-2xl md:text-3xl font-extrabold text-slate-900 mt-1">
+            <h2 className="section-title text-2xl md:text-3xl font-bold text-slate-900 mt-1">
               Featured Collection
             </h2>
             <p className="section-subtitle text-xs sm:text-sm text-slate-500 font-inter">
@@ -125,7 +122,7 @@ export function FeaturedCollection({ onSelectProduct }) {
                   {/* Discount Badge */}
                   {product.discount && (
                     <div className="absolute top-6 left-6 z-10">
-                      <Badge variant="coral" className="font-poppins font-extrabold text-[10px] px-2.5 py-0.5 shadow-sm">
+                      <Badge variant="coral" className="font-poppins font-bold text-[10px] px-2.5 py-0.5 shadow-sm">
                         {product.discount}
                       </Badge>
                     </div>
@@ -212,7 +209,7 @@ export function FeaturedCollection({ onSelectProduct }) {
           <div className="mt-10 text-center">
             <button
               onClick={() => setShowAll((prev) => !prev)}
-              className="inline-flex items-center justify-center gap-2 px-8 py-3 rounded-2xl bg-white hover:bg-slate-50 border-2 border-accent text-accent hover:text-accent-hover font-poppins font-extrabold text-xs uppercase tracking-wider shadow-sm hover:shadow-md transition-all active:scale-95"
+              className="inline-flex items-center justify-center gap-2 px-8 py-3 rounded-2xl bg-white hover:bg-slate-50 border-2 border-accent text-accent hover:text-accent-hover font-poppins font-bold text-xs uppercase tracking-wider shadow-sm hover:shadow-md transition-all active:scale-95"
             >
               <span>{showAll ? "Show Less (8 Products)" : `View All Products (${products.length} Items)`}</span>
               <ChevronDown

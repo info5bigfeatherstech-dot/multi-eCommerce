@@ -97,7 +97,7 @@ export default function DemoFeaturesView() {
                 <h1 className="text-xl font-poppins font-black text-slate-900 tracking-tight">
                   System Architecture & Feature Demonstration
                 </h1>
-                <span className="px-2 py-0.5 rounded-full text-[10px] font-extrabold uppercase tracking-wide bg-amber-100 text-amber-800 border border-amber-200">
+                <span className="px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wide bg-amber-100 text-amber-800 border border-amber-200">
                   Interactive Lab
                 </span>
               </div>
@@ -384,7 +384,7 @@ export default function DemoFeaturesView() {
                   <div className="flex items-center gap-2">
                     <span className="font-poppins font-bold">{carrier.name}</span>
                     {carrier.recommended && (
-                      <span className="px-1.5 py-0.2 rounded bg-emerald-200/80 text-emerald-800 text-[9px] font-extrabold uppercase">
+                      <span className="px-1.5 py-0.2 rounded bg-emerald-200/80 text-emerald-800 text-[9px] font-bold uppercase">
                         Recommended
                       </span>
                     )}

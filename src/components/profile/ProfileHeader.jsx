@@ -22,7 +22,7 @@ export const ProfileHeader = React.memo(function ProfileHeader({ user }) {
 
           <div className="min-w-0">
             <div className="flex items-center gap-2 flex-wrap">
-              <h1 className="font-poppins font-extrabold text-xl sm:text-2xl text-slate-900 truncate">
+              <h1 className="font-poppins font-bold text-xl sm:text-2xl text-slate-900 truncate">
                 {user?.name || "Wholesale Partner"}
               </h1>
               <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-poppins font-bold bg-emerald-50 text-emerald-700 border border-emerald-200/80">

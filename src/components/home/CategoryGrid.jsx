@@ -53,7 +53,7 @@ export function CategoryGrid({ onSelectCategory }) {
               </span>
               
             </div>
-            <h2 className="section-title text-xl sm:text-2xl md:text-3xl font-extrabold text-slate-900 mt-1">
+            <h2 className="section-title text-xl sm:text-2xl md:text-3xl font-bold text-slate-900 mt-1">
               Shop By Category
             </h2>
             <p className="text-xs sm:text-sm text-slate-500 font-inter mt-1">
@@ -160,7 +160,7 @@ export function CategoryGrid({ onSelectCategory }) {
               <span className="inline-block text-[10px] font-poppins font-bold uppercase tracking-wider text-accent">
                 Complete Catalog
               </span>
-              <h3 className="font-poppins font-extrabold text-base text-white leading-tight">
+              <h3 className="font-poppins font-bold text-base text-white leading-tight">
                 All 20,000+ Items
               </h3>
               <p className="text-[11px] text-slate-300 font-inter leading-relaxed">

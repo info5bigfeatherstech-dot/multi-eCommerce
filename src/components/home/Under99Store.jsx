@@ -52,7 +52,7 @@ export function Under99Store({ onSelectProduct }) {
         {/* Section Header: Text Left-Aligned with Brand Theme Colors */}
         <div className="mb-6 flex flex-col sm:flex-row sm:items-end justify-between gap-3 text-left">
           <div className="space-y-1">
-            <h2 className="text-2xl sm:text-3xl font-poppins font-extrabold text-slate-900 tracking-tight">
+            <h2 className="text-2xl sm:text-3xl font-poppins font-bold text-slate-900 tracking-tight">
               Find Deals Under <span className="text-accent">₹99</span>
             </h2>
             <p className="text-xs sm:text-sm text-slate-500 font-inter">
@@ -99,7 +99,7 @@ export function Under99Store({ onSelectProduct }) {
                   />
 
                   {/* Circular Discount Badge (Top Left) */}
-                  <div className="absolute top-2 left-2 min-w-[32px] h-[32px] px-1 rounded-full bg-accent text-white font-poppins font-extrabold text-[10px] flex items-center justify-center shadow-md leading-none">
+                  <div className="absolute top-2 left-2 min-w-[32px] h-[32px] px-1 rounded-full bg-accent text-white font-poppins font-bold text-[10px] flex items-center justify-center shadow-md leading-none">
                     {item.discountBadge || "-50%"}
                   </div>
 

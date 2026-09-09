@@ -21,12 +21,20 @@ export default {
         },
       },
       fontFamily: {
-        sans: ["'geograph-regular'", "Geograph", "Albert Sans", "sans-serif"],
-        geograph: ["'geograph-regular'", "Geograph", "sans-serif"],
-        "geograph-regular": ["'geograph-regular'", "Geograph", "sans-serif"],
-        "albert-sans": ["'geograph-regular'", "Geograph", "Albert Sans", "sans-serif"],
-        poppins: ["'geograph-regular'", "Geograph", "Poppins", "sans-serif"],
-        inter: ["'geograph-regular'", "Geograph", "Inter", "sans-serif"],
+        // Body / default → Montserrat
+        sans: ["'Montserrat'", "sans-serif"],
+        // Heading → Playfair Display  (used via font-poppins throughout headings/nav)
+        poppins: ["'Playfair Display'", "Georgia", "serif"],
+        // Body descriptions → Montserrat  (used via font-inter throughout descriptions)
+        inter: ["'Montserrat'", "sans-serif"],
+        // Albert Sans alias → Montserrat
+        "albert-sans": ["'Montserrat'", "sans-serif"],
+        // Geograph (keep as fallback, used rarely)
+        geograph: ["'geograph-regular'", "Geograph", "'Montserrat'", "sans-serif"],
+        "geograph-regular": ["'geograph-regular'", "Geograph", "'Montserrat'", "sans-serif"],
+        // Explicit utilities
+        playfair: ["'Playfair Display'", "Georgia", "serif"],
+        montserrat: ["'Montserrat'", "sans-serif"],
       },
       keyframes: {
         marquee: {

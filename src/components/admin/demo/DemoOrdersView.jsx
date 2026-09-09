@@ -155,7 +155,7 @@ export default function DemoOrdersView() {
                 <h1 className="text-xl font-poppins font-black text-slate-900 tracking-tight">
                   Sample Orders & Workflow Simulator
                 </h1>
-                <span className="px-2 py-0.5 rounded-full text-[10px] font-extrabold uppercase tracking-wide bg-indigo-100 text-indigo-800 border border-indigo-200">
+                <span className="px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wide bg-indigo-100 text-indigo-800 border border-indigo-200">
                   Interactive Lifecycle
                 </span>
               </div>

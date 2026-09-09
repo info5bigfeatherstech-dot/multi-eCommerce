@@ -265,7 +265,7 @@ export default function ProductDetail({ product: propProduct, onBack: propOnBack
               {currentProduct.category || "General Utility"}
             </span>
             {isUnder99 && (
-              <span className="text-xs font-poppins font-extrabold text-accent bg-orange-50 border border-orange-200 px-2.5 py-0.5 rounded-full">
+              <span className="text-xs font-poppins font-bold text-accent bg-orange-50 border border-orange-200 px-2.5 py-0.5 rounded-full">
                 ⚡ Under ₹99 Steal
               </span>
             )}
@@ -273,7 +273,7 @@ export default function ProductDetail({ product: propProduct, onBack: propOnBack
 
           {/* Header Title & Description */}
           <div className="space-y-2">
-            <h1 className="text-xl sm:text-2xl lg:text-3xl font-extrabold text-slate-900 tracking-tight leading-tight">
+            <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold text-slate-900 tracking-tight leading-tight">
               {currentProduct.name}
             </h1>
             <p className="text-xs sm:text-sm text-slate-500 font-inter leading-relaxed">

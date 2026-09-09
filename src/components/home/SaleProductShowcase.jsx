@@ -81,7 +81,7 @@ export function SaleProductShowcase({ onSelectProduct }) {
                 Sale Up to 75% OFF
               </span>
             </div>
-            <h2 className="section-title text-2xl md:text-3xl font-extrabold text-slate-900 mt-1">
+            <h2 className="section-title text-2xl md:text-3xl font-bold text-slate-900 mt-1">
               Super Sale & Factory Clearance
             </h2>
             <p className="text-xs sm:text-sm text-slate-500 font-inter">
