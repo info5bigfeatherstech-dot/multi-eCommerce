@@ -29,6 +29,13 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
+import {
+  Select,
+  SelectTrigger,
+  SelectValue,
+  SelectContent,
+  SelectItem,
+} from "@/components/ui/Select";
 
 export default function RtoManagementView() {
   const dispatch = useAppDispatch();
@@ -464,16 +471,17 @@ export default function RtoManagementView() {
                 <label className="block font-poppins font-bold text-slate-700 mb-1">
                   Reverse Logistics Partner
                 </label>
-                <select
-                  value={reverseCourier}
-                  onChange={(e) => setReverseCourier(e.target.value)}
-                  className="w-full px-3 py-2 rounded-xl border border-slate-200 text-slate-800 font-inter focus:outline-none focus:border-accent"
-                >
-                  <option value="Delhivery Reverse">Delhivery Reverse Logistics</option>
-                  <option value="BlueDart Surface">BlueDart Reverse Surface</option>
-                  <option value="Ekart Surface">Ekart Reverse</option>
-                  <option value="DTDC Express">DTDC Commercial Return</option>
-                </select>
+                <Select value={reverseCourier} onValueChange={setReverseCourier}>
+                  <SelectTrigger className="w-full text-xs bg-slate-50 border-slate-200">
+                    <SelectValue placeholder="Reverse Logistics Partner" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="Delhivery Reverse">Delhivery Reverse Logistics</SelectItem>
+                    <SelectItem value="BlueDart Surface">BlueDart Reverse Surface</SelectItem>
+                    <SelectItem value="Ekart Surface">Ekart Reverse</SelectItem>
+                    <SelectItem value="DTDC Express">DTDC Commercial Return</SelectItem>
+                  </SelectContent>
+                </Select>
               </div>
 
               <div>
@@ -557,16 +565,17 @@ export default function RtoManagementView() {
                 <label className="block font-poppins font-bold text-slate-700 mb-1">
                   Package & Product Condition
                 </label>
-                <select
-                  value={packageCondition}
-                  onChange={(e) => setPackageCondition(e.target.value)}
-                  className="w-full px-3 py-2 rounded-xl border border-slate-200 text-slate-800 font-inter focus:outline-none focus:border-accent"
-                >
-                  <option value="Pristine">Pristine (Seals intact, restockable immediately)</option>
-                  <option value="Packaging Damaged">Packaging Damaged (Repackaging required)</option>
-                  <option value="Defective/Opened">Defective / Opened (Technical QC required)</option>
-                  <option value="Destroyed">Destroyed / Total Loss (File insurance claim)</option>
-                </select>
+                <Select value={packageCondition} onValueChange={setPackageCondition}>
+                  <SelectTrigger className="w-full text-xs bg-slate-50 border-slate-200">
+                    <SelectValue placeholder="Package Condition" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="Pristine">Pristine (Seals intact, restockable immediately)</SelectItem>
+                    <SelectItem value="Packaging Damaged">Packaging Damaged (Repackaging required)</SelectItem>
+                    <SelectItem value="Defective/Opened">Defective / Opened (Technical QC required)</SelectItem>
+                    <SelectItem value="Destroyed">Destroyed / Total Loss (File insurance claim)</SelectItem>
+                  </SelectContent>
+                </Select>
               </div>
 
               <div>

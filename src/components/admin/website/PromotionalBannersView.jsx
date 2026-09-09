@@ -23,6 +23,13 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import { Link } from "react-router-dom";
+import {
+  Select,
+  SelectTrigger,
+  SelectValue,
+  SelectContent,
+  SelectItem,
+} from "@/components/ui/Select";
 
 export default function PromotionalBannersView() {
   const dispatch = useAppDispatch();
@@ -453,15 +460,16 @@ export default function PromotionalBannersView() {
               <label className="block text-xs font-semibold uppercase text-slate-600 mb-1">
                 Placement Location *
               </label>
-              <select
-                value={newLocation}
-                onChange={(e) => setNewLocation(e.target.value)}
-                className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
-              >
-                <option value="Hero Main Carousel (Slide 3)">Hero Main Carousel</option>
-                <option value="Mid-Page Promotional Banner">Mid-Page Promotional Banner</option>
-                <option value="Top Sticky Announcement Bar">Top Sticky Announcement Bar</option>
-              </select>
+              <Select value={newLocation} onValueChange={setNewLocation}>
+                <SelectTrigger className="w-full rounded-lg border-slate-300">
+                  <SelectValue placeholder="Select placement" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="Hero Main Carousel (Slide 3)">Hero Main Carousel</SelectItem>
+                  <SelectItem value="Mid-Page Promotional Banner">Mid-Page Promotional Banner</SelectItem>
+                  <SelectItem value="Top Sticky Announcement Bar">Top Sticky Announcement Bar</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
 
             <div className="grid grid-cols-2 gap-3">

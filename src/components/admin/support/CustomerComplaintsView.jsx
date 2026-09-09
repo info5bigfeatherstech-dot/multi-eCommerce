@@ -22,6 +22,13 @@ import {
   X,
   FileText,
 } from "lucide-react";
+import {
+  Select,
+  SelectTrigger,
+  SelectValue,
+  SelectContent,
+  SelectItem,
+} from "../../ui/Select";
 import { toast } from "sonner";
 
 const CustomerComplaintsView = () => {
@@ -316,26 +323,32 @@ const CustomerComplaintsView = () => {
 
           <div className="flex flex-wrap items-center gap-2">
             {/* Status Filter */}
-            <select
-              value={statusFilter}
-              onChange={(e) => setStatusFilter(e.target.value)}
-              className="py-1.5 px-3 text-xs font-medium bg-slate-50 border border-slate-200 rounded-lg text-slate-700 focus:outline-none"
-            >
-              <option value="all">All Statuses</option>
-              <option value="Under Investigation">Under Investigation</option>
-              <option value="Resolved">Resolved</option>
-            </select>
+            <div className="w-44">
+              <Select value={statusFilter} onValueChange={setStatusFilter}>
+                <SelectTrigger className="h-8 text-xs bg-slate-50 border-slate-200">
+                  <SelectValue placeholder="All Statuses" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Statuses</SelectItem>
+                  <SelectItem value="Under Investigation">Under Investigation</SelectItem>
+                  <SelectItem value="Resolved">Resolved</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
 
             {/* Severity Filter */}
-            <select
-              value={severityFilter}
-              onChange={(e) => setSeverityFilter(e.target.value)}
-              className="py-1.5 px-3 text-xs font-medium bg-slate-50 border border-slate-200 rounded-lg text-slate-700 focus:outline-none"
-            >
-              <option value="all">All Severities</option>
-              <option value="High">High Severity</option>
-              <option value="Medium">Medium Severity</option>
-            </select>
+            <div className="w-40">
+              <Select value={severityFilter} onValueChange={setSeverityFilter}>
+                <SelectTrigger className="h-8 text-xs bg-slate-50 border-slate-200">
+                  <SelectValue placeholder="All Severities" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Severities</SelectItem>
+                  <SelectItem value="High">High Severity</SelectItem>
+                  <SelectItem value="Medium">Medium Severity</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
           </div>
         </div>
       </div>
@@ -511,14 +524,15 @@ const CustomerComplaintsView = () => {
                 <label className="block text-xs font-semibold text-slate-700 mb-1">
                   Resolution Status
                 </label>
-                <select
-                  value={statusInput}
-                  onChange={(e) => setStatusInput(e.target.value)}
-                  className="w-full text-xs p-2.5 border border-slate-200 rounded-lg focus:outline-none focus:ring-1 focus:ring-indigo-500"
-                >
-                  <option value="Under Investigation">Under Investigation</option>
-                  <option value="Resolved">Resolved & Settled</option>
-                </select>
+                <Select value={statusInput} onValueChange={setStatusInput}>
+                  <SelectTrigger className="w-full text-xs bg-white border-slate-200">
+                    <SelectValue placeholder="Select Status" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="Under Investigation">Under Investigation</SelectItem>
+                    <SelectItem value="Resolved">Resolved & Settled</SelectItem>
+                  </SelectContent>
+                </Select>
               </div>
 
               <div>
@@ -650,30 +664,32 @@ const CustomerComplaintsView = () => {
                   <label className="block text-xs font-semibold text-slate-700 mb-1">
                     Grievance Type
                   </label>
-                  <select
-                    value={newType}
-                    onChange={(e) => setNewType(e.target.value)}
-                    className="w-full text-xs p-2.5 border border-slate-200 rounded-lg focus:outline-none"
-                  >
-                    <option value="Courier SLA Breach">Courier SLA Breach</option>
-                    <option value="Packaging Defect">Packaging Defect</option>
-                    <option value="Payment Deduction Glitch">Payment Glitch</option>
-                    <option value="Defective Product">Defective Product</option>
-                  </select>
+                  <Select value={newType} onValueChange={setNewType}>
+                    <SelectTrigger className="w-full text-xs bg-white border-slate-200">
+                      <SelectValue placeholder="Select Type" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="Courier SLA Breach">Courier SLA Breach</SelectItem>
+                      <SelectItem value="Packaging Defect">Packaging Defect</SelectItem>
+                      <SelectItem value="Payment Deduction Glitch">Payment Glitch</SelectItem>
+                      <SelectItem value="Defective Product">Defective Product</SelectItem>
+                    </SelectContent>
+                  </Select>
                 </div>
                 <div>
                   <label className="block text-xs font-semibold text-slate-700 mb-1">
                     Severity
                   </label>
-                  <select
-                    value={newSeverity}
-                    onChange={(e) => setNewSeverity(e.target.value)}
-                    className="w-full text-xs p-2.5 border border-slate-200 rounded-lg focus:outline-none"
-                  >
-                    <option value="High">High</option>
-                    <option value="Medium">Medium</option>
-                    <option value="Low">Low</option>
-                  </select>
+                  <Select value={newSeverity} onValueChange={setNewSeverity}>
+                    <SelectTrigger className="w-full text-xs bg-white border-slate-200">
+                      <SelectValue placeholder="Select Severity" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="High">High</SelectItem>
+                      <SelectItem value="Medium">Medium</SelectItem>
+                      <SelectItem value="Low">Low</SelectItem>
+                    </SelectContent>
+                  </Select>
                 </div>
               </div>
 
@@ -681,17 +697,18 @@ const CustomerComplaintsView = () => {
                 <label className="block text-xs font-semibold text-slate-700 mb-1">
                   Assigned Lead Investigator
                 </label>
-                <select
-                  value={newLead}
-                  onChange={(e) => setNewLead(e.target.value)}
-                  className="w-full text-xs p-2.5 border border-slate-200 rounded-lg focus:outline-none"
-                >
-                  {staffMembers.map((s) => (
-                    <option key={s.id} value={s.name}>
-                      {s.name} ({s.role})
-                    </option>
-                  ))}
-                </select>
+                <Select value={newLead || (staffMembers[0]?.name || "")} onValueChange={setNewLead}>
+                  <SelectTrigger className="w-full text-xs bg-white border-slate-200">
+                    <SelectValue placeholder="Select Lead Investigator" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {staffMembers.map((s) => (
+                      <SelectItem key={s.id} value={s.name}>
+                        {s.name} ({s.role})
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </div>
 
               <div>

@@ -14,8 +14,14 @@ import {
   Package,
   FileSpreadsheet,
 } from "lucide-react";
-import { formatCurrency, cn } from "@/lib/utils";
 import { toast } from "sonner";
+import {
+  Select,
+  SelectTrigger,
+  SelectValue,
+  SelectContent,
+  SelectItem,
+} from "@/components/ui/Select";
 
 export default function ReturnReportsView() {
   const returnsList = useAppSelector((state) => state.adminReturns.items);
@@ -110,16 +116,19 @@ export default function ReturnReportsView() {
         </div>
 
         <div className="flex items-center gap-2">
-          <select
-            value={timeRange}
-            onChange={(e) => setTimeRange(e.target.value)}
-            className="px-3 py-2 bg-white border border-slate-200 rounded-xl text-xs font-poppins font-semibold text-slate-800 shadow-2xs cursor-pointer"
-          >
-            <option value="Today">Today (Live)</option>
-            <option value="Week">This Week</option>
-            <option value="Month">This Month</option>
-            <option value="Quarter">Quarterly</option>
-          </select>
+          <div className="w-36">
+            <Select value={timeRange} onValueChange={setTimeRange}>
+              <SelectTrigger className="h-9 text-xs bg-white border-slate-200">
+                <SelectValue placeholder="Time Range" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="Today">Today (Live)</SelectItem>
+                <SelectItem value="Week">This Week</SelectItem>
+                <SelectItem value="Month">This Month</SelectItem>
+                <SelectItem value="Quarter">Quarterly</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
 
           <button
             onClick={handleExportCSV}

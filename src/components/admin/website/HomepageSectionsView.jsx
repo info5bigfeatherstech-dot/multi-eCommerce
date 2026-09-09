@@ -21,6 +21,13 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import { Link } from "react-router-dom";
+import {
+  Select,
+  SelectTrigger,
+  SelectValue,
+  SelectContent,
+  SelectItem,
+} from "@/components/ui/Select";
 
 export default function HomepageSectionsView() {
   const dispatch = useAppDispatch();
@@ -453,18 +460,19 @@ export default function HomepageSectionsView() {
               <label className="block text-xs font-semibold uppercase text-slate-600 mb-1">
                 Block Type *
               </label>
-              <select
-                value={newType}
-                onChange={(e) => setNewType(e.target.value)}
-                className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
-              >
-                <option value="Product Slider">Product Slider</option>
-                <option value="Product Grid">Product Grid</option>
-                <option value="Category Grid">Category Grid</option>
-                <option value="Features Bar">Features Bar</option>
-                <option value="Testimonials">Testimonials</option>
-                <option value="Custom HTML/Media">Custom Media Banner</option>
-              </select>
+              <Select value={newType} onValueChange={setNewType}>
+                <SelectTrigger className="w-full rounded-lg border-slate-300">
+                  <SelectValue placeholder="Select block type" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="Product Slider">Product Slider</SelectItem>
+                  <SelectItem value="Product Grid">Product Grid</SelectItem>
+                  <SelectItem value="Category Grid">Category Grid</SelectItem>
+                  <SelectItem value="Features Bar">Features Bar</SelectItem>
+                  <SelectItem value="Testimonials">Testimonials</SelectItem>
+                  <SelectItem value="Custom HTML/Media">Custom Media Banner</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
 
             <div>

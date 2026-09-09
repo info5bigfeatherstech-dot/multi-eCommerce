@@ -15,6 +15,13 @@ import {
   Share2,
 } from "lucide-react";
 import { toast } from "sonner";
+import {
+  Select,
+  SelectTrigger,
+  SelectValue,
+  SelectContent,
+  SelectItem,
+} from "../../ui/Select";
 
 const IntegrationsSettingsView = () => {
   const dispatch = useAppDispatch();
@@ -187,14 +194,15 @@ const IntegrationsSettingsView = () => {
                 <label className="block text-xs font-semibold text-slate-700 mb-1">
                   Connection Status
                 </label>
-                <select
-                  value={statusInput}
-                  onChange={(e) => setStatusInput(e.target.value)}
-                  className="w-full text-xs p-2.5 border border-slate-200 rounded-lg focus:outline-none"
-                >
-                  <option value="Connected">Connected & Active</option>
-                  <option value="Disconnected">Disconnected</option>
-                </select>
+                <Select value={statusInput} onValueChange={setStatusInput}>
+                  <SelectTrigger className="w-full text-xs border-slate-200">
+                    <SelectValue placeholder="Connection Status" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="Connected">Connected & Active</SelectItem>
+                    <SelectItem value="Disconnected">Disconnected</SelectItem>
+                  </SelectContent>
+                </Select>
               </div>
 
               <div>

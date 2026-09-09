@@ -20,9 +20,25 @@ import {
   ShieldCheck,
   Building2,
   Package,
+  MoreHorizontal,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
+import {
+  DropdownMenu,
+  DropdownMenuTrigger,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+} from "@/components/ui/DropdownMenu";
+import {
+  Select,
+  SelectTrigger,
+  SelectValue,
+  SelectContent,
+  SelectItem,
+} from "@/components/ui/Select";
 
 export default function DemoProductsView() {
   const dispatch = useAppDispatch();
@@ -209,20 +225,21 @@ export default function DemoProductsView() {
             />
           </div>
 
-          {/* Category dropdown */}
-          <div className="flex items-center gap-2">
+          {/* Category Shadcn dropdown */}
+          <div className="flex items-center gap-2 min-w-[200px]">
             <span className="text-xs font-poppins font-bold text-slate-500 whitespace-nowrap">Category:</span>
-            <select
-              value={selectedCategory}
-              onChange={(e) => setSelectedCategory(e.target.value)}
-              className="px-3 py-2 rounded-xl border border-slate-200 text-xs font-inter bg-white focus:outline-none focus:border-accent"
-            >
-              {categories.map((cat) => (
-                <option key={cat} value={cat}>
-                  {cat}
-                </option>
-              ))}
-            </select>
+            <Select value={selectedCategory} onValueChange={setSelectedCategory}>
+              <SelectTrigger className="h-9 text-xs rounded-xl bg-slate-50/50">
+                <SelectValue placeholder="All Categories" />
+              </SelectTrigger>
+              <SelectContent>
+                {categories.map((cat) => (
+                  <SelectItem key={cat} value={cat}>
+                    {cat}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
         </div>
 
@@ -277,13 +294,37 @@ export default function DemoProductsView() {
                   >
                     <Eye className="w-4 h-4" />
                   </button>
-                  <button
-                    onClick={() => handleCloneProduct(product)}
-                    className="p-2 rounded-xl bg-white/90 text-slate-700 hover:bg-white hover:text-emerald-600 shadow-xs transition-colors cursor-pointer"
-                    title="Copy SKU Info"
-                  >
-                    <Copy className="w-4 h-4" />
-                  </button>
+
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <button
+                        className="p-2 rounded-xl bg-white/90 text-slate-700 hover:bg-white hover:text-slate-900 shadow-xs transition-colors cursor-pointer"
+                        title="Product Options"
+                      >
+                        <MoreHorizontal className="w-4 h-4" />
+                      </button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end" className="w-48">
+                      <DropdownMenuLabel>Product Controls</DropdownMenuLabel>
+                      <DropdownMenuItem onClick={() => setSelectedProduct(product)}>
+                        <Eye className="w-4 h-4 mr-2 text-slate-500" />
+                        <span>View Tier Specs</span>
+                      </DropdownMenuItem>
+                      <DropdownMenuItem onClick={() => handleCloneProduct(product)}>
+                        <Copy className="w-4 h-4 mr-2 text-slate-500" />
+                        <span>Copy SKU Info</span>
+                      </DropdownMenuItem>
+                      <DropdownMenuSeparator />
+                      <DropdownMenuItem
+                        onClick={() => {
+                          toast.success(`Inventory audit verified for ${product.sku}: ${product.stockQty} units available.`);
+                        }}
+                      >
+                        <Package className="w-4 h-4 mr-2 text-emerald-600" />
+                        <span>Verify Stock Count</span>
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
                 </div>
               </div>
 
@@ -503,17 +544,21 @@ export default function DemoProductsView() {
                   <label className="text-xs font-poppins font-bold text-slate-700 block mb-1">
                     Category
                   </label>
-                  <select
+                  <Select
                     value={newProduct.category}
-                    onChange={(e) => setNewProduct({ ...newProduct, category: e.target.value })}
-                    className="w-full px-3 py-2 rounded-xl border border-slate-200 text-xs font-inter focus:outline-none focus:border-accent"
+                    onValueChange={(val) => setNewProduct({ ...newProduct, category: val })}
                   >
-                    <option value="Consumer Electronics">Consumer Electronics</option>
-                    <option value="FMCG & Gourmet">FMCG & Gourmet</option>
-                    <option value="Fashion & Apparel">Fashion & Apparel</option>
-                    <option value="Home & Appliances">Home & Appliances</option>
-                    <option value="Industrial & B2B">Industrial & B2B</option>
-                  </select>
+                    <SelectTrigger className="w-full rounded-xl border-slate-200 text-xs font-inter">
+                      <SelectValue placeholder="Select category" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="Consumer Electronics">Consumer Electronics</SelectItem>
+                      <SelectItem value="FMCG & Gourmet">FMCG & Gourmet</SelectItem>
+                      <SelectItem value="Fashion & Apparel">Fashion & Apparel</SelectItem>
+                      <SelectItem value="Home & Appliances">Home & Appliances</SelectItem>
+                      <SelectItem value="Industrial & B2B">Industrial & B2B</SelectItem>
+                    </SelectContent>
+                  </Select>
                 </div>
 
                 <div>

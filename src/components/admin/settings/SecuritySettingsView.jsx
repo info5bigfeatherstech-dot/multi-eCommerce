@@ -21,6 +21,13 @@ import {
   Sparkles,
 } from "lucide-react";
 import { toast } from "sonner";
+import {
+  Select,
+  SelectTrigger,
+  SelectValue,
+  SelectContent,
+  SelectItem,
+} from "@/components/ui/Select";
 
 const SecuritySettingsView = () => {
   const dispatch = useAppDispatch();
@@ -120,45 +127,57 @@ const SecuritySettingsView = () => {
               <label className="block text-xs font-semibold text-slate-700 mb-1">
                 Two-Factor Authentication (2FA)
               </label>
-              <select
+              <Select
                 value={formData.twoFactorEnforcement || "allAdmins"}
-                onChange={(e) => handleChange("twoFactorEnforcement", e.target.value)}
-                className="w-full text-xs p-2.5 bg-slate-50 border border-slate-200 rounded-lg focus:outline-none text-slate-800 font-medium"
+                onValueChange={(val) => handleChange("twoFactorEnforcement", val)}
               >
-                <option value="allAdmins">Enforce for All Admin Users (Recommended)</option>
-                <option value="superAdminOnly">Enforce for Super Admins Only</option>
-                <option value="optional">Optional per User</option>
-              </select>
+                <SelectTrigger className="h-9 text-xs bg-slate-50 border-slate-200">
+                  <SelectValue placeholder="Select 2FA Policy" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="allAdmins">Enforce for All Admin Users</SelectItem>
+                  <SelectItem value="superAdminOnly">Enforce for Super Admins Only</SelectItem>
+                  <SelectItem value="optional">Optional per User</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
 
             <div>
               <label className="block text-xs font-semibold text-slate-700 mb-1">
                 Password Rotation Expiry
               </label>
-              <select
-                value={formData.passwordExpiryDays || 90}
-                onChange={(e) => handleChange("passwordExpiryDays", parseInt(e.target.value))}
-                className="w-full text-xs p-2.5 bg-slate-50 border border-slate-200 rounded-lg focus:outline-none text-slate-800 font-medium"
+              <Select
+                value={String(formData.passwordExpiryDays || 90)}
+                onValueChange={(val) => handleChange("passwordExpiryDays", parseInt(val, 10))}
               >
-                <option value={90}>Every 90 Days (PCI-DSS Standard)</option>
-                <option value={180}>Every 180 Days</option>
-                <option value={0}>Never Expire</option>
-              </select>
+                <SelectTrigger className="h-9 text-xs bg-slate-50 border-slate-200">
+                  <SelectValue placeholder="Select Expiry" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="90">Every 90 Days (PCI-DSS Standard)</SelectItem>
+                  <SelectItem value="180">Every 180 Days</SelectItem>
+                  <SelectItem value="0">Never Expire</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
 
             <div>
               <label className="block text-xs font-semibold text-slate-700 mb-1">
                 Idle Session Timeout
               </label>
-              <select
-                value={formData.sessionTimeoutMinutes || 60}
-                onChange={(e) => handleChange("sessionTimeoutMinutes", parseInt(e.target.value))}
-                className="w-full text-xs p-2.5 bg-slate-50 border border-slate-200 rounded-lg focus:outline-none text-slate-800 font-medium"
+              <Select
+                value={String(formData.sessionTimeoutMinutes || 60)}
+                onValueChange={(val) => handleChange("sessionTimeoutMinutes", parseInt(val, 10))}
               >
-                <option value={30}>30 Minutes</option>
-                <option value={60}>60 Minutes (1 Hour)</option>
-                <option value={240}>4 Hours</option>
-              </select>
+                <SelectTrigger className="h-9 text-xs bg-slate-50 border-slate-200">
+                  <SelectValue placeholder="Select Timeout" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="30">30 Minutes</SelectItem>
+                  <SelectItem value="60">60 Minutes (1 Hour)</SelectItem>
+                  <SelectItem value="240">4 Hours</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
           </div>
 

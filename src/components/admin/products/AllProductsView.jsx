@@ -28,6 +28,13 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
+import {
+  Select,
+  SelectTrigger,
+  SelectValue,
+  SelectContent,
+  SelectItem,
+} from "@/components/ui/Select";
 
 export default function AllProductsView() {
   const dispatch = useAppDispatch();
@@ -271,41 +278,50 @@ export default function AllProductsView() {
           </div>
 
           {/* Category Filter */}
-          <select
-            value={selectedCategory}
-            onChange={(e) => setSelectedCategory(e.target.value)}
-            className="px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs font-poppins font-semibold text-slate-700 bg-white focus:outline-none focus:border-accent"
-          >
-            <option value="All">All Categories</option>
-            {categories.map((c) => (
-              <option key={c.id} value={c.name}>
-                {c.name}
-              </option>
-            ))}
-          </select>
+          <div className="w-44">
+            <Select value={selectedCategory} onValueChange={setSelectedCategory}>
+              <SelectTrigger className="h-10 text-xs bg-white border-slate-200">
+                <SelectValue placeholder="All Categories" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="All">All Categories</SelectItem>
+                {categories.map((c) => (
+                  <SelectItem key={c.id} value={c.name}>
+                    {c.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
 
           {/* Stock Status Filter */}
-          <select
-            value={selectedStockStatus}
-            onChange={(e) => setSelectedStockStatus(e.target.value)}
-            className="px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs font-poppins font-semibold text-slate-700 bg-white focus:outline-none focus:border-accent"
-          >
-            <option value="All">All Stock Levels</option>
-            <option value="In Stock">In Stock (&gt; Threshold)</option>
-            <option value="Low Stock">Low Stock Alert</option>
-            <option value="Out of Stock">Out of Stock (0)</option>
-          </select>
+          <div className="w-40">
+            <Select value={selectedStockStatus} onValueChange={setSelectedStockStatus}>
+              <SelectTrigger className="h-10 text-xs bg-white border-slate-200">
+                <SelectValue placeholder="All Stock Levels" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="All">All Stock Levels</SelectItem>
+                <SelectItem value="In Stock">In Stock (&gt; Threshold)</SelectItem>
+                <SelectItem value="Low Stock">Low Stock Alert</SelectItem>
+                <SelectItem value="Out of Stock">Out of Stock (0)</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
 
           {/* Publish Status Filter */}
-          <select
-            value={selectedStatus}
-            onChange={(e) => setSelectedStatus(e.target.value)}
-            className="px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs font-poppins font-semibold text-slate-700 bg-white focus:outline-none focus:border-accent"
-          >
-            <option value="All">All Statuses</option>
-            <option value="Active">Active (Public)</option>
-            <option value="Draft">Draft (Hidden)</option>
-          </select>
+          <div className="w-36">
+            <Select value={selectedStatus} onValueChange={setSelectedStatus}>
+              <SelectTrigger className="h-10 text-xs bg-white border-slate-200">
+                <SelectValue placeholder="All Statuses" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="All">All Statuses</SelectItem>
+                <SelectItem value="Active">Active (Public)</SelectItem>
+                <SelectItem value="Draft">Draft (Hidden)</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
 
           {(searchQuery || selectedCategory !== "All" || selectedStockStatus !== "All" || selectedStatus !== "All") && (
             <button
@@ -568,15 +584,16 @@ export default function AllProductsView() {
                 <label className="block font-poppins font-bold text-slate-700 mb-1">
                   Catalog Status
                 </label>
-                <select
-                  value={editStatus}
-                  onChange={(e) => setEditStatus(e.target.value)}
-                  className="w-full px-3 py-2 rounded-xl border border-slate-200 text-slate-800 focus:outline-none focus:border-accent font-poppins font-semibold"
-                >
-                  <option value="Active">Active (Visible to Buyers)</option>
-                  <option value="Draft">Draft (Internal Only)</option>
-                  <option value="Archived">Archived</option>
-                </select>
+                <Select value={editStatus} onValueChange={setEditStatus}>
+                  <SelectTrigger className="w-full text-xs bg-white border-slate-200 font-poppins font-semibold">
+                    <SelectValue placeholder="Catalog Status" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="Active">Active (Visible to Buyers)</SelectItem>
+                    <SelectItem value="Draft">Draft (Internal Only)</SelectItem>
+                    <SelectItem value="Archived">Archived</SelectItem>
+                  </SelectContent>
+                </Select>
               </div>
 
               <div className="pt-2 flex justify-end gap-2.5">

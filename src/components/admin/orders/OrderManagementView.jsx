@@ -20,6 +20,13 @@ import {
 } from "lucide-react";
 import { formatCurrency, cn } from "@/lib/utils";
 import { toast } from "sonner";
+import {
+  Select,
+  SelectTrigger,
+  SelectValue,
+  SelectContent,
+  SelectItem,
+} from "@/components/ui/Select";
 
 export default function OrderManagementView() {
   const dispatch = useAppDispatch();
@@ -393,17 +400,18 @@ export default function OrderManagementView() {
                 <label className="block text-xs font-poppins font-semibold text-slate-700 mb-1.5">
                   Logistics & Courier Partner
                 </label>
-                <select
-                  value={courierPartner}
-                  onChange={(e) => setCourierPartner(e.target.value)}
-                  className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-poppins font-semibold text-slate-800 focus:outline-none focus:border-accent"
-                >
-                  <option value="Delhivery Surface">Delhivery Surface Logistics</option>
-                  <option value="BlueDart Express">BlueDart Air & Express</option>
-                  <option value="Ekart Logistics">Ekart Logistics</option>
-                  <option value="DTDC Heavy Cargo">DTDC Heavy Cargo</option>
-                  <option value="Self Warehouse Pickup">Self Warehouse Pickup</option>
-                </select>
+                <Select value={courierPartner} onValueChange={setCourierPartner}>
+                  <SelectTrigger className="w-full text-xs bg-slate-50 border-slate-200">
+                    <SelectValue placeholder="Logistics Partner" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="Delhivery Surface">Delhivery Surface Logistics</SelectItem>
+                    <SelectItem value="BlueDart Express">BlueDart Air & Express</SelectItem>
+                    <SelectItem value="Ekart Logistics">Ekart Logistics</SelectItem>
+                    <SelectItem value="DTDC Heavy Cargo">DTDC Heavy Cargo</SelectItem>
+                    <SelectItem value="Self Warehouse Pickup">Self Warehouse Pickup</SelectItem>
+                  </SelectContent>
+                </Select>
               </div>
 
               <div>

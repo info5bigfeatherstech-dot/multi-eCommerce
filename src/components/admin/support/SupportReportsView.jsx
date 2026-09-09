@@ -19,6 +19,13 @@ import {
   LifeBuoy,
 } from "lucide-react";
 import { toast } from "sonner";
+import {
+  Select,
+  SelectTrigger,
+  SelectValue,
+  SelectContent,
+  SelectItem,
+} from "../../ui/Select";
 
 const SupportReportsView = () => {
   const tickets = useAppSelector((state) => state.adminSupport?.tickets || []);
@@ -136,17 +143,20 @@ const SupportReportsView = () => {
         </div>
 
         <div className="flex items-center gap-3">
-          <div className="flex items-center gap-1.5 bg-white border border-slate-200 rounded-lg px-2.5 py-1.5 shadow-sm">
-            <Calendar className="w-4 h-4 text-slate-400" />
-            <select
-              value={dateRange}
-              onChange={(e) => setDateRange(e.target.value)}
-              className="text-xs font-medium text-slate-700 bg-transparent focus:outline-none"
-            >
-              <option value="all">All Time</option>
-              <option value="7d">Last 7 Days</option>
-              <option value="30d">Last 30 Days</option>
-            </select>
+          <div className="w-36">
+            <Select value={dateRange} onValueChange={setDateRange}>
+              <SelectTrigger className="h-9 text-xs bg-white border-slate-200 shadow-sm">
+                <div className="flex items-center gap-1.5 truncate">
+                  <Calendar className="w-3.5 h-3.5 text-slate-400" />
+                  <SelectValue placeholder="Date Range" />
+                </div>
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Time</SelectItem>
+                <SelectItem value="7d">Last 7 Days</SelectItem>
+                <SelectItem value="30d">Last 30 Days</SelectItem>
+              </SelectContent>
+            </Select>
           </div>
 
           <button

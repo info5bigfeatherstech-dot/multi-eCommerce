@@ -21,6 +21,13 @@ import {
   Trash2,
 } from "lucide-react";
 import { toast } from "sonner";
+import {
+  Select,
+  SelectTrigger,
+  SelectValue,
+  SelectContent,
+  SelectItem,
+} from "@/components/ui/Select";
 
 export default function GiftCardsView() {
   const dispatch = useAppDispatch();
@@ -230,19 +237,21 @@ export default function GiftCardsView() {
         </div>
 
         <div className="flex items-center gap-2.5">
-          <div className="flex items-center gap-1.5 bg-slate-50 border border-slate-200 rounded-xl px-3 py-1.5">
-            <Filter className="w-3.5 h-3.5 text-slate-500" />
-            <span className="text-xs font-medium text-slate-500">Status:</span>
-            <select
-              value={selectedStatus}
-              onChange={(e) => setSelectedStatus(e.target.value)}
-              className="bg-transparent text-xs font-semibold text-slate-800 focus:outline-none cursor-pointer"
-            >
-              <option value="All">All Statuses</option>
-              <option value="Active">Active Balance</option>
-              <option value="Redeemed">Fully Redeemed</option>
-              <option value="Expired">Expired</option>
-            </select>
+          <div className="w-40">
+            <Select value={selectedStatus} onValueChange={setSelectedStatus}>
+              <SelectTrigger className="h-9 text-xs bg-slate-50 border-slate-200">
+                <div className="flex items-center gap-1.5 truncate">
+                  <Filter className="w-3.5 h-3.5 text-slate-500" />
+                  <SelectValue placeholder="Status" />
+                </div>
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="All">All Statuses</SelectItem>
+                <SelectItem value="Active">Active Balance</SelectItem>
+                <SelectItem value="Redeemed">Fully Redeemed</SelectItem>
+                <SelectItem value="Expired">Expired</SelectItem>
+              </SelectContent>
+            </Select>
           </div>
         </div>
       </div>
@@ -420,16 +429,17 @@ export default function GiftCardsView() {
 
                 <div>
                   <label className="text-xs font-bold text-slate-800 block mb-1">Design Theme</label>
-                  <select
-                    value={theme}
-                    onChange={(e) => setTheme(e.target.value)}
-                    className="w-full px-3 py-2 text-sm bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-slate-900 focus:outline-none"
-                  >
-                    <option value="Festive Celebration">Festive Celebration</option>
-                    <option value="Birthday Surprise">Birthday Surprise</option>
-                    <option value="Corporate Milestone">Corporate Milestone</option>
-                    <option value="Thank You Special">Thank You Special</option>
-                  </select>
+                  <Select value={theme} onValueChange={setTheme}>
+                    <SelectTrigger className="w-full text-xs bg-slate-50 border-slate-200">
+                      <SelectValue placeholder="Design Theme" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="Festive Celebration">Festive Celebration</SelectItem>
+                      <SelectItem value="Birthday Surprise">Birthday Surprise</SelectItem>
+                      <SelectItem value="Corporate Milestone">Corporate Milestone</SelectItem>
+                      <SelectItem value="Thank You Special">Thank You Special</SelectItem>
+                    </SelectContent>
+                  </Select>
                 </div>
               </div>
 

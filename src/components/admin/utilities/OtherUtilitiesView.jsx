@@ -15,6 +15,13 @@ import {
   RefreshCw,
 } from "lucide-react";
 import { toast } from "sonner";
+import {
+  Select,
+  SelectTrigger,
+  SelectValue,
+  SelectContent,
+  SelectItem,
+} from "@/components/ui/Select";
 
 export default function OtherUtilitiesView() {
   const [activeTab, setActiveTab] = useState("pincode"); // 'pincode' | 'tax' | 'currency' | 'barcode'
@@ -261,28 +268,30 @@ export default function OtherUtilitiesView() {
             <div className="grid grid-cols-2 gap-3">
               <div>
                 <label className="text-xs font-bold text-slate-800 block mb-1">Applicable GST Slab</label>
-                <select
-                  value={gstRate}
-                  onChange={(e) => setGstRate(Number(e.target.value))}
-                  className="w-full px-3 py-2 text-sm bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-slate-900 focus:outline-none"
-                >
-                  <option value={5}>5% (Essential Goods)</option>
-                  <option value={12}>12% (Apparel & Kitchen)</option>
-                  <option value={18}>18% (Electronics & Standard)</option>
-                  <option value={28}>28% (Luxury Goods)</option>
-                </select>
+                <Select value={String(gstRate)} onValueChange={(val) => setGstRate(Number(val))}>
+                  <SelectTrigger className="w-full bg-slate-50 border-slate-200 rounded-xl">
+                    <SelectValue placeholder="Select GST slab" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="5">5% (Essential Goods)</SelectItem>
+                    <SelectItem value="12">12% (Apparel & Kitchen)</SelectItem>
+                    <SelectItem value="18">18% (Electronics & Standard)</SelectItem>
+                    <SelectItem value="28">28% (Luxury Goods)</SelectItem>
+                  </SelectContent>
+                </Select>
               </div>
 
               <div>
                 <label className="text-xs font-bold text-slate-800 block mb-1">Transaction Route</label>
-                <select
-                  value={isInterState ? "inter" : "intra"}
-                  onChange={(e) => setIsInterState(e.target.value === "inter")}
-                  className="w-full px-3 py-2 text-sm bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-slate-900 focus:outline-none"
-                >
-                  <option value="intra">Intra-State (CGST + SGST)</option>
-                  <option value="inter">Inter-State (IGST Only)</option>
-                </select>
+                <Select value={isInterState ? "inter" : "intra"} onValueChange={(val) => setIsInterState(val === "inter")}>
+                  <SelectTrigger className="w-full bg-slate-50 border-slate-200 rounded-xl">
+                    <SelectValue placeholder="Select route" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="intra">Intra-State (CGST + SGST)</SelectItem>
+                    <SelectItem value="inter">Inter-State (IGST Only)</SelectItem>
+                  </SelectContent>
+                </Select>
               </div>
             </div>
           </div>

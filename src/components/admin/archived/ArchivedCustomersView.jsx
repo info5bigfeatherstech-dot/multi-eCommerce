@@ -20,6 +20,13 @@ import {
   AlertTriangle,
 } from "lucide-react";
 import { toast } from "sonner";
+import {
+  Select,
+  SelectTrigger,
+  SelectValue,
+  SelectContent,
+  SelectItem,
+} from "@/components/ui/Select";
 
 export default function ArchivedCustomersView() {
   const dispatch = useAppDispatch();
@@ -187,20 +194,21 @@ export default function ArchivedCustomersView() {
         </div>
 
         <div className="flex items-center gap-2.5">
-          <div className="flex items-center gap-1.5 bg-slate-50 border border-slate-200 rounded-xl px-3 py-1.5">
-            <Filter className="w-3.5 h-3.5 text-slate-500" />
+          <div className="flex items-center gap-1.5 bg-slate-50 border border-slate-200 rounded-xl px-2 py-1">
+            <Filter className="w-3.5 h-3.5 text-slate-500 ml-1" />
             <span className="text-xs font-medium text-slate-500">Reason:</span>
-            <select
-              value={selectedReason}
-              onChange={(e) => setSelectedReason(e.target.value)}
-              className="bg-transparent text-xs font-semibold text-slate-800 focus:outline-none cursor-pointer"
-            >
-              {reasons.map((r) => (
-                <option key={r} value={r}>
-                  {r}
-                </option>
-              ))}
-            </select>
+            <Select value={selectedReason} onValueChange={setSelectedReason}>
+              <SelectTrigger className="w-[180px] h-8 text-xs font-semibold text-slate-800 border-none bg-transparent shadow-none focus:ring-0">
+                <SelectValue placeholder="Reason" />
+              </SelectTrigger>
+              <SelectContent>
+                {reasons.map((r) => (
+                  <SelectItem key={r} value={r}>
+                    {r}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
         </div>
       </div>

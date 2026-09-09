@@ -20,6 +20,13 @@ import {
   Sparkles,
 } from "lucide-react";
 import { toast } from "sonner";
+import {
+  Select,
+  SelectTrigger,
+  SelectValue,
+  SelectContent,
+  SelectItem,
+} from "@/components/ui/Select";
 
 export default function FranchiseLeadsView() {
   const dispatch = useAppDispatch();
@@ -179,21 +186,23 @@ export default function FranchiseLeadsView() {
         </div>
 
         <div className="flex items-center gap-2.5">
-          <div className="flex items-center gap-1.5 bg-slate-50 border border-slate-200 rounded-xl px-3 py-1.5">
-            <Filter className="w-3.5 h-3.5 text-slate-500" />
-            <span className="text-xs font-medium text-slate-500">Stage:</span>
-            <select
-              value={selectedStatus}
-              onChange={(e) => setSelectedStatus(e.target.value)}
-              className="bg-transparent text-xs font-semibold text-slate-800 focus:outline-none cursor-pointer"
-            >
-              <option value="All">All Stages</option>
-              <option value="New">New Inquiries</option>
-              <option value="Contacted">Contacted</option>
-              <option value="In Negotiation">Site Evaluation</option>
-              <option value="Converted">Agreement Executed</option>
-              <option value="Dropped">Dropped</option>
-            </select>
+          <div className="w-44">
+            <Select value={selectedStatus} onValueChange={setSelectedStatus}>
+              <SelectTrigger className="h-9 text-xs bg-slate-50 border-slate-200">
+                <div className="flex items-center gap-1.5 truncate">
+                  <Filter className="w-3.5 h-3.5 text-slate-500" />
+                  <SelectValue placeholder="Stage" />
+                </div>
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="All">All Stages</SelectItem>
+                <SelectItem value="New">New Inquiries</SelectItem>
+                <SelectItem value="Contacted">Contacted</SelectItem>
+                <SelectItem value="In Negotiation">Site Evaluation</SelectItem>
+                <SelectItem value="Converted">Agreement Executed</SelectItem>
+                <SelectItem value="Dropped">Dropped</SelectItem>
+              </SelectContent>
+            </Select>
           </div>
         </div>
       </div>
@@ -255,25 +264,23 @@ export default function FranchiseLeadsView() {
                     </td>
 
                     <td className="p-4">
-                      <select
-                        value={lead.status}
-                        onChange={(e) => handleStatusChange(lead.id, e.target.value)}
-                        className={`text-xs font-semibold px-2.5 py-1 rounded-md border cursor-pointer focus:outline-none ${
-                          lead.status === "New"
-                            ? "bg-amber-50 text-amber-800 border-amber-200"
-                            : lead.status === "In Negotiation"
-                            ? "bg-purple-50 text-purple-800 border-purple-200"
-                            : lead.status === "Converted"
-                            ? "bg-emerald-50 text-emerald-800 border-emerald-200"
-                            : "bg-slate-100 text-slate-700 border-slate-200"
-                        }`}
-                      >
-                        <option value="New">New</option>
-                        <option value="Contacted">Contacted</option>
-                        <option value="In Negotiation">Site Evaluation</option>
-                        <option value="Converted">Agreement Executed</option>
-                        <option value="Dropped">Dropped</option>
-                      </select>
+                      <div className="w-36">
+                        <Select
+                          value={lead.status}
+                          onValueChange={(val) => handleStatusChange(lead.id, val)}
+                        >
+                          <SelectTrigger className="h-7 text-xs font-semibold bg-white border-slate-200">
+                            <SelectValue placeholder={lead.status} />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="New">New</SelectItem>
+                            <SelectItem value="Contacted">Contacted</SelectItem>
+                            <SelectItem value="In Negotiation">Site Evaluation</SelectItem>
+                            <SelectItem value="Converted">Agreement Executed</SelectItem>
+                            <SelectItem value="Dropped">Dropped</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
                     </td>
 
                     <td className="p-4">

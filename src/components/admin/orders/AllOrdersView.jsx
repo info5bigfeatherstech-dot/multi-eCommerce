@@ -20,8 +20,15 @@ import {
   ChevronRight,
   ExternalLink,
 } from "lucide-react";
-import { formatCurrency, cn } from "@/lib/utils";
 import { toast } from "sonner";
+import { formatCurrency, cn } from "@/lib/utils";
+import {
+  Select,
+  SelectTrigger,
+  SelectValue,
+  SelectContent,
+  SelectItem,
+} from "@/components/ui/Select";
 
 export default function AllOrdersView() {
   const orders = useAppSelector((state) => state.adminOrders.items);
@@ -230,17 +237,18 @@ export default function AllOrdersView() {
             />
           </div>
 
-          <div className="flex items-center gap-2 w-full sm:w-auto">
-            <select
-              value={paymentFilter}
-              onChange={(e) => setPaymentFilter(e.target.value)}
-              className="px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-poppins font-semibold text-slate-700 focus:outline-none focus:border-accent cursor-pointer"
-            >
-              <option value="All">All Payment Types</option>
-              <option value="UPI">Prepaid UPI</option>
-              <option value="NEFT">Bank NEFT</option>
-              <option value="Delivery">Cash on Delivery (COD)</option>
-            </select>
+          <div className="w-48">
+            <Select value={paymentFilter} onValueChange={setPaymentFilter}>
+              <SelectTrigger className="h-9 text-xs bg-slate-50 border-slate-200">
+                <SelectValue placeholder="All Payment Types" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="All">All Payment Types</SelectItem>
+                <SelectItem value="UPI">Prepaid UPI</SelectItem>
+                <SelectItem value="NEFT">Bank NEFT</SelectItem>
+                <SelectItem value="Delivery">Cash on Delivery (COD)</SelectItem>
+              </SelectContent>
+            </Select>
           </div>
         </div>
       </div>

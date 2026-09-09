@@ -19,6 +19,13 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import { Link } from "react-router-dom";
+import {
+  Select,
+  SelectTrigger,
+  SelectValue,
+  SelectContent,
+  SelectItem,
+} from "@/components/ui/Select";
 
 export default function PushNotificationsView() {
   const dispatch = useAppDispatch();
@@ -246,20 +253,22 @@ export default function PushNotificationsView() {
               />
             </div>
 
-            <div className="flex items-center gap-2 w-full sm:w-auto">
-              <SlidersHorizontal className="h-4 w-4 text-slate-400" />
-              <span className="text-xs font-medium text-slate-500">Segment:</span>
-              <select
-                value={selectedSegment}
-                onChange={(e) => setSelectedSegment(e.target.value)}
-                className="text-xs rounded-lg border border-slate-300 px-3 py-1.5 bg-white text-slate-700 focus:outline-none focus:ring-2 focus:ring-indigo-500"
-              >
-                {segments.map((seg) => (
-                  <option key={seg} value={seg}>
-                    {seg === "All" ? "All Audience Segments" : seg}
-                  </option>
-                ))}
-              </select>
+            <div className="w-52">
+              <Select value={selectedSegment} onValueChange={setSelectedSegment}>
+                <SelectTrigger className="h-9 text-xs bg-white border-slate-300">
+                  <div className="flex items-center gap-1.5 truncate">
+                    <SlidersHorizontal className="h-3.5 w-3.5 text-slate-400" />
+                    <SelectValue placeholder="Segment" />
+                  </div>
+                </SelectTrigger>
+                <SelectContent>
+                  {segments.map((seg) => (
+                    <SelectItem key={seg} value={seg}>
+                      {seg === "All" ? "All Audience Segments" : seg}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
           </div>
 
@@ -485,17 +494,18 @@ export default function PushNotificationsView() {
                 <label className="block text-xs font-semibold uppercase text-slate-600 mb-1">
                   Target Audience Segment
                 </label>
-                <select
-                  value={draftSegment}
-                  onChange={(e) => setDraftSegment(e.target.value)}
-                  className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
-                >
-                  <option value="All Registered Shoppers">All Registered Shoppers</option>
-                  <option value="Cart Abandoners (24h)">Cart Abandoners (24h)</option>
-                  <option value="Wholesale Buyers Network">Wholesale Buyers Network</option>
-                  <option value="VIP Tier Customers">VIP Tier Customers</option>
-                  <option value="Inactive 30+ Days">Inactive 30+ Days</option>
-                </select>
+                <Select value={draftSegment} onValueChange={setDraftSegment}>
+                  <SelectTrigger className="w-full text-xs bg-white border-slate-300">
+                    <SelectValue placeholder="Target Audience Segment" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="All Registered Shoppers">All Registered Shoppers</SelectItem>
+                    <SelectItem value="Cart Abandoners (24h)">Cart Abandoners (24h)</SelectItem>
+                    <SelectItem value="Wholesale Buyers Network">Wholesale Buyers Network</SelectItem>
+                    <SelectItem value="VIP Tier Customers">VIP Tier Customers</SelectItem>
+                    <SelectItem value="Inactive 30+ Days">Inactive 30+ Days</SelectItem>
+                  </SelectContent>
+                </Select>
               </div>
 
               <div>

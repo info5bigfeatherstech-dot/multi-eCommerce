@@ -18,6 +18,13 @@ import {
   AlertCircle,
 } from "lucide-react";
 import { toast } from "sonner";
+import {
+  Select,
+  SelectTrigger,
+  SelectValue,
+  SelectContent,
+  SelectItem,
+} from "../../ui/Select";
 
 const MODULES = [
   { id: "orders", label: "Orders & Fulfillment", desc: "View customer orders, verify dispatch, export manifests" },
@@ -377,17 +384,18 @@ const RolesPermissionsView = () => {
                 <label className="block text-xs font-semibold text-slate-700 mb-1">
                   Clone Initial Permissions From
                 </label>
-                <select
-                  value={cloneFromRoleId}
-                  onChange={(e) => setCloneFromRoleId(e.target.value)}
-                  className="w-full text-xs p-2.5 border border-slate-200 rounded-lg focus:outline-none focus:ring-1 focus:ring-indigo-500 font-medium text-slate-800"
-                >
-                  {roles.map((r) => (
-                    <option key={r.id} value={r.id}>
-                      {r.name}
-                    </option>
-                  ))}
-                </select>
+                <Select value={cloneFromRoleId} onValueChange={setCloneFromRoleId}>
+                  <SelectTrigger className="w-full text-xs bg-white border-slate-200">
+                    <SelectValue placeholder="Select Role to Clone" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {roles.map((r) => (
+                      <SelectItem key={r.id} value={r.id}>
+                        {r.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </div>
 
               <div className="flex items-center justify-end gap-2 pt-3 border-t border-slate-100">

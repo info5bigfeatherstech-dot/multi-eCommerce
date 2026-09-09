@@ -22,6 +22,13 @@ import {
   Sparkles,
 } from "lucide-react";
 import { toast } from "sonner";
+import {
+  Select,
+  SelectTrigger,
+  SelectValue,
+  SelectContent,
+  SelectItem,
+} from "@/components/ui/Select";
 
 const CustomerQueriesView = () => {
   const dispatch = useAppDispatch();
@@ -249,27 +256,33 @@ const CustomerQueriesView = () => {
 
           <div className="flex flex-wrap items-center gap-2">
             {/* Status Filter */}
-            <select
-              value={statusFilter}
-              onChange={(e) => setStatusFilter(e.target.value)}
-              className="py-1.5 px-3 text-xs font-medium bg-slate-50 border border-slate-200 rounded-lg text-slate-700 focus:outline-none"
-            >
-              <option value="all">All Statuses</option>
-              <option value="Unanswered">Unanswered</option>
-              <option value="Replied">Replied</option>
-            </select>
+            <div className="min-w-[140px]">
+              <Select value={statusFilter} onValueChange={setStatusFilter}>
+                <SelectTrigger className="h-8 text-xs bg-slate-50 border-slate-200">
+                  <SelectValue placeholder="All Statuses" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Statuses</SelectItem>
+                  <SelectItem value="Unanswered">Unanswered</SelectItem>
+                  <SelectItem value="Replied">Replied</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
 
             {/* Channel Filter */}
-            <select
-              value={channelFilter}
-              onChange={(e) => setChannelFilter(e.target.value)}
-              className="py-1.5 px-3 text-xs font-medium bg-slate-50 border border-slate-200 rounded-lg text-slate-700 focus:outline-none"
-            >
-              <option value="all">All Channels</option>
-              <option value="WhatsApp">WhatsApp</option>
-              <option value="Contact Us Form">Contact Us Form</option>
-              <option value="Web Portal">Web Portal</option>
-            </select>
+            <div className="min-w-[150px]">
+              <Select value={channelFilter} onValueChange={setChannelFilter}>
+                <SelectTrigger className="h-8 text-xs bg-slate-50 border-slate-200">
+                  <SelectValue placeholder="All Channels" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Channels</SelectItem>
+                  <SelectItem value="WhatsApp">WhatsApp</SelectItem>
+                  <SelectItem value="Contact Us Form">Contact Us Form</SelectItem>
+                  <SelectItem value="Web Portal">Web Portal</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
           </div>
         </div>
       </div>

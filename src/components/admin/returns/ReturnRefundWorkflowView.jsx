@@ -20,8 +20,14 @@ import {
   Send,
   Boxes,
 } from "lucide-react";
-import { formatCurrency, cn } from "@/lib/utils";
 import { toast } from "sonner";
+import {
+  Select,
+  SelectTrigger,
+  SelectValue,
+  SelectContent,
+  SelectItem,
+} from "@/components/ui/Select";
 
 export default function ReturnRefundWorkflowView() {
   const dispatch = useAppDispatch();
@@ -381,15 +387,16 @@ export default function ReturnRefundWorkflowView() {
                   <label className="block text-xs font-poppins font-semibold text-slate-700 mb-1.5">
                     Inventory Disposition
                   </label>
-                  <select
-                    value={disposition}
-                    onChange={(e) => setDisposition(e.target.value)}
-                    className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl font-poppins text-xs font-semibold text-slate-800 focus:outline-none focus:border-accent"
-                  >
-                    <option value="Restock to Active Inventory">Restock to Active Inventory (Like-New Condition)</option>
-                    <option value="Write-off to Manufacturer Warranty">Write-off to Manufacturer Warranty / Factory Claim</option>
-                    <option value="Send to Clearance / Seconds Lot">Send to Clearance / Seconds Liquidation</option>
-                  </select>
+                  <Select value={disposition} onValueChange={setDisposition}>
+                    <SelectTrigger className="w-full text-xs bg-slate-50 border-slate-200">
+                      <SelectValue placeholder="Select Disposition" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="Restock to Active Inventory">Restock to Active Inventory (Like-New Condition)</SelectItem>
+                      <SelectItem value="Write-off to Manufacturer Warranty">Write-off to Manufacturer Warranty / Factory Claim</SelectItem>
+                      <SelectItem value="Send to Clearance / Seconds Lot">Send to Clearance / Seconds Liquidation</SelectItem>
+                    </SelectContent>
+                  </Select>
                 </div>
               )}
 

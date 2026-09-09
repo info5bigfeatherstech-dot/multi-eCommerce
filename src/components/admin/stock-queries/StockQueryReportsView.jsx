@@ -17,6 +17,13 @@ import {
   Send,
 } from "lucide-react";
 import { toast } from "sonner";
+import {
+  Select,
+  SelectTrigger,
+  SelectValue,
+  SelectContent,
+  SelectItem,
+} from "@/components/ui/Select";
 
 export default function StockQueryReportsView() {
   const queries = useAppSelector((state) => state.adminStockQueries?.queries || []);
@@ -62,18 +69,21 @@ export default function StockQueryReportsView() {
         </div>
 
         <div className="flex items-center gap-3">
-          <div className="flex items-center gap-1.5 bg-slate-50 border border-slate-200 rounded-xl px-3 py-1.5">
-            <Calendar className="w-3.5 h-3.5 text-slate-500" />
-            <select
-              value={timeRange}
-              onChange={(e) => setTimeRange(e.target.value)}
-              className="bg-transparent text-xs font-semibold text-slate-800 focus:outline-none cursor-pointer"
-            >
-              <option value="7days">Last 7 Days</option>
-              <option value="30days">Last 30 Days</option>
-              <option value="90days">Last Quarter</option>
-              <option value="year">Full Year 2026</option>
-            </select>
+          <div className="w-44">
+            <Select value={timeRange} onValueChange={setTimeRange}>
+              <SelectTrigger className="h-9 text-xs bg-slate-50 border-slate-200">
+                <div className="flex items-center gap-1.5 truncate">
+                  <Calendar className="w-3.5 h-3.5 text-slate-500" />
+                  <SelectValue placeholder="Timeframe" />
+                </div>
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="7days">Last 7 Days</SelectItem>
+                <SelectItem value="30days">Last 30 Days</SelectItem>
+                <SelectItem value="90days">Last Quarter</SelectItem>
+                <SelectItem value="year">Full Year 2026</SelectItem>
+              </SelectContent>
+            </Select>
           </div>
 
           <button

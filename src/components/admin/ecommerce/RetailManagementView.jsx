@@ -24,6 +24,13 @@ import {
   ArrowUpDown,
 } from "lucide-react";
 import { toast } from "sonner";
+import {
+  Select,
+  SelectTrigger,
+  SelectValue,
+  SelectContent,
+  SelectItem,
+} from "@/components/ui/Select";
 
 export default function RetailManagementView() {
   const dispatch = useAppDispatch();
@@ -312,17 +319,18 @@ export default function RetailManagementView() {
           {/* Category Dropdown */}
           <div className="flex items-center gap-1.5">
             <SlidersHorizontal className="h-4 w-4 text-slate-400" />
-            <select
-              value={selectedCategory}
-              onChange={(e) => setSelectedCategory(e.target.value)}
-              className="text-xs rounded-lg border border-slate-300 px-2.5 py-2 bg-white text-slate-700 focus:outline-none focus:ring-2 focus:ring-indigo-500"
-            >
-              {categories.map((cat) => (
-                <option key={cat} value={cat}>
-                  {cat === "All" ? "All Categories" : cat}
-                </option>
-              ))}
-            </select>
+            <Select value={selectedCategory} onValueChange={setSelectedCategory}>
+              <SelectTrigger className="w-[170px] text-xs rounded-lg border-slate-300 h-9 bg-white">
+                <SelectValue placeholder="All Categories" />
+              </SelectTrigger>
+              <SelectContent>
+                {categories.map((cat) => (
+                  <SelectItem key={cat} value={cat}>
+                    {cat === "All" ? "All Categories" : cat}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
 
           {/* Status buttons */}
@@ -640,17 +648,18 @@ export default function RetailManagementView() {
                 <label className="block text-xs font-semibold uppercase text-slate-600 mb-1">
                   Category *
                 </label>
-                <select
-                  value={newCategory}
-                  onChange={(e) => setNewCategory(e.target.value)}
-                  className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
-                >
-                  <option value="Fashion & Apparel">Fashion & Apparel</option>
-                  <option value="Electronics & Audio">Electronics & Audio</option>
-                  <option value="Home & Living">Home & Living</option>
-                  <option value="Beauty & Wellness">Beauty & Wellness</option>
-                  <option value="Jewellery & Accessories">Jewellery & Accessories</option>
-                </select>
+                <Select value={newCategory} onValueChange={setNewCategory}>
+                  <SelectTrigger className="w-full rounded-lg border-slate-300">
+                    <SelectValue placeholder="Select category" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="Fashion & Apparel">Fashion & Apparel</SelectItem>
+                    <SelectItem value="Electronics & Audio">Electronics & Audio</SelectItem>
+                    <SelectItem value="Home & Living">Home & Living</SelectItem>
+                    <SelectItem value="Beauty & Wellness">Beauty & Wellness</SelectItem>
+                    <SelectItem value="Jewellery & Accessories">Jewellery & Accessories</SelectItem>
+                  </SelectContent>
+                </Select>
               </div>
 
               <div>

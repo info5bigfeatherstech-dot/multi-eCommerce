@@ -23,6 +23,13 @@ import {
   TrendingUp,
 } from "lucide-react";
 import { toast } from "sonner";
+import {
+  Select,
+  SelectTrigger,
+  SelectValue,
+  SelectContent,
+  SelectItem,
+} from "@/components/ui/Select";
 
 export default function CouponsOffersView() {
   const dispatch = useAppDispatch();
@@ -229,33 +236,35 @@ export default function CouponsOffersView() {
         </div>
 
         <div className="flex flex-wrap items-center gap-2.5">
-          <div className="flex items-center gap-1.5 bg-slate-50 border border-slate-200 rounded-xl px-3 py-1.5">
-            <Filter className="w-3.5 h-3.5 text-slate-500" />
-            <span className="text-xs font-medium text-slate-500">Status:</span>
-            <select
-              value={selectedStatus}
-              onChange={(e) => setSelectedStatus(e.target.value)}
-              className="bg-transparent text-xs font-semibold text-slate-800 focus:outline-none cursor-pointer"
-            >
-              <option value="All">All</option>
-              <option value="Active">Active</option>
-              <option value="Paused">Paused</option>
-              <option value="Expired">Expired</option>
-            </select>
+          <div className="w-36">
+            <Select value={selectedStatus} onValueChange={setSelectedStatus}>
+              <SelectTrigger className="h-9 text-xs bg-slate-50 border-slate-200">
+                <div className="flex items-center gap-1.5 truncate">
+                  <Filter className="w-3.5 h-3.5 text-slate-500" />
+                  <SelectValue placeholder="Status" />
+                </div>
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="All">All Statuses</SelectItem>
+                <SelectItem value="Active">Active</SelectItem>
+                <SelectItem value="Paused">Paused</SelectItem>
+                <SelectItem value="Expired">Expired</SelectItem>
+              </SelectContent>
+            </Select>
           </div>
 
-          <div className="flex items-center gap-1.5 bg-slate-50 border border-slate-200 rounded-xl px-3 py-1.5">
-            <span className="text-xs font-medium text-slate-500">Type:</span>
-            <select
-              value={selectedType}
-              onChange={(e) => setSelectedType(e.target.value)}
-              className="bg-transparent text-xs font-semibold text-slate-800 focus:outline-none cursor-pointer"
-            >
-              <option value="All">All Types</option>
-              <option value="Percentage">Percentage</option>
-              <option value="Flat">Flat Amount</option>
-              <option value="Free Shipping">Free Shipping</option>
-            </select>
+          <div className="w-40">
+            <Select value={selectedType} onValueChange={setSelectedType}>
+              <SelectTrigger className="h-9 text-xs bg-slate-50 border-slate-200">
+                <SelectValue placeholder="Discount Type" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="All">All Types</SelectItem>
+                <SelectItem value="Percentage">Percentage</SelectItem>
+                <SelectItem value="Flat">Flat Amount</SelectItem>
+                <SelectItem value="Free Shipping">Free Shipping</SelectItem>
+              </SelectContent>
+            </Select>
           </div>
         </div>
       </div>
@@ -433,15 +442,16 @@ export default function CouponsOffersView() {
               <div className="grid grid-cols-2 gap-3">
                 <div>
                   <label className="text-xs font-bold text-slate-800 block mb-1">Discount Type</label>
-                  <select
-                    value={newType}
-                    onChange={(e) => setNewType(e.target.value)}
-                    className="w-full px-3 py-2 text-sm bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-slate-900 focus:outline-none"
-                  >
-                    <option value="Percentage">Percentage (%)</option>
-                    <option value="Flat">Flat Amount (₹)</option>
-                    <option value="Free Shipping">Free Shipping</option>
-                  </select>
+                  <Select value={newType} onValueChange={setNewType}>
+                    <SelectTrigger className="w-full text-xs bg-slate-50 border-slate-200">
+                      <SelectValue placeholder="Discount Type" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="Percentage">Percentage (%)</SelectItem>
+                      <SelectItem value="Flat">Flat Amount (₹)</SelectItem>
+                      <SelectItem value="Free Shipping">Free Shipping</SelectItem>
+                    </SelectContent>
+                  </Select>
                 </div>
 
                 <div>

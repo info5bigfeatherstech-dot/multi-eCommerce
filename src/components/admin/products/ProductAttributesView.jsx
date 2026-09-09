@@ -18,6 +18,13 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
+import {
+  Select,
+  SelectTrigger,
+  SelectValue,
+  SelectContent,
+  SelectItem,
+} from "@/components/ui/Select";
 
 export default function ProductAttributesView() {
   const dispatch = useAppDispatch();
@@ -300,15 +307,16 @@ export default function ProductAttributesView() {
                   <label className="block font-poppins font-bold text-slate-700 mb-1">
                     Input Field Type
                   </label>
-                  <select
-                    value={attrInputType}
-                    onChange={(e) => setAttrInputType(e.target.value)}
-                    className="w-full px-3 py-2 rounded-xl border border-slate-200 text-slate-800 focus:outline-none focus:border-accent font-semibold"
-                  >
-                    <option value="Select">Dropdown Select</option>
-                    <option value="Text">Free Text</option>
-                    <option value="Number">Numeric Value</option>
-                  </select>
+                  <Select value={attrInputType} onValueChange={setAttrInputType}>
+                    <SelectTrigger className="w-full text-xs bg-white border-slate-200 font-semibold">
+                      <SelectValue placeholder="Field Type" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="Select">Dropdown Select</SelectItem>
+                      <SelectItem value="Text">Free Text</SelectItem>
+                      <SelectItem value="Number">Numeric Value</SelectItem>
+                    </SelectContent>
+                  </Select>
                 </div>
               </div>
 

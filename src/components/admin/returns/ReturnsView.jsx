@@ -21,8 +21,14 @@ import {
   Download,
   Image as ImageIcon,
 } from "lucide-react";
-import { formatCurrency, cn } from "@/lib/utils";
 import { toast } from "sonner";
+import {
+  Select,
+  SelectTrigger,
+  SelectValue,
+  SelectContent,
+  SelectItem,
+} from "@/components/ui/Select";
 
 export default function ReturnsView() {
   const dispatch = useAppDispatch();
@@ -429,16 +435,17 @@ export default function ReturnsView() {
                 <label className="block text-xs font-poppins font-semibold text-slate-700 mb-1.5">
                   Reverse Logistics Partner
                 </label>
-                <select
-                  value={courierPartner}
-                  onChange={(e) => setCourierPartner(e.target.value)}
-                  className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl font-poppins text-xs font-semibold text-slate-800 focus:outline-none focus:border-accent"
-                >
-                  <option value="Delhivery Reverse Logistics">Delhivery Reverse Logistics</option>
-                  <option value="BlueDart Return Express">BlueDart Return Express</option>
-                  <option value="Ekart Reverse Desk">Ekart Reverse Desk</option>
-                  <option value="Direct Warehouse Drop-off">Direct Warehouse Drop-off</option>
-                </select>
+                <Select value={courierPartner} onValueChange={setCourierPartner}>
+                  <SelectTrigger className="w-full text-xs bg-slate-50 border-slate-200">
+                    <SelectValue placeholder="Select Partner" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="Delhivery Reverse Logistics">Delhivery Reverse Logistics</SelectItem>
+                    <SelectItem value="BlueDart Return Express">BlueDart Return Express</SelectItem>
+                    <SelectItem value="Ekart Reverse Desk">Ekart Reverse Desk</SelectItem>
+                    <SelectItem value="Direct Warehouse Drop-off">Direct Warehouse Drop-off</SelectItem>
+                  </SelectContent>
+                </Select>
               </div>
 
               <div className="pt-2 flex items-center justify-end gap-2">

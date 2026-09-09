@@ -18,6 +18,13 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
+import {
+  Select,
+  SelectTrigger,
+  SelectValue,
+  SelectContent,
+  SelectItem,
+} from "@/components/ui/Select";
 
 export default function InventoryView() {
   const dispatch = useAppDispatch();
@@ -392,17 +399,18 @@ export default function InventoryView() {
                 <label className="block font-poppins font-bold text-slate-700 mb-1">
                   Adjustment Reason Type
                 </label>
-                <select
-                  value={adjustmentReason}
-                  onChange={(e) => setAdjustmentReason(e.target.value)}
-                  className="w-full px-3 py-2 rounded-xl border border-slate-200 text-slate-800 focus:outline-none focus:border-accent font-semibold"
-                >
-                  <option value="Dock Inward Shipment">Dock Inward Shipment (PO Received)</option>
-                  <option value="RTO Restocked">RTO / Customer Return Restocked</option>
-                  <option value="Physical Stock Count Audit">Physical Warehouse Count Audit</option>
-                  <option value="Damaged / Scrapped">Damaged / Scrapped / Expired</option>
-                  <option value="Customer Sample Dispatched">Customer Sample Dispatched</option>
-                </select>
+                <Select value={adjustmentReason} onValueChange={setAdjustmentReason}>
+                  <SelectTrigger className="w-full text-xs bg-white border-slate-200 font-semibold">
+                    <SelectValue placeholder="Select Reason" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="Dock Inward Shipment">Dock Inward Shipment (PO Received)</SelectItem>
+                    <SelectItem value="RTO Restocked">RTO / Customer Return Restocked</SelectItem>
+                    <SelectItem value="Physical Stock Count Audit">Physical Warehouse Count Audit</SelectItem>
+                    <SelectItem value="Damaged / Scrapped">Damaged / Scrapped / Expired</SelectItem>
+                    <SelectItem value="Customer Sample Dispatched">Customer Sample Dispatched</SelectItem>
+                  </SelectContent>
+                </Select>
               </div>
 
               <div>

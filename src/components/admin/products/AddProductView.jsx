@@ -17,6 +17,13 @@ import {
   Building2,
 } from "lucide-react";
 import { toast } from "sonner";
+import {
+  Select,
+  SelectTrigger,
+  SelectValue,
+  SelectContent,
+  SelectItem,
+} from "@/components/ui/Select";
 
 export default function AddProductView() {
   const dispatch = useAppDispatch();
@@ -208,17 +215,18 @@ export default function AddProductView() {
                   <label className="block font-poppins font-bold text-slate-700 mb-1">
                     Primary Category *
                   </label>
-                  <select
-                    value={category}
-                    onChange={(e) => handleCategoryChange(e.target.value)}
-                    className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-slate-800 font-poppins font-semibold focus:outline-none focus:border-accent"
-                  >
-                    {categories.map((c) => (
-                      <option key={c.id} value={c.name}>
-                        {c.name}
-                      </option>
-                    ))}
-                  </select>
+                  <Select value={category} onValueChange={handleCategoryChange}>
+                    <SelectTrigger className="w-full text-xs bg-white border-slate-200 font-poppins font-semibold">
+                      <SelectValue placeholder="Select Category" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {categories.map((c) => (
+                        <SelectItem key={c.id} value={c.name}>
+                          {c.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                 </div>
 
                 <div>
@@ -358,18 +366,22 @@ export default function AddProductView() {
                   <label className="block font-poppins font-bold text-slate-700 mb-1">
                     {attr.name}
                   </label>
-                  <select
-                    value={selectedAttributes[attr.code] || ""}
-                    onChange={(e) => handleAttributeChange(attr.code, e.target.value)}
-                    className="w-full px-3 py-2 rounded-xl border border-slate-200 text-slate-800 focus:outline-none focus:border-accent"
+                  <Select
+                    value={selectedAttributes[attr.code] || "none"}
+                    onValueChange={(val) => handleAttributeChange(attr.code, val === "none" ? "" : val)}
                   >
-                    <option value="">-- Not Applicable --</option>
-                    {attr.values.map((v, i) => (
-                      <option key={i} value={v}>
-                        {v}
-                      </option>
-                    ))}
-                  </select>
+                    <SelectTrigger className="w-full text-xs bg-white border-slate-200">
+                      <SelectValue placeholder="-- Not Applicable --" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="none">-- Not Applicable --</SelectItem>
+                      {attr.values.map((v, i) => (
+                        <SelectItem key={i} value={v}>
+                          {v}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                 </div>
               ))}
             </div>

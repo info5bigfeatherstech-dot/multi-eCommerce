@@ -25,9 +25,26 @@ import {
   MapPin,
   CreditCard,
   Package,
+  MoreHorizontal,
+  Copy,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
+import {
+  DropdownMenu,
+  DropdownMenuTrigger,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+} from "@/components/ui/DropdownMenu";
+import {
+  Select,
+  SelectTrigger,
+  SelectValue,
+  SelectContent,
+  SelectItem,
+} from "@/components/ui/Select";
 
 const STAGES = [
   "Order Placed",
@@ -219,19 +236,20 @@ export default function DemoOrdersView() {
           />
         </div>
 
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 min-w-[220px]">
           <span className="text-xs font-poppins font-bold text-slate-500 whitespace-nowrap">Channel:</span>
-          <select
-            value={selectedChannel}
-            onChange={(e) => setSelectedChannel(e.target.value)}
-            className="px-3 py-2 rounded-xl border border-slate-200 text-xs font-inter bg-white focus:outline-none focus:border-accent"
-          >
-            {channels.map((ch) => (
-              <option key={ch} value={ch}>
-                {ch}
-              </option>
-            ))}
-          </select>
+          <Select value={selectedChannel} onValueChange={setSelectedChannel}>
+            <SelectTrigger className="h-9 text-xs rounded-xl bg-slate-50/50">
+              <SelectValue placeholder="Select Channel" />
+            </SelectTrigger>
+            <SelectContent>
+              {channels.map((ch) => (
+                <SelectItem key={ch} value={ch}>
+                  {ch}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
         </div>
       </div>
 
@@ -352,26 +370,48 @@ export default function DemoOrdersView() {
                             className="px-2.5 py-1.5 rounded-lg bg-slate-900 hover:bg-accent text-white text-[11px] font-poppins font-semibold flex items-center gap-1 transition-colors cursor-pointer"
                             title="Advance to next fulfillment stage"
                           >
-                            <span>Advance Stage</span>
+                            <span>Advance</span>
                             <ArrowRight className="w-3 h-3" />
                           </button>
                         )}
 
-                        <button
-                          onClick={() => setSelectedOrder(order)}
-                          className="p-1.5 rounded-lg text-slate-500 hover:text-slate-900 hover:bg-slate-100 transition-colors cursor-pointer"
-                          title="View Order Details"
-                        >
-                          <Eye className="w-4 h-4" />
-                        </button>
-
-                        <button
-                          onClick={() => setInvoiceModalOrder(order)}
-                          className="p-1.5 rounded-lg text-slate-500 hover:text-slate-900 hover:bg-slate-100 transition-colors cursor-pointer"
-                          title="Print Sample Invoice"
-                        >
-                          <FileText className="w-4 h-4" />
-                        </button>
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <button
+                              className="p-1.5 rounded-lg text-slate-500 hover:text-slate-900 hover:bg-slate-100 transition-colors cursor-pointer"
+                              title="More Options"
+                            >
+                              <MoreHorizontal className="w-4 h-4" />
+                            </button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent align="end" className="w-48">
+                            <DropdownMenuLabel>Order Actions</DropdownMenuLabel>
+                            <DropdownMenuItem onClick={() => setSelectedOrder(order)}>
+                              <Eye className="w-4 h-4 mr-2 text-slate-500" />
+                              <span>View Order Details</span>
+                            </DropdownMenuItem>
+                            <DropdownMenuItem onClick={() => setInvoiceModalOrder(order)}>
+                              <FileText className="w-4 h-4 mr-2 text-slate-500" />
+                              <span>Generate Invoice</span>
+                            </DropdownMenuItem>
+                            {order.stageIndex < STAGES.length - 1 && (
+                              <DropdownMenuItem onClick={(e) => handleAdvanceStage(order, e)}>
+                                <ArrowRight className="w-4 h-4 mr-2 text-emerald-600" />
+                                <span>Advance to Next Stage</span>
+                              </DropdownMenuItem>
+                            )}
+                            <DropdownMenuSeparator />
+                            <DropdownMenuItem
+                              onClick={() => {
+                                navigator.clipboard?.writeText(order.awbNumber);
+                                toast.success(`Copied AWB ${order.awbNumber} to clipboard!`);
+                              }}
+                            >
+                              <Copy className="w-4 h-4 mr-2 text-slate-400" />
+                              <span>Copy AWB Number</span>
+                            </DropdownMenuItem>
+                          </DropdownMenuContent>
+                        </DropdownMenu>
                       </div>
                     </td>
                   </tr>

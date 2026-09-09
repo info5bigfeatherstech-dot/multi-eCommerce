@@ -16,6 +16,13 @@ import {
   XCircle,
 } from "lucide-react";
 import { toast } from "sonner";
+import {
+  Select,
+  SelectTrigger,
+  SelectValue,
+  SelectContent,
+  SelectItem,
+} from "../../ui/Select";
 
 const StaffActivityView = () => {
   const activityLogs = useAppSelector(
@@ -125,17 +132,20 @@ const StaffActivityView = () => {
         </div>
 
         <div className="flex items-center gap-3">
-          <div className="flex items-center gap-1.5 bg-white border border-slate-200 rounded-lg px-2.5 py-1.5 shadow-sm">
-            <Calendar className="w-4 h-4 text-slate-400" />
-            <select
-              value={dateRange}
-              onChange={(e) => setDateRange(e.target.value)}
-              className="text-xs font-medium text-slate-700 bg-transparent focus:outline-none"
-            >
-              <option value="all">All Logs</option>
-              <option value="today">Today</option>
-              <option value="7d">Last 7 Days</option>
-            </select>
+          <div className="w-36">
+            <Select value={dateRange} onValueChange={setDateRange}>
+              <SelectTrigger className="h-9 text-xs bg-white border-slate-200 shadow-sm">
+                <div className="flex items-center gap-1.5 truncate">
+                  <Calendar className="w-3.5 h-3.5 text-slate-400" />
+                  <SelectValue placeholder="Date Range" />
+                </div>
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Logs</SelectItem>
+                <SelectItem value="today">Today</SelectItem>
+                <SelectItem value="7d">Last 7 Days</SelectItem>
+              </SelectContent>
+            </Select>
           </div>
 
           <button
@@ -241,52 +251,61 @@ const StaffActivityView = () => {
           {/* Filters */}
           <div className="flex flex-wrap items-center gap-2 w-full lg:w-auto">
             {/* Operator Filter */}
-            <div className="flex items-center gap-1 bg-slate-50 border border-slate-200 rounded-lg px-2.5 py-1.5 text-xs text-slate-600">
-              <User className="w-3.5 h-3.5 text-slate-400" />
-              <select
-                value={staffFilter}
-                onChange={(e) => setStaffFilter(e.target.value)}
-                className="bg-transparent focus:outline-none font-medium text-slate-700"
-              >
-                <option value="all">All Staff</option>
-                {staffMembers.map((s) => (
-                  <option key={s.id} value={s.id}>
-                    {s.name}
-                  </option>
-                ))}
-              </select>
+            <div className="w-40">
+              <Select value={staffFilter} onValueChange={setStaffFilter}>
+                <SelectTrigger className="h-8 text-xs bg-slate-50 border-slate-200">
+                  <div className="flex items-center gap-1.5 truncate">
+                    <User className="w-3.5 h-3.5 text-slate-400" />
+                    <SelectValue placeholder="All Staff" />
+                  </div>
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Staff</SelectItem>
+                  {staffMembers.map((s) => (
+                    <SelectItem key={s.id} value={s.id}>
+                      {s.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
 
             {/* Module Filter */}
-            <div className="flex items-center gap-1 bg-slate-50 border border-slate-200 rounded-lg px-2.5 py-1.5 text-xs text-slate-600">
-              <Filter className="w-3.5 h-3.5 text-slate-400" />
-              <select
-                value={moduleFilter}
-                onChange={(e) => setModuleFilter(e.target.value)}
-                className="bg-transparent focus:outline-none font-medium text-slate-700"
-              >
-                <option value="all">All Modules</option>
-                {modulesList.map((m) => (
-                  <option key={m} value={m}>
-                    {m}
-                  </option>
-                ))}
-              </select>
+            <div className="w-40">
+              <Select value={moduleFilter} onValueChange={setModuleFilter}>
+                <SelectTrigger className="h-8 text-xs bg-slate-50 border-slate-200">
+                  <div className="flex items-center gap-1.5 truncate">
+                    <Filter className="w-3.5 h-3.5 text-slate-400" />
+                    <SelectValue placeholder="All Modules" />
+                  </div>
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Modules</SelectItem>
+                  {modulesList.map((m) => (
+                    <SelectItem key={m} value={m}>
+                      {m}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
 
             {/* Severity Filter */}
-            <div className="flex items-center gap-1 bg-slate-50 border border-slate-200 rounded-lg px-2.5 py-1.5 text-xs text-slate-600">
-              <ShieldAlert className="w-3.5 h-3.5 text-slate-400" />
-              <select
-                value={severityFilter}
-                onChange={(e) => setSeverityFilter(e.target.value)}
-                className="bg-transparent focus:outline-none font-medium text-slate-700"
-              >
-                <option value="all">All Severities</option>
-                <option value="Info">Info</option>
-                <option value="Warning">Warning</option>
-                <option value="Critical">Critical</option>
-              </select>
+            <div className="w-36">
+              <Select value={severityFilter} onValueChange={setSeverityFilter}>
+                <SelectTrigger className="h-8 text-xs bg-slate-50 border-slate-200">
+                  <div className="flex items-center gap-1.5 truncate">
+                    <ShieldAlert className="w-3.5 h-3.5 text-slate-400" />
+                    <SelectValue placeholder="All Severities" />
+                  </div>
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Severities</SelectItem>
+                  <SelectItem value="Info">Info</SelectItem>
+                  <SelectItem value="Warning">Warning</SelectItem>
+                  <SelectItem value="Critical">Critical</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
           </div>
         </div>

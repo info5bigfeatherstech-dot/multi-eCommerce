@@ -18,6 +18,13 @@ import {
   Sparkles,
 } from "lucide-react";
 import { toast } from "sonner";
+import {
+  Select,
+  SelectTrigger,
+  SelectValue,
+  SelectContent,
+  SelectItem,
+} from "@/components/ui/Select";
 
 export default function EmailSmsMarketingView() {
   const dispatch = useAppDispatch();
@@ -477,16 +484,17 @@ export default function EmailSmsMarketingView() {
               <label className="block text-xs font-semibold uppercase text-slate-600 mb-1">
                 Target Recipient Audience
               </label>
-              <select
-                value={composeAudience}
-                onChange={(e) => setComposeAudience(e.target.value)}
-                className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
-              >
-                <option value="All Retail Shoppers">All Retail Shoppers</option>
-                <option value="Wholesale & B2B Inquiries">Wholesale & B2B Inquiries</option>
-                <option value="Dropshipping Partner Database">Dropshipping Partner Database</option>
-                <option value="Abandoned Cart Users">Abandoned Cart Users</option>
-              </select>
+              <Select value={composeAudience} onValueChange={setComposeAudience}>
+                <SelectTrigger className="w-full text-xs bg-white border-slate-300">
+                  <SelectValue placeholder="Target Recipient Audience" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="All Retail Shoppers">All Retail Shoppers</SelectItem>
+                  <SelectItem value="Wholesale & B2B Inquiries">Wholesale & B2B Inquiries</SelectItem>
+                  <SelectItem value="Dropshipping Partner Database">Dropshipping Partner Database</SelectItem>
+                  <SelectItem value="Abandoned Cart Users">Abandoned Cart Users</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
 
             <div>

@@ -24,6 +24,13 @@ import {
   Sparkles,
 } from "lucide-react";
 import { toast } from "sonner";
+import {
+  Select,
+  SelectTrigger,
+  SelectValue,
+  SelectContent,
+  SelectItem,
+} from "../../ui/Select";
 
 const ReviewManagementView = () => {
   const dispatch = useAppDispatch();
@@ -344,20 +351,23 @@ const ReviewManagementView = () => {
               />
             </div>
 
-            <div className="flex items-center gap-1.5 w-full sm:w-auto">
-              <Filter className="w-4 h-4 text-slate-400" />
-              <select
-                value={ratingFilter}
-                onChange={(e) => setRatingFilter(e.target.value)}
-                className="w-full sm:w-auto py-1.5 px-3 text-xs font-medium bg-slate-50 border border-slate-200 rounded-lg text-slate-700 focus:outline-none focus:ring-1 focus:ring-indigo-500"
-              >
-                <option value="all">All Ratings</option>
-                <option value="5">5 Stars</option>
-                <option value="4">4 Stars</option>
-                <option value="3">3 Stars</option>
-                <option value="2">2 Stars</option>
-                <option value="1">1 Star</option>
-              </select>
+            <div className="w-36">
+              <Select value={ratingFilter} onValueChange={setRatingFilter}>
+                <SelectTrigger className="h-8 text-xs bg-slate-50 border-slate-200">
+                  <div className="flex items-center gap-1.5 truncate">
+                    <Filter className="w-3.5 h-3.5 text-slate-400" />
+                    <SelectValue placeholder="Rating" />
+                  </div>
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Ratings</SelectItem>
+                  <SelectItem value="5">5 Stars</SelectItem>
+                  <SelectItem value="4">4 Stars</SelectItem>
+                  <SelectItem value="3">3 Stars</SelectItem>
+                  <SelectItem value="2">2 Stars</SelectItem>
+                  <SelectItem value="1">1 Star</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
           </div>
         </div>

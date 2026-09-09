@@ -19,6 +19,13 @@ import {
   Layers,
 } from "lucide-react";
 import { toast } from "sonner";
+import {
+  Select,
+  SelectTrigger,
+  SelectValue,
+  SelectContent,
+  SelectItem,
+} from "@/components/ui/Select";
 
 export default function WhatsAppMarketingView() {
   const dispatch = useAppDispatch();
@@ -464,32 +471,34 @@ export default function WhatsAppMarketingView() {
                 <label className="block text-xs font-semibold uppercase text-slate-600 mb-1">
                   Approved Meta Template
                 </label>
-                <select
-                  value={previewTemplate}
-                  onChange={(e) => setPreviewTemplate(e.target.value)}
-                  className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 font-mono text-xs"
-                >
-                  <option value="festive_vip_early_bird">festive_vip_early_bird</option>
-                  <option value="b2b_wholesale_catalog_v2">b2b_wholesale_catalog_v2</option>
-                  <option value="prepaid_checkout_offer">prepaid_checkout_offer</option>
-                  <option value="dropship_wallet_refill">dropship_wallet_refill</option>
-                </select>
+                <Select value={previewTemplate} onValueChange={setPreviewTemplate}>
+                  <SelectTrigger className="w-full text-xs bg-white border-slate-300 font-mono">
+                    <SelectValue placeholder="Approved Meta Template" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="festive_vip_early_bird">festive_vip_early_bird</SelectItem>
+                    <SelectItem value="b2b_wholesale_catalog_v2">b2b_wholesale_catalog_v2</SelectItem>
+                    <SelectItem value="prepaid_checkout_offer">prepaid_checkout_offer</SelectItem>
+                    <SelectItem value="dropship_wallet_refill">dropship_wallet_refill</SelectItem>
+                  </SelectContent>
+                </Select>
               </div>
 
               <div>
                 <label className="block text-xs font-semibold uppercase text-slate-600 mb-1">
                   Recipient Segment
                 </label>
-                <select
-                  value={previewSegment}
-                  onChange={(e) => setPreviewSegment(e.target.value)}
-                  className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500"
-                >
-                  <option value="All Active Opt-in Numbers">All Active Opt-in Numbers</option>
-                  <option value="Verified Wholesale Buyers">Verified Wholesale Buyers</option>
-                  <option value="COD Order Placing Customers">COD Order Placing Customers</option>
-                  <option value="Dropshippers with Low Balance">Dropshippers with Low Balance</option>
-                </select>
+                <Select value={previewSegment} onValueChange={setPreviewSegment}>
+                  <SelectTrigger className="w-full text-xs bg-white border-slate-300">
+                    <SelectValue placeholder="Recipient Segment" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="All Active Opt-in Numbers">All Active Opt-in Numbers</SelectItem>
+                    <SelectItem value="Verified Wholesale Buyers">Verified Wholesale Buyers</SelectItem>
+                    <SelectItem value="COD Order Placing Customers">COD Order Placing Customers</SelectItem>
+                    <SelectItem value="Dropshippers with Low Balance">Dropshippers with Low Balance</SelectItem>
+                  </SelectContent>
+                </Select>
               </div>
             </div>
 

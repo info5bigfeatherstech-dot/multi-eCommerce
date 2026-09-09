@@ -24,6 +24,13 @@ import {
   TrendingUp,
 } from "lucide-react";
 import { toast } from "sonner";
+import {
+  Select,
+  SelectTrigger,
+  SelectValue,
+  SelectContent,
+  SelectItem,
+} from "@/components/ui/Select";
 
 export default function WholesaleManagementView() {
   const dispatch = useAppDispatch();
@@ -354,18 +361,19 @@ export default function WholesaleManagementView() {
             <div className="flex items-center gap-2 w-full sm:w-auto">
               <SlidersHorizontal className="h-4 w-4 text-slate-400" />
               <span className="text-xs font-medium text-slate-500">Tier:</span>
-              <select
-                value={selectedTierFilter}
-                onChange={(e) => setSelectedTierFilter(e.target.value)}
-                className="text-xs rounded-lg border border-slate-300 px-3 py-1.5 bg-white text-slate-700 focus:outline-none focus:ring-2 focus:ring-indigo-500"
-              >
-                <option value="All">All Wholesale Tiers</option>
-                {tiers.map((t) => (
-                  <option key={t.id} value={t.tierName}>
-                    {t.tierName}
-                  </option>
-                ))}
-              </select>
+              <Select value={selectedTierFilter} onValueChange={setSelectedTierFilter}>
+                <SelectTrigger className="w-[170px] text-xs rounded-lg border-slate-300 h-9 bg-white">
+                  <SelectValue placeholder="Select Tier" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="All">All Wholesale Tiers</SelectItem>
+                  {tiers.map((t) => (
+                    <SelectItem key={t.id} value={t.tierName}>
+                      {t.tierName}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
           </div>
 
@@ -665,15 +673,16 @@ export default function WholesaleManagementView() {
               <label className="block text-xs font-semibold uppercase text-slate-600 mb-1">
                 Account Status
               </label>
-              <select
-                value={accountStatusVal}
-                onChange={(e) => setAccountStatusVal(e.target.value)}
-                className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
-              >
-                <option value="Active">Active (Eligible for Orders)</option>
-                <option value="Under Review">Under Review (Hold Dispatches)</option>
-                <option value="Suspended">Suspended</option>
-              </select>
+              <Select value={accountStatusVal} onValueChange={setAccountStatusVal}>
+                <SelectTrigger className="w-full rounded-lg border-slate-300">
+                  <SelectValue placeholder="Select Status" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="Active">Active (Eligible for Orders)</SelectItem>
+                  <SelectItem value="Under Review">Under Review (Hold Dispatches)</SelectItem>
+                  <SelectItem value="Suspended">Suspended</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
 
             <div className="flex justify-end gap-2 border-t border-slate-200 pt-4">
@@ -807,17 +816,18 @@ export default function WholesaleManagementView() {
                 <label className="block text-xs font-semibold uppercase text-slate-600 mb-1">
                   Assigned Tier
                 </label>
-                <select
-                  value={newAssignedTier}
-                  onChange={(e) => setNewAssignedTier(e.target.value)}
-                  className="w-full rounded-lg border border-slate-300 px-2 py-2 text-xs focus:outline-none focus:ring-2 focus:ring-indigo-500"
-                >
-                  {tiers.map((t) => (
-                    <option key={t.id} value={t.tierName}>
-                      {t.tierName}
-                    </option>
-                  ))}
-                </select>
+                <Select value={newAssignedTier} onValueChange={setNewAssignedTier}>
+                  <SelectTrigger className="w-full rounded-lg border-slate-300 text-xs">
+                    <SelectValue placeholder="Select Tier" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {tiers.map((t) => (
+                      <SelectItem key={t.id} value={t.tierName}>
+                        {t.tierName}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </div>
 
               <div>
@@ -837,16 +847,17 @@ export default function WholesaleManagementView() {
                 <label className="block text-xs font-semibold uppercase text-slate-600 mb-1">
                   Payment Terms
                 </label>
-                <select
-                  value={newPaymentTerms}
-                  onChange={(e) => setNewPaymentTerms(e.target.value)}
-                  className="w-full rounded-lg border border-slate-300 px-2 py-2 text-xs focus:outline-none focus:ring-2 focus:ring-indigo-500"
-                >
-                  <option value="Net-30">Net-30 Credit</option>
-                  <option value="Net-15">Net-15 Credit</option>
-                  <option value="Net-45">Net-45 Credit</option>
-                  <option value="Prepaid UPI / RTGS">Prepaid UPI / RTGS</option>
-                </select>
+                <Select value={newPaymentTerms} onValueChange={setNewPaymentTerms}>
+                  <SelectTrigger className="w-full rounded-lg border-slate-300 text-xs">
+                    <SelectValue placeholder="Select Terms" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="Net-30">Net-30 Credit</SelectItem>
+                    <SelectItem value="Net-15">Net-15 Credit</SelectItem>
+                    <SelectItem value="Net-45">Net-45 Credit</SelectItem>
+                    <SelectItem value="Prepaid UPI / RTGS">Prepaid UPI / RTGS</SelectItem>
+                  </SelectContent>
+                </Select>
               </div>
             </div>
 

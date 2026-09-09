@@ -15,6 +15,13 @@ import {
   PieChart,
 } from "lucide-react";
 import { toast } from "sonner";
+import {
+  Select,
+  SelectTrigger,
+  SelectValue,
+  SelectContent,
+  SelectItem,
+} from "@/components/ui/Select";
 
 export default function MarketingReportsView() {
   const campaigns = useAppSelector(
@@ -143,21 +150,27 @@ export default function MarketingReportsView() {
 
         <div className="flex items-center gap-3">
           {/* Date Range Selector */}
-          <div className="flex items-center gap-1.5 bg-white border border-slate-300 rounded-lg px-3 py-1.5 shadow-sm text-xs text-slate-700">
-            <Calendar className="h-4 w-4 text-slate-400" />
-            <select
+          <div className="w-48">
+            <Select
               value={dateRange}
-              onChange={(e) => {
-                setDateRange(e.target.value);
-                toast.info(`Aggregating data for ${e.target.value}...`);
+              onValueChange={(val) => {
+                setDateRange(val);
+                toast.info(`Aggregating data for ${val}...`);
               }}
-              className="bg-transparent focus:outline-none font-medium cursor-pointer"
             >
-              <option value="Last 7 Days">Last 7 Days</option>
-              <option value="Last 30 Days">Last 30 Days</option>
-              <option value="Current Quarter">Current Quarter</option>
-              <option value="Full Financial Year">Full Financial Year</option>
-            </select>
+              <SelectTrigger className="h-9 text-xs bg-white border-slate-300">
+                <div className="flex items-center gap-1.5 truncate">
+                  <Calendar className="h-4 w-4 text-slate-400" />
+                  <SelectValue placeholder="Select Range" />
+                </div>
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="Last 7 Days">Last 7 Days</SelectItem>
+                <SelectItem value="Last 30 Days">Last 30 Days</SelectItem>
+                <SelectItem value="Current Quarter">Current Quarter</SelectItem>
+                <SelectItem value="Full Financial Year">Full Financial Year</SelectItem>
+              </SelectContent>
+            </Select>
           </div>
 
           <button

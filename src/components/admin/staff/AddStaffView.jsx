@@ -18,6 +18,13 @@ import {
   ChevronUp,
 } from "lucide-react";
 import { toast } from "sonner";
+import {
+  Select,
+  SelectTrigger,
+  SelectValue,
+  SelectContent,
+  SelectItem,
+} from "../../ui/Select";
 
 const MODULES = [
   { id: "orders", label: "Orders & Fulfillment" },
@@ -236,17 +243,18 @@ const AddStaffView = () => {
                 <label className="block text-xs font-semibold text-slate-700 mb-1">
                   Assigned RBAC Role <span className="text-rose-500">*</span>
                 </label>
-                <select
-                  value={selectedRoleName}
-                  onChange={(e) => setSelectedRoleName(e.target.value)}
-                  className="w-full text-xs p-2.5 bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-1 focus:ring-indigo-500 focus:bg-white font-medium text-slate-800"
-                >
-                  {roles.map((r) => (
-                    <option key={r.id} value={r.name}>
-                      {r.name}
-                    </option>
-                  ))}
-                </select>
+                <Select value={selectedRoleName} onValueChange={setSelectedRoleName}>
+                  <SelectTrigger className="w-full text-xs bg-slate-50 border-slate-200 focus:bg-white">
+                    <SelectValue placeholder="Select RBAC Role" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {roles.map((r) => (
+                      <SelectItem key={r.id} value={r.name}>
+                        {r.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
                 <p className="text-[11px] text-slate-400 mt-1">
                   Determines base capabilities across store modules.
                 </p>
@@ -256,18 +264,19 @@ const AddStaffView = () => {
                 <label className="block text-xs font-semibold text-slate-700 mb-1">
                   Department <span className="text-rose-500">*</span>
                 </label>
-                <select
-                  value={department}
-                  onChange={(e) => setDepartment(e.target.value)}
-                  className="w-full text-xs p-2.5 bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-1 focus:ring-indigo-500 focus:bg-white font-medium text-slate-800"
-                >
-                  <option value="Store Operations">Store Operations</option>
-                  <option value="Product & Merchandising">Product & Merchandising</option>
-                  <option value="Customer Experience">Customer Experience</option>
-                  <option value="Warehouse & Logistics">Warehouse & Logistics</option>
-                  <option value="Growth & Marketing">Growth & Marketing</option>
-                  <option value="Executive & IT">Executive & IT</option>
-                </select>
+                <Select value={department} onValueChange={setDepartment}>
+                  <SelectTrigger className="w-full text-xs bg-slate-50 border-slate-200 focus:bg-white">
+                    <SelectValue placeholder="Select Department" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="Store Operations">Store Operations</SelectItem>
+                    <SelectItem value="Product & Merchandising">Product & Merchandising</SelectItem>
+                    <SelectItem value="Customer Experience">Customer Experience</SelectItem>
+                    <SelectItem value="Warehouse & Logistics">Warehouse & Logistics</SelectItem>
+                    <SelectItem value="Growth & Marketing">Growth & Marketing</SelectItem>
+                    <SelectItem value="Executive & IT">Executive & IT</SelectItem>
+                  </SelectContent>
+                </Select>
               </div>
 
               <div className="sm:col-span-2">

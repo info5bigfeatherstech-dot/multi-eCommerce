@@ -15,6 +15,13 @@ import {
   Filter,
 } from "lucide-react";
 import { toast } from "sonner";
+import {
+  Select,
+  SelectTrigger,
+  SelectValue,
+  SelectContent,
+  SelectItem,
+} from "@/components/ui/Select";
 
 export default function StoreReportsView() {
   const [reportDateRange, setReportDateRange] = useState("Current Month (Sep 2026)");
@@ -176,16 +183,17 @@ export default function StoreReportsView() {
         {/* Date Preset Selector */}
         <div className="flex items-center gap-2">
           <Calendar className="w-4 h-4 text-slate-400" />
-          <select
-            value={reportDateRange}
-            onChange={(e) => setReportDateRange(e.target.value)}
-            className="px-3.5 py-2 rounded-xl border border-slate-200 text-xs font-poppins font-semibold text-slate-700 bg-white focus:outline-none focus:border-accent cursor-pointer"
-          >
-            <option value="Current Month (Sep 2026)">Current Month (Sep 2026)</option>
-            <option value="Last Month (Aug 2026)">Last Month (Aug 2026)</option>
-            <option value="Current Quarter (Q2 FY26)">Current Quarter (Q2 FY26)</option>
-            <option value="Full Financial Year (FY26)">Full Financial Year (FY26)</option>
-          </select>
+          <Select value={reportDateRange} onValueChange={setReportDateRange}>
+            <SelectTrigger className="w-[230px] rounded-xl border-slate-200 text-xs font-poppins font-semibold text-slate-700 bg-white">
+              <SelectValue placeholder="Select Date Range" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="Current Month (Sep 2026)">Current Month (Sep 2026)</SelectItem>
+              <SelectItem value="Last Month (Aug 2026)">Last Month (Aug 2026)</SelectItem>
+              <SelectItem value="Current Quarter (Q2 FY26)">Current Quarter (Q2 FY26)</SelectItem>
+              <SelectItem value="Full Financial Year (FY26)">Full Financial Year (FY26)</SelectItem>
+            </SelectContent>
+          </Select>
         </div>
       </div>
 

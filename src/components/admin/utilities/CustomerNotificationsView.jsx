@@ -21,6 +21,13 @@ import {
   Search,
 } from "lucide-react";
 import { toast } from "sonner";
+import {
+  Select,
+  SelectTrigger,
+  SelectValue,
+  SelectContent,
+  SelectItem,
+} from "@/components/ui/Select";
 
 export default function CustomerNotificationsView() {
   const dispatch = useAppDispatch();
@@ -276,29 +283,31 @@ export default function CustomerNotificationsView() {
               <div className="grid grid-cols-2 gap-3">
                 <div>
                   <label className="text-xs font-bold text-slate-800 block mb-1">Delivery Channel</label>
-                  <select
-                    value={newChannel}
-                    onChange={(e) => setNewChannel(e.target.value)}
-                    className="w-full px-3 py-2 text-sm bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-slate-900 focus:outline-none"
-                  >
-                    <option value="WhatsApp & SMS">WhatsApp & SMS</option>
-                    <option value="WhatsApp Only">WhatsApp Only</option>
-                    <option value="SMS Only">SMS Only</option>
-                    <option value="Email Newsletter">Email Newsletter</option>
-                  </select>
+                  <Select value={newChannel} onValueChange={setNewChannel}>
+                    <SelectTrigger className="w-full bg-slate-50 border-slate-200 rounded-xl">
+                      <SelectValue placeholder="Select channel" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="WhatsApp & SMS">WhatsApp & SMS</SelectItem>
+                      <SelectItem value="WhatsApp Only">WhatsApp Only</SelectItem>
+                      <SelectItem value="SMS Only">SMS Only</SelectItem>
+                      <SelectItem value="Email Newsletter">Email Newsletter</SelectItem>
+                    </SelectContent>
+                  </Select>
                 </div>
 
                 <div>
                   <label className="text-xs font-bold text-slate-800 block mb-1">Target Segment</label>
-                  <select
-                    value={newAudience}
-                    onChange={(e) => setNewAudience(e.target.value)}
-                    className="w-full px-3 py-2 text-sm bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-slate-900 focus:outline-none"
-                  >
-                    <option value="All Registered Customers (21,080)">All Customers (21,080)</option>
-                    <option value="Diamond Elite Club (410 Members)">Diamond Elite (410)</option>
-                    <option value="Recent Buyers (Last 30 Days)">Recent Buyers (3,240)</option>
-                  </select>
+                  <Select value={newAudience} onValueChange={setNewAudience}>
+                    <SelectTrigger className="w-full bg-slate-50 border-slate-200 rounded-xl">
+                      <SelectValue placeholder="Select segment" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="All Registered Customers (21,080)">All Customers (21,080)</SelectItem>
+                      <SelectItem value="Diamond Elite Club (410 Members)">Diamond Elite (410)</SelectItem>
+                      <SelectItem value="Recent Buyers (Last 30 Days)">Recent Buyers (3,240)</SelectItem>
+                    </SelectContent>
+                  </Select>
                 </div>
               </div>
 

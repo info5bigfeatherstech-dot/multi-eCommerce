@@ -22,6 +22,13 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import { Link } from "react-router-dom";
+import {
+  Select,
+  SelectTrigger,
+  SelectValue,
+  SelectContent,
+  SelectItem,
+} from "@/components/ui/Select";
 
 export default function WebsitePagesView() {
   const dispatch = useAppDispatch();
@@ -473,14 +480,15 @@ export default function WebsitePagesView() {
               <label className="block text-xs font-semibold uppercase text-slate-600 mb-1">
                 Publishing Status
               </label>
-              <select
-                value={newStatus}
-                onChange={(e) => setNewStatus(e.target.value)}
-                className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
-              >
-                <option value="Published">Published (Public)</option>
-                <option value="Draft">Draft (Hidden)</option>
-              </select>
+              <Select value={newStatus} onValueChange={setNewStatus}>
+                <SelectTrigger className="w-full rounded-lg border-slate-300">
+                  <SelectValue placeholder="Select status" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="Published">Published (Public)</SelectItem>
+                  <SelectItem value="Draft">Draft (Hidden)</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
 
             <div>

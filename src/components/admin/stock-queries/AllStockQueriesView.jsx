@@ -25,6 +25,13 @@ import {
   Sparkles,
 } from "lucide-react";
 import { toast } from "sonner";
+import {
+  Select,
+  SelectTrigger,
+  SelectValue,
+  SelectContent,
+  SelectItem,
+} from "@/components/ui/Select";
 
 export default function AllStockQueriesView() {
   const dispatch = useAppDispatch();
@@ -193,35 +200,37 @@ export default function AllStockQueriesView() {
         </div>
 
         <div className="flex flex-wrap items-center gap-2.5">
-          <div className="flex items-center gap-1.5 bg-slate-50 border border-slate-200 rounded-xl px-3 py-1.5">
-            <Filter className="w-3.5 h-3.5 text-slate-500" />
-            <span className="text-xs font-medium text-slate-500">Status:</span>
-            <select
-              value={selectedStatus}
-              onChange={(e) => setSelectedStatus(e.target.value)}
-              className="bg-transparent text-xs font-semibold text-slate-800 focus:outline-none cursor-pointer"
-            >
-              {statuses.map((s) => (
-                <option key={s} value={s}>
-                  {s}
-                </option>
-              ))}
-            </select>
+          <div className="w-36">
+            <Select value={selectedStatus} onValueChange={setSelectedStatus}>
+              <SelectTrigger className="h-9 text-xs bg-slate-50 border-slate-200">
+                <div className="flex items-center gap-1.5 truncate">
+                  <Filter className="w-3.5 h-3.5 text-slate-500" />
+                  <SelectValue placeholder="Status" />
+                </div>
+              </SelectTrigger>
+              <SelectContent>
+                {statuses.map((s) => (
+                  <SelectItem key={s} value={s}>
+                    {s === "All" ? "All Statuses" : s}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
 
-          <div className="flex items-center gap-1.5 bg-slate-50 border border-slate-200 rounded-xl px-3 py-1.5">
-            <span className="text-xs font-medium text-slate-500">Priority:</span>
-            <select
-              value={selectedPriority}
-              onChange={(e) => setSelectedPriority(e.target.value)}
-              className="bg-transparent text-xs font-semibold text-slate-800 focus:outline-none cursor-pointer"
-            >
-              {priorities.map((p) => (
-                <option key={p} value={p}>
-                  {p}
-                </option>
-              ))}
-            </select>
+          <div className="w-36">
+            <Select value={selectedPriority} onValueChange={setSelectedPriority}>
+              <SelectTrigger className="h-9 text-xs bg-slate-50 border-slate-200">
+                <SelectValue placeholder="Priority" />
+              </SelectTrigger>
+              <SelectContent>
+                {priorities.map((p) => (
+                  <SelectItem key={p} value={p}>
+                    {p === "All" ? "All Priorities" : `${p} Priority`}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
         </div>
       </div>
@@ -324,24 +333,22 @@ export default function AllStockQueriesView() {
                       </td>
 
                       <td className="p-4">
-                        <select
-                          value={query.status}
-                          onChange={(e) => handleStatusChange(query.id, e.target.value)}
-                          className={`text-xs font-semibold px-2.5 py-1 rounded-md border cursor-pointer focus:outline-none ${
-                            query.status === "Pending"
-                              ? "bg-amber-50 text-amber-800 border-amber-200"
-                              : query.status === "Notified"
-                              ? "bg-blue-50 text-blue-800 border-blue-200"
-                              : query.status === "Restocked"
-                              ? "bg-emerald-50 text-emerald-800 border-emerald-200"
-                              : "bg-slate-100 text-slate-700 border-slate-200"
-                          }`}
-                        >
-                          <option value="Pending">Pending</option>
-                          <option value="Notified">Notified</option>
-                          <option value="Restocked">Restocked</option>
-                          <option value="Cancelled">Cancelled</option>
-                        </select>
+                        <div className="w-32">
+                          <Select
+                            value={query.status}
+                            onValueChange={(val) => handleStatusChange(query.id, val)}
+                          >
+                            <SelectTrigger className="h-7 text-xs font-semibold bg-white border-slate-200">
+                              <SelectValue placeholder={query.status} />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="Pending">Pending</SelectItem>
+                              <SelectItem value="Notified">Notified</SelectItem>
+                              <SelectItem value="Restocked">Restocked</SelectItem>
+                              <SelectItem value="Cancelled">Cancelled</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </div>
                       </td>
 
                       <td className="p-4 text-right">

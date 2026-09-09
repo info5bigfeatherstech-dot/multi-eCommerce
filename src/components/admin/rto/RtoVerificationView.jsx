@@ -24,6 +24,13 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
+import {
+  Select,
+  SelectTrigger,
+  SelectValue,
+  SelectContent,
+  SelectItem,
+} from "@/components/ui/Select";
 
 export default function RtoVerificationView() {
   const dispatch = useAppDispatch();
@@ -289,21 +296,22 @@ export default function RtoVerificationView() {
                 <label className="block font-poppins font-bold text-slate-700 mb-1">
                   Verification Conclusion
                 </label>
-                <select
-                  value={verificationStatus}
-                  onChange={(e) => setVerificationStatus(e.target.value)}
-                  className="w-full px-3 py-2 rounded-xl border border-slate-200 text-slate-800 font-inter focus:outline-none focus:border-accent"
-                >
-                  <option value="Fake Attempt Confirmed">
-                    Fake Attempt Confirmed (Delivery boy never called or visited)
-                  </option>
-                  <option value="Genuine Rejection">
-                    Genuine Rejection (Customer refused or requested cancellation)
-                  </option>
-                  <option value="Pending Verification">
-                    Pending Verification (Further follow-up required)
-                  </option>
-                </select>
+                <Select value={verificationStatus} onValueChange={setVerificationStatus}>
+                  <SelectTrigger className="w-full text-xs bg-slate-50 border-slate-200">
+                    <SelectValue placeholder="Verification Conclusion" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="Fake Attempt Confirmed">
+                      Fake Attempt Confirmed (Delivery boy never called or visited)
+                    </SelectItem>
+                    <SelectItem value="Genuine Rejection">
+                      Genuine Rejection (Customer refused or requested cancellation)
+                    </SelectItem>
+                    <SelectItem value="Pending Verification">
+                      Pending Verification (Further follow-up required)
+                    </SelectItem>
+                  </SelectContent>
+                </Select>
               </div>
 
               <div>
@@ -384,24 +392,25 @@ export default function RtoVerificationView() {
                 <label className="block font-poppins font-bold text-slate-700 mb-1">
                   Dispute Category
                 </label>
-                <select
-                  value={disputeCategory}
-                  onChange={(e) => setDisputeCategory(e.target.value)}
-                  className="w-full px-3 py-2 rounded-xl border border-slate-200 text-slate-800 font-inter focus:outline-none focus:border-accent"
-                >
-                  <option value="Fake Delivery Attempt - GPS Misalignment & No Call">
-                    Fake Attempt: Delivery executive never visited buyer premises
-                  </option>
-                  <option value="Falsified Customer Contact Log">
-                    Falsified Log: Call logs show 0 outgoing attempts to buyer
-                  </option>
-                  <option value="Package Damage by Carrier In-Transit">
-                    Carrier Damage: Packaging destroyed causing buyer refusal
-                  </option>
-                  <option value="Delay Exceeded SLA Window">
-                    SLA Breach: Delivery delayed past committed transit window
-                  </option>
-                </select>
+                <Select value={disputeCategory} onValueChange={setDisputeCategory}>
+                  <SelectTrigger className="w-full text-xs bg-slate-50 border-slate-200">
+                    <SelectValue placeholder="Dispute Category" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="Fake Delivery Attempt - GPS Misalignment & No Call">
+                      Fake Attempt: Delivery executive never visited buyer premises
+                    </SelectItem>
+                    <SelectItem value="Falsified Customer Contact Log">
+                      Falsified Log: Call logs show 0 outgoing attempts to buyer
+                    </SelectItem>
+                    <SelectItem value="Package Damage by Carrier In-Transit">
+                      Carrier Damage: Packaging destroyed causing buyer refusal
+                    </SelectItem>
+                    <SelectItem value="Delay Exceeded SLA Window">
+                      SLA Breach: Delivery delayed past committed transit window
+                    </SelectItem>
+                  </SelectContent>
+                </Select>
               </div>
 
               <div>

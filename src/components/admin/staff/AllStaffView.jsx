@@ -29,6 +29,21 @@ import {
   Check,
 } from "lucide-react";
 import { toast } from "sonner";
+import {
+  Select,
+  SelectTrigger,
+  SelectValue,
+  SelectContent,
+  SelectItem,
+} from "@/components/ui/Select";
+import {
+  DropdownMenu,
+  DropdownMenuTrigger,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+} from "@/components/ui/DropdownMenu";
 
 const AllStaffView = () => {
   const dispatch = useAppDispatch();
@@ -294,52 +309,61 @@ const AllStaffView = () => {
           {/* Dropdown Filters */}
           <div className="flex flex-wrap items-center gap-2 w-full lg:w-auto">
             {/* Department */}
-            <div className="flex items-center gap-1 bg-slate-50 border border-slate-200 rounded-lg px-2.5 py-1.5 text-xs text-slate-600">
-              <Building className="w-3.5 h-3.5 text-slate-400" />
-              <select
-                value={departmentFilter}
-                onChange={(e) => setDepartmentFilter(e.target.value)}
-                className="bg-transparent focus:outline-none font-medium text-slate-700"
-              >
-                <option value="all">All Departments</option>
-                {departments.map((dept) => (
-                  <option key={dept} value={dept}>
-                    {dept}
-                  </option>
-                ))}
-              </select>
+            <div className="min-w-[170px]">
+              <Select value={departmentFilter} onValueChange={setDepartmentFilter}>
+                <SelectTrigger className="h-9 text-xs bg-slate-50 border-slate-200">
+                  <div className="flex items-center gap-1.5 truncate">
+                    <Building className="w-3.5 h-3.5 text-slate-400 flex-shrink-0" />
+                    <SelectValue placeholder="All Departments" />
+                  </div>
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Departments</SelectItem>
+                  {departments.map((dept) => (
+                    <SelectItem key={dept} value={dept}>
+                      {dept}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
 
             {/* Role */}
-            <div className="flex items-center gap-1 bg-slate-50 border border-slate-200 rounded-lg px-2.5 py-1.5 text-xs text-slate-600">
-              <KeyRound className="w-3.5 h-3.5 text-slate-400" />
-              <select
-                value={roleFilter}
-                onChange={(e) => setRoleFilter(e.target.value)}
-                className="bg-transparent focus:outline-none font-medium text-slate-700"
-              >
-                <option value="all">All Roles</option>
-                {roles.map((r) => (
-                  <option key={r.id} value={r.name}>
-                    {r.name}
-                  </option>
-                ))}
-              </select>
+            <div className="min-w-[150px]">
+              <Select value={roleFilter} onValueChange={setRoleFilter}>
+                <SelectTrigger className="h-9 text-xs bg-slate-50 border-slate-200">
+                  <div className="flex items-center gap-1.5 truncate">
+                    <KeyRound className="w-3.5 h-3.5 text-slate-400 flex-shrink-0" />
+                    <SelectValue placeholder="All Roles" />
+                  </div>
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Roles</SelectItem>
+                  {roles.map((r) => (
+                    <SelectItem key={r.id} value={r.name}>
+                      {r.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
 
             {/* Status */}
-            <div className="flex items-center gap-1 bg-slate-50 border border-slate-200 rounded-lg px-2.5 py-1.5 text-xs text-slate-600">
-              <Filter className="w-3.5 h-3.5 text-slate-400" />
-              <select
-                value={statusFilter}
-                onChange={(e) => setStatusFilter(e.target.value)}
-                className="bg-transparent focus:outline-none font-medium text-slate-700"
-              >
-                <option value="all">All Statuses</option>
-                <option value="Active">Active</option>
-                <option value="Suspended">Suspended</option>
-                <option value="Invited">Invited</option>
-              </select>
+            <div className="min-w-[140px]">
+              <Select value={statusFilter} onValueChange={setStatusFilter}>
+                <SelectTrigger className="h-9 text-xs bg-slate-50 border-slate-200">
+                  <div className="flex items-center gap-1.5 truncate">
+                    <Filter className="w-3.5 h-3.5 text-slate-400 flex-shrink-0" />
+                    <SelectValue placeholder="All Statuses" />
+                  </div>
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Statuses</SelectItem>
+                  <SelectItem value="Active">Active</SelectItem>
+                  <SelectItem value="Suspended">Suspended</SelectItem>
+                  <SelectItem value="Invited">Invited</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
           </div>
         </div>
@@ -614,19 +638,23 @@ const AllStaffView = () => {
                   <label className="block text-xs font-semibold text-slate-700 mb-1">
                     Assigned Role
                   </label>
-                  <select
+                  <Select
                     value={editingStaff.role}
-                    onChange={(e) =>
-                      setEditingStaff({ ...editingStaff, role: e.target.value })
+                    onValueChange={(val) =>
+                      setEditingStaff({ ...editingStaff, role: val })
                     }
-                    className="w-full text-xs p-2.5 border border-slate-200 rounded-lg focus:outline-none focus:ring-1 focus:ring-indigo-500"
                   >
-                    {roles.map((r) => (
-                      <option key={r.id} value={r.name}>
-                        {r.name}
-                      </option>
-                    ))}
-                  </select>
+                    <SelectTrigger className="h-9 text-xs border-slate-200">
+                      <SelectValue placeholder="Select Role" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {roles.map((r) => (
+                        <SelectItem key={r.id} value={r.name}>
+                          {r.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                 </div>
                 <div>
                   <label className="block text-xs font-semibold text-slate-700 mb-1">

@@ -13,6 +13,13 @@ import {
   ShieldCheck,
 } from "lucide-react";
 import { toast } from "sonner";
+import {
+  Select,
+  SelectTrigger,
+  SelectValue,
+  SelectContent,
+  SelectItem,
+} from "../../ui/Select";
 
 const TaxGstSettingsView = () => {
   const dispatch = useAppDispatch();
@@ -147,18 +154,22 @@ const TaxGstSettingsView = () => {
               <label className="block text-xs font-semibold text-slate-700 mb-1">
                 Store Catalog Tax Calculation Model
               </label>
-              <select
+              <Select
                 value={formData.pricingModel || "inclusive"}
-                onChange={(e) => handleChange("pricingModel", e.target.value)}
-                className="w-full text-xs p-2.5 bg-slate-50 border border-slate-200 rounded-lg font-medium text-slate-800 focus:outline-none"
+                onValueChange={(val) => handleChange("pricingModel", val)}
               >
-                <option value="inclusive">
-                  Prices are Inclusive of GST (Indian Retail Standard)
-                </option>
-                <option value="exclusive">
-                  Prices are Exclusive of GST (Calculated at Checkout)
-                </option>
-              </select>
+                <SelectTrigger className="w-full text-xs bg-slate-50 border-slate-200">
+                  <SelectValue placeholder="Pricing Model" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="inclusive">
+                    Prices are Inclusive of GST (Indian Retail Standard)
+                  </SelectItem>
+                  <SelectItem value="exclusive">
+                    Prices are Exclusive of GST (Calculated at Checkout)
+                  </SelectItem>
+                </SelectContent>
+              </Select>
             </div>
 
             <div>

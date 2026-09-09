@@ -24,6 +24,13 @@ import {
   Sparkles,
 } from "lucide-react";
 import { toast } from "sonner";
+import {
+  Select,
+  SelectTrigger,
+  SelectValue,
+  SelectContent,
+  SelectItem,
+} from "@/components/ui/Select";
 
 export default function DropshippingManagementView() {
   const dispatch = useAppDispatch();
@@ -293,17 +300,18 @@ export default function DropshippingManagementView() {
         <div className="flex items-center gap-2 w-full sm:w-auto">
           <SlidersHorizontal className="h-4 w-4 text-slate-400" />
           <span className="text-xs font-medium text-slate-500">Platform:</span>
-          <select
-            value={selectedPlatform}
-            onChange={(e) => setSelectedPlatform(e.target.value)}
-            className="text-xs rounded-lg border border-slate-300 px-3 py-1.5 bg-white text-slate-700 focus:outline-none focus:ring-2 focus:ring-indigo-500"
-          >
-            {platforms.map((p) => (
-              <option key={p} value={p}>
-                {p === "All" ? "All Platforms" : p}
-              </option>
-            ))}
-          </select>
+          <Select value={selectedPlatform} onValueChange={setSelectedPlatform}>
+            <SelectTrigger className="w-[170px] text-xs rounded-lg border-slate-300 h-9 bg-white">
+              <SelectValue placeholder="All Platforms" />
+            </SelectTrigger>
+            <SelectContent>
+              {platforms.map((p) => (
+                <SelectItem key={p} value={p}>
+                  {p === "All" ? "All Platforms" : p}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
         </div>
       </div>
 
@@ -583,16 +591,17 @@ export default function DropshippingManagementView() {
                 <label className="block text-xs font-semibold uppercase text-slate-600 mb-1">
                   E-Commerce Engine
                 </label>
-                <select
-                  value={newPlatform}
-                  onChange={(e) => setNewPlatform(e.target.value)}
-                  className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
-                >
-                  <option value="Shopify Store">Shopify Store</option>
-                  <option value="WooCommerce">WooCommerce (WordPress)</option>
-                  <option value="Custom API">Custom Webhook / API</option>
-                  <option value="Amazon/Flipkart Seller">Amazon / Marketplace Seller</option>
-                </select>
+                <Select value={newPlatform} onValueChange={setNewPlatform}>
+                  <SelectTrigger className="w-full rounded-lg border-slate-300">
+                    <SelectValue placeholder="Select Engine" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="Shopify Store">Shopify Store</SelectItem>
+                    <SelectItem value="WooCommerce">WooCommerce (WordPress)</SelectItem>
+                    <SelectItem value="Custom API">Custom Webhook / API</SelectItem>
+                    <SelectItem value="Amazon/Flipkart Seller">Amazon / Marketplace Seller</SelectItem>
+                  </SelectContent>
+                </Select>
               </div>
 
               <div>

@@ -18,6 +18,13 @@ import {
   Building,
 } from "lucide-react";
 import { toast } from "sonner";
+import {
+  Select,
+  SelectTrigger,
+  SelectValue,
+  SelectContent,
+  SelectItem,
+} from "../../ui/Select";
 
 const ShippingSettingsView = () => {
   const dispatch = useAppDispatch();
@@ -234,30 +241,38 @@ const ShippingSettingsView = () => {
               <label className="block text-xs font-semibold text-slate-700 mb-1">
                 Thermal Label Output Format
               </label>
-              <select
+              <Select
                 value={formData.labelFormat || "4x6 Thermal"}
-                onChange={(e) => handleChange("labelFormat", e.target.value)}
-                className="w-full text-xs p-2.5 bg-slate-50 border border-slate-200 rounded-lg font-medium text-slate-800 focus:outline-none"
+                onValueChange={(val) => handleChange("labelFormat", val)}
               >
-                <option value="4x6 Thermal">4x6 Thermal Label (Standard Roll)</option>
-                <option value="A4 2-per-page">A4 Standard (2 per page)</option>
-                <option value="A4 4-per-page">A4 Standard (4 per page)</option>
-              </select>
+                <SelectTrigger className="w-full text-xs bg-slate-50 border-slate-200">
+                  <SelectValue placeholder="Label Format" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="4x6 Thermal">4x6 Thermal Label (Standard Roll)</SelectItem>
+                  <SelectItem value="A4 2-per-page">A4 Standard (2 per page)</SelectItem>
+                  <SelectItem value="A4 4-per-page">A4 Standard (4 per page)</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
 
             <div>
               <label className="block text-xs font-semibold text-slate-700 mb-1">
                 Courier Barcode Standard
               </label>
-              <select
+              <Select
                 value={formData.barcodeFormat || "Code 128"}
-                onChange={(e) => handleChange("barcodeFormat", e.target.value)}
-                className="w-full text-xs p-2.5 bg-slate-50 border border-slate-200 rounded-lg font-medium text-slate-800 focus:outline-none"
+                onValueChange={(val) => handleChange("barcodeFormat", val)}
               >
-                <option value="Code 128">Code 128 (High Density 1D)</option>
-                <option value="GS1-128">GS1-128 Standard</option>
-                <option value="QR Code">2D QR Code + Text</option>
-              </select>
+                <SelectTrigger className="w-full text-xs bg-slate-50 border-slate-200">
+                  <SelectValue placeholder="Barcode Standard" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="Code 128">Code 128 (High Density 1D)</SelectItem>
+                  <SelectItem value="GS1-128">GS1-128 Standard</SelectItem>
+                  <SelectItem value="QR Code">2D QR Code + Text</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
 
             <div className="sm:col-span-2">

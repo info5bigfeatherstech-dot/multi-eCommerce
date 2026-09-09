@@ -23,6 +23,13 @@ import {
   Layers,
 } from "lucide-react";
 import { toast } from "sonner";
+import {
+  Select,
+  SelectTrigger,
+  SelectValue,
+  SelectContent,
+  SelectItem,
+} from "@/components/ui/Select";
 
 export default function PhysicalFranchiseView() {
   const dispatch = useAppDispatch();
@@ -389,21 +396,27 @@ export default function PhysicalFranchiseView() {
                     </td>
 
                     <td className="px-6 py-4 text-center">
-                      <select
-                        value={outlet.status}
-                        onChange={(e) =>
-                          handleStatusChange(
-                            outlet.id,
-                            outlet.outletName,
-                            e.target.value
-                          )
-                        }
-                        className="text-xs rounded border border-slate-300 px-2 py-1 bg-white text-slate-700 focus:outline-none focus:ring-1 focus:ring-indigo-500"
-                      >
-                        <option value="Operational">Operational</option>
-                        <option value="Renovation">Renovation</option>
-                        <option value="Under Setup">Under Setup</option>
-                      </select>
+                      <div className="inline-block">
+                        <Select
+                          value={outlet.status}
+                          onValueChange={(val) =>
+                            handleStatusChange(
+                              outlet.id,
+                              outlet.outletName,
+                              val
+                            )
+                          }
+                        >
+                          <SelectTrigger className="w-[125px] h-8 text-xs rounded-lg border-slate-300 bg-white">
+                            <SelectValue placeholder="Status" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="Operational">Operational</SelectItem>
+                            <SelectItem value="Renovation">Renovation</SelectItem>
+                            <SelectItem value="Under Setup">Under Setup</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
                     </td>
                   </tr>
                 ))

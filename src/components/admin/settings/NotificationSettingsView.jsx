@@ -13,6 +13,13 @@ import {
   Sparkles,
 } from "lucide-react";
 import { toast } from "sonner";
+import {
+  Select,
+  SelectTrigger,
+  SelectValue,
+  SelectContent,
+  SelectItem,
+} from "../../ui/Select";
 
 const EVENT_LABELS = {
   orderPlaced: "Order Confirmed & Payment Received",
@@ -99,15 +106,19 @@ const NotificationSettingsView = () => {
               <label className="block text-xs font-semibold text-slate-700 mb-1">
                 Transactional Email Provider
               </label>
-              <select
+              <Select
                 value={formData.emailProvider || "Amazon SES"}
-                onChange={(e) => handleProviderChange("emailProvider", e.target.value)}
-                className="w-full text-xs p-2.5 bg-slate-50 border border-slate-200 rounded-lg focus:outline-none text-slate-800 font-medium"
+                onValueChange={(val) => handleProviderChange("emailProvider", val)}
               >
-                <option value="Amazon SES">Amazon Simple Email Service (SES)</option>
-                <option value="SendGrid">Twilio SendGrid API</option>
-                <option value="Postmark">Postmark App</option>
-              </select>
+                <SelectTrigger className="w-full text-xs bg-slate-50 border-slate-200">
+                  <SelectValue placeholder="Email Provider" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="Amazon SES">Amazon Simple Email Service (SES)</SelectItem>
+                  <SelectItem value="SendGrid">Twilio SendGrid API</SelectItem>
+                  <SelectItem value="Postmark">Postmark App</SelectItem>
+                </SelectContent>
+              </Select>
               <input
                 type="email"
                 value={formData.emailSender || ""}
@@ -121,15 +132,19 @@ const NotificationSettingsView = () => {
               <label className="block text-xs font-semibold text-slate-700 mb-1">
                 SMS Provider
               </label>
-              <select
+              <Select
                 value={formData.smsProvider || "Twilio / Fast2SMS"}
-                onChange={(e) => handleProviderChange("smsProvider", e.target.value)}
-                className="w-full text-xs p-2.5 bg-slate-50 border border-slate-200 rounded-lg focus:outline-none text-slate-800 font-medium"
+                onValueChange={(val) => handleProviderChange("smsProvider", val)}
               >
-                <option value="Twilio / Fast2SMS">Twilio / Fast2SMS DLT</option>
-                <option value="Gupshup SMS">Gupshup Enterprise</option>
-                <option value="Karix">Karix Telecom</option>
-              </select>
+                <SelectTrigger className="w-full text-xs bg-slate-50 border-slate-200">
+                  <SelectValue placeholder="SMS Provider" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="Twilio / Fast2SMS">Twilio / Fast2SMS DLT</SelectItem>
+                  <SelectItem value="Gupshup SMS">Gupshup Enterprise</SelectItem>
+                  <SelectItem value="Karix">Karix Telecom</SelectItem>
+                </SelectContent>
+              </Select>
               <input
                 type="text"
                 value={formData.smsSenderId || ""}
@@ -143,15 +158,19 @@ const NotificationSettingsView = () => {
               <label className="block text-xs font-semibold text-slate-700 mb-1">
                 WhatsApp Business API
               </label>
-              <select
+              <Select
                 value={formData.whatsappProvider || "WhatsApp Cloud API"}
-                onChange={(e) => handleProviderChange("whatsappProvider", e.target.value)}
-                className="w-full text-xs p-2.5 bg-slate-50 border border-slate-200 rounded-lg focus:outline-none text-slate-800 font-medium"
+                onValueChange={(val) => handleProviderChange("whatsappProvider", val)}
               >
-                <option value="WhatsApp Cloud API">Meta WhatsApp Cloud API</option>
-                <option value="Interakt">Interakt by Jio Haptik</option>
-                <option value="Wati">Wati.io API</option>
-              </select>
+                <SelectTrigger className="w-full text-xs bg-slate-50 border-slate-200">
+                  <SelectValue placeholder="WhatsApp Provider" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="WhatsApp Cloud API">Meta WhatsApp Cloud API</SelectItem>
+                  <SelectItem value="Interakt">Interakt by Jio Haptik</SelectItem>
+                  <SelectItem value="Wati">Wati.io API</SelectItem>
+                </SelectContent>
+              </Select>
               <input
                 type="text"
                 value={formData.whatsappBusinessNumber || ""}

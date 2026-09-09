@@ -18,8 +18,15 @@ import {
   Printer,
   Sparkles,
 } from "lucide-react";
-import { formatCurrency, cn } from "@/lib/utils";
 import { toast } from "sonner";
+import { formatCurrency, cn } from "@/lib/utils";
+import {
+  Select,
+  SelectTrigger,
+  SelectValue,
+  SelectContent,
+  SelectItem,
+} from "@/components/ui/Select";
 
 export default function RefundsView() {
   const dispatch = useAppDispatch();
@@ -323,16 +330,17 @@ export default function RefundsView() {
                 <label className="block text-xs font-poppins font-semibold text-slate-700 mb-1.5">
                   Disbursement Rail
                 </label>
-                <select
-                  value={payoutMethod}
-                  onChange={(e) => setPayoutMethod(e.target.value)}
-                  className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl font-poppins text-xs font-semibold text-slate-800 focus:outline-none focus:border-accent"
-                >
-                  <option value="Instant UPI Payout">Instant UPI Payout (Zero Fee)</option>
-                  <option value="Bank NEFT / RTGS Credit">Bank NEFT / RTGS Direct Account Credit</option>
-                  <option value="Store Credit Voucher">ApexMart B2B Store Credit Voucher</option>
-                  <option value="Original Payment Gateway Reversal">Original Payment Gateway Reversal</option>
-                </select>
+                <Select value={payoutMethod} onValueChange={setPayoutMethod}>
+                  <SelectTrigger className="w-full text-xs bg-slate-50 border-slate-200">
+                    <SelectValue placeholder="Select Disbursement Rail" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="Instant UPI Payout">Instant UPI Payout (Zero Fee)</SelectItem>
+                    <SelectItem value="Bank NEFT / RTGS Credit">Bank NEFT / RTGS Direct Account Credit</SelectItem>
+                    <SelectItem value="Store Credit Voucher">ApexMart B2B Store Credit Voucher</SelectItem>
+                    <SelectItem value="Original Payment Gateway Reversal">Original Payment Gateway Reversal</SelectItem>
+                  </SelectContent>
+                </Select>
               </div>
 
               <div>

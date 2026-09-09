@@ -27,6 +27,13 @@ import {
   ExternalLink,
 } from "lucide-react";
 import { toast } from "sonner";
+import {
+  Select,
+  SelectTrigger,
+  SelectValue,
+  SelectContent,
+  SelectItem,
+} from "@/components/ui/Select";
 
 const CANNED_RESPONSES = [
   "Hello, we have contacted our fulfillment warehouse to prioritize your order dispatch immediately.",
@@ -365,30 +372,36 @@ const SupportTicketsView = () => {
             </div>
 
             {/* Priority Filter */}
-            <select
-              value={priorityFilter}
-              onChange={(e) => setPriorityFilter(e.target.value)}
-              className="py-1.5 px-2.5 text-xs font-medium bg-slate-50 border border-slate-200 rounded-lg text-slate-700 focus:outline-none"
-            >
-              <option value="all">All Priorities</option>
-              <option value="Urgent">Urgent</option>
-              <option value="High">High</option>
-              <option value="Medium">Medium</option>
-              <option value="Low">Low</option>
-            </select>
+            <div className="min-w-[140px]">
+              <Select value={priorityFilter} onValueChange={setPriorityFilter}>
+                <SelectTrigger className="h-8 text-xs bg-slate-50 border-slate-200">
+                  <SelectValue placeholder="All Priorities" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Priorities</SelectItem>
+                  <SelectItem value="Urgent">Urgent</SelectItem>
+                  <SelectItem value="High">High</SelectItem>
+                  <SelectItem value="Medium">Medium</SelectItem>
+                  <SelectItem value="Low">Low</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
 
             {/* Channel Filter */}
-            <select
-              value={channelFilter}
-              onChange={(e) => setChannelFilter(e.target.value)}
-              className="py-1.5 px-2.5 text-xs font-medium bg-slate-50 border border-slate-200 rounded-lg text-slate-700 focus:outline-none"
-            >
-              <option value="all">All Channels</option>
-              <option value="Web Portal">Web Portal</option>
-              <option value="Email">Email</option>
-              <option value="WhatsApp">WhatsApp</option>
-              <option value="Phone">Phone</option>
-            </select>
+            <div className="min-w-[140px]">
+              <Select value={channelFilter} onValueChange={setChannelFilter}>
+                <SelectTrigger className="h-8 text-xs bg-slate-50 border-slate-200">
+                  <SelectValue placeholder="All Channels" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Channels</SelectItem>
+                  <SelectItem value="Web Portal">Web Portal</SelectItem>
+                  <SelectItem value="Email">Email</SelectItem>
+                  <SelectItem value="WhatsApp">WhatsApp</SelectItem>
+                  <SelectItem value="Phone">Phone</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
           </div>
         </div>
       </div>
@@ -578,35 +591,47 @@ const SupportTicketsView = () => {
             <div className="p-3 bg-white border-b border-slate-200 flex flex-wrap items-center justify-between gap-3 text-xs">
               <div className="flex items-center gap-2">
                 <span className="font-semibold text-slate-600">Status:</span>
-                <select
-                  value={selectedTicket.status}
-                  onChange={(e) =>
-                    handleUpdateStatus(selectedTicket.id, e.target.value)
-                  }
-                  className="py-1 px-2 font-medium bg-slate-50 border border-slate-200 rounded-md focus:outline-none"
-                >
-                  <option value="Open">Open</option>
-                  <option value="In Progress">In Progress</option>
-                  <option value="Resolved">Resolved</option>
-                  <option value="Closed">Closed</option>
-                </select>
+                <div className="w-32">
+                  <Select
+                    value={selectedTicket.status}
+                    onValueChange={(val) =>
+                      handleUpdateStatus(selectedTicket.id, val)
+                    }
+                  >
+                    <SelectTrigger className="h-8 text-xs bg-slate-50 border-slate-200">
+                      <SelectValue placeholder="Status" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="Open">Open</SelectItem>
+                      <SelectItem value="In Progress">In Progress</SelectItem>
+                      <SelectItem value="Resolved">Resolved</SelectItem>
+                      <SelectItem value="Closed">Closed</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
               </div>
 
               <div className="flex items-center gap-2">
                 <span className="font-semibold text-slate-600">Assignee:</span>
-                <select
-                  value={selectedTicket.assignedAgent}
-                  onChange={(e) =>
-                    handleAssignAgent(selectedTicket.id, e.target.value)
-                  }
-                  className="py-1 px-2 font-medium bg-slate-50 border border-slate-200 rounded-md focus:outline-none"
-                >
-                  {staffMembers.map((s) => (
-                    <option key={s.id} value={s.name}>
-                      {s.name}
-                    </option>
-                  ))}
-                </select>
+                <div className="w-40">
+                  <Select
+                    value={selectedTicket.assignedAgent}
+                    onValueChange={(val) =>
+                      handleAssignAgent(selectedTicket.id, val)
+                    }
+                  >
+                    <SelectTrigger className="h-8 text-xs bg-slate-50 border-slate-200">
+                      <SelectValue placeholder="Assignee" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {staffMembers.map((s) => (
+                        <SelectItem key={s.id} value={s.name}>
+                          {s.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
               </div>
             </div>
 
@@ -780,47 +805,50 @@ const SupportTicketsView = () => {
                   <label className="block text-xs font-semibold text-slate-700 mb-1">
                     Category
                   </label>
-                  <select
-                    value={newCategory}
-                    onChange={(e) => setNewCategory(e.target.value)}
-                    className="w-full text-xs p-2.5 border border-slate-200 rounded-lg focus:outline-none"
-                  >
-                    <option value="Delivery & Packaging">Delivery & Packaging</option>
-                    <option value="Product Technical Support">Technical Support</option>
-                    <option value="Refunds & Payments">Refunds & Payments</option>
-                    <option value="Billing & Invoicing">Billing & Invoicing</option>
-                    <option value="General Query">General Query</option>
-                  </select>
+                  <Select value={newCategory} onValueChange={setNewCategory}>
+                    <SelectTrigger className="h-9 text-xs border-slate-200">
+                      <SelectValue placeholder="Category" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="Delivery & Packaging">Delivery & Packaging</SelectItem>
+                      <SelectItem value="Product Technical Support">Technical Support</SelectItem>
+                      <SelectItem value="Refunds & Payments">Refunds & Payments</SelectItem>
+                      <SelectItem value="Billing & Invoicing">Billing & Invoicing</SelectItem>
+                      <SelectItem value="General Query">General Query</SelectItem>
+                    </SelectContent>
+                  </Select>
                 </div>
                 <div>
                   <label className="block text-xs font-semibold text-slate-700 mb-1">
                     Priority
                   </label>
-                  <select
-                    value={newPriority}
-                    onChange={(e) => setNewPriority(e.target.value)}
-                    className="w-full text-xs p-2.5 border border-slate-200 rounded-lg focus:outline-none"
-                  >
-                    <option value="Urgent">Urgent</option>
-                    <option value="High">High</option>
-                    <option value="Medium">Medium</option>
-                    <option value="Low">Low</option>
-                  </select>
+                  <Select value={newPriority} onValueChange={setNewPriority}>
+                    <SelectTrigger className="h-9 text-xs border-slate-200">
+                      <SelectValue placeholder="Priority" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="Urgent">Urgent</SelectItem>
+                      <SelectItem value="High">High</SelectItem>
+                      <SelectItem value="Medium">Medium</SelectItem>
+                      <SelectItem value="Low">Low</SelectItem>
+                    </SelectContent>
+                  </Select>
                 </div>
                 <div>
                   <label className="block text-xs font-semibold text-slate-700 mb-1">
                     Channel
                   </label>
-                  <select
-                    value={newChannel}
-                    onChange={(e) => setNewChannel(e.target.value)}
-                    className="w-full text-xs p-2.5 border border-slate-200 rounded-lg focus:outline-none"
-                  >
-                    <option value="Web Portal">Web Portal</option>
-                    <option value="Email">Email</option>
-                    <option value="WhatsApp">WhatsApp</option>
-                    <option value="Phone">Phone</option>
-                  </select>
+                  <Select value={newChannel} onValueChange={setNewChannel}>
+                    <SelectTrigger className="h-9 text-xs border-slate-200">
+                      <SelectValue placeholder="Channel" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="Web Portal">Web Portal</SelectItem>
+                      <SelectItem value="Email">Email</SelectItem>
+                      <SelectItem value="WhatsApp">WhatsApp</SelectItem>
+                      <SelectItem value="Phone">Phone</SelectItem>
+                    </SelectContent>
+                  </Select>
                 </div>
               </div>
 

@@ -22,6 +22,13 @@ import {
   ArrowUpRight,
 } from "lucide-react";
 import { toast } from "sonner";
+import {
+  Select,
+  SelectTrigger,
+  SelectValue,
+  SelectContent,
+  SelectItem,
+} from "@/components/ui/Select";
 
 export default function CampaignsView() {
   const dispatch = useAppDispatch();
@@ -498,17 +505,18 @@ export default function CampaignsView() {
                 <label className="block text-xs font-semibold uppercase text-slate-600 mb-1">
                   Primary Objective
                 </label>
-                <select
-                  value={newObjective}
-                  onChange={(e) => setNewObjective(e.target.value)}
-                  className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
-                >
-                  <option value="Wholesale Bulk Orders">Wholesale Bulk Orders</option>
-                  <option value="Consumer Retail Sales">Consumer Retail Sales</option>
-                  <option value="Partner Acquisition">Dropship / Franchise Acquisition</option>
-                  <option value="Cart Recovery">Cart Abandonment Lift</option>
-                  <option value="Clearance">Inventory Clearance</option>
-                </select>
+                <Select value={newObjective} onValueChange={setNewObjective}>
+                  <SelectTrigger className="w-full text-xs bg-white border-slate-300">
+                    <SelectValue placeholder="Primary Objective" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="Wholesale Bulk Orders">Wholesale Bulk Orders</SelectItem>
+                    <SelectItem value="Consumer Retail Sales">Consumer Retail Sales</SelectItem>
+                    <SelectItem value="Partner Acquisition">Dropship / Franchise Acquisition</SelectItem>
+                    <SelectItem value="Cart Recovery">Cart Abandonment Lift</SelectItem>
+                    <SelectItem value="Clearance">Inventory Clearance</SelectItem>
+                  </SelectContent>
+                </Select>
               </div>
 
               <div>

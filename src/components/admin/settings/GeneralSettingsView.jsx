@@ -16,6 +16,13 @@ import {
   Sparkles,
 } from "lucide-react";
 import { toast } from "sonner";
+import {
+  Select,
+  SelectTrigger,
+  SelectValue,
+  SelectContent,
+  SelectItem,
+} from "@/components/ui/Select";
 
 const GeneralSettingsView = () => {
   const dispatch = useAppDispatch();
@@ -280,48 +287,58 @@ const GeneralSettingsView = () => {
               <label className="block text-xs font-semibold text-slate-700 mb-1">
                 Base Store Currency
               </label>
-              <select
+              <Select
                 value={formData.currency || "INR (₹)"}
-                onChange={(e) => handleChange("currency", e.target.value)}
-                className="w-full text-xs p-2.5 bg-slate-50 border border-slate-200 rounded-lg font-semibold text-slate-800 focus:outline-none"
+                onValueChange={(val) => handleChange("currency", val)}
               >
-                <option value="INR (₹)">INR (₹) - Indian Rupee</option>
-                <option value="USD ($)">USD ($) - US Dollar</option>
-                <option value="EUR (€)">EUR (€) - Euro</option>
-                <option value="AED (د.إ)">AED (د.إ) - UAE Dirham</option>
-              </select>
+                <SelectTrigger className="h-9 text-xs bg-slate-50 border-slate-200">
+                  <SelectValue placeholder="Select Currency" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="INR (₹)">INR (₹) - Indian Rupee</SelectItem>
+                  <SelectItem value="USD ($)">USD ($) - US Dollar</SelectItem>
+                  <SelectItem value="EUR (€)">EUR (€) - Euro</SelectItem>
+                  <SelectItem value="AED (د.إ)">AED (د.إ) - UAE Dirham</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
 
             <div>
               <label className="block text-xs font-semibold text-slate-700 mb-1">
                 Storefront Timezone
               </label>
-              <select
-                value={formData.timezone || "Asia/Kolkata"}
-                onChange={(e) => handleChange("timezone", e.target.value)}
-                className="w-full text-xs p-2.5 bg-slate-50 border border-slate-200 rounded-lg font-semibold text-slate-800 focus:outline-none"
+              <Select
+                value={formData.timezone || "Asia/Kolkata (IST, UTC+5:30)"}
+                onValueChange={(val) => handleChange("timezone", val)}
               >
-                <option value="Asia/Kolkata (IST, UTC+5:30)">
-                  Asia/Kolkata (IST, UTC+5:30)
-                </option>
-                <option value="UTC">UTC Universal Time</option>
-                <option value="Asia/Dubai">Asia/Dubai (GST, UTC+4)</option>
-              </select>
+                <SelectTrigger className="h-9 text-xs bg-slate-50 border-slate-200">
+                  <SelectValue placeholder="Select Timezone" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="Asia/Kolkata (IST, UTC+5:30)">Asia/Kolkata (IST, UTC+5:30)</SelectItem>
+                  <SelectItem value="UTC">UTC Universal Time</SelectItem>
+                  <SelectItem value="Asia/Dubai">Asia/Dubai (GST, UTC+4)</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
 
             <div>
               <label className="block text-xs font-semibold text-slate-700 mb-1">
                 Date Formatting
               </label>
-              <select
+              <Select
                 value={formData.dateFormat || "DD/MM/YYYY"}
-                onChange={(e) => handleChange("dateFormat", e.target.value)}
-                className="w-full text-xs p-2.5 bg-slate-50 border border-slate-200 rounded-lg font-semibold text-slate-800 focus:outline-none font-mono"
+                onValueChange={(val) => handleChange("dateFormat", val)}
               >
-                <option value="DD/MM/YYYY">DD/MM/YYYY</option>
-                <option value="MM/DD/YYYY">MM/DD/YYYY</option>
-                <option value="YYYY-MM-DD">YYYY-MM-DD</option>
-              </select>
+                <SelectTrigger className="h-9 text-xs bg-slate-50 border-slate-200 font-mono">
+                  <SelectValue placeholder="Select Format" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="DD/MM/YYYY">DD/MM/YYYY</SelectItem>
+                  <SelectItem value="MM/DD/YYYY">MM/DD/YYYY</SelectItem>
+                  <SelectItem value="YYYY-MM-DD">YYYY-MM-DD</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
           </div>
 

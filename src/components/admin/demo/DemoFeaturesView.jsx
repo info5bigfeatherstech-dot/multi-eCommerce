@@ -26,6 +26,13 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
+import {
+  Select,
+  SelectTrigger,
+  SelectValue,
+  SelectContent,
+  SelectItem,
+} from "@/components/ui/Select";
 
 export default function DemoFeaturesView() {
   const dispatch = useAppDispatch();
@@ -239,14 +246,15 @@ export default function DemoFeaturesView() {
                   <label className="text-[11px] font-semibold text-slate-600 block mb-1">
                     Payment Method
                   </label>
-                  <select
-                    value={antiRtoPayment}
-                    onChange={(e) => setAntiRtoPayment(e.target.value)}
-                    className="w-full px-2.5 py-1.5 rounded-lg border border-slate-200 text-xs focus:outline-none focus:border-accent"
-                  >
-                    <option value="COD">Cash on Delivery</option>
-                    <option value="Prepaid">Prepaid (UPI / Card)</option>
-                  </select>
+                  <Select value={antiRtoPayment} onValueChange={setAntiRtoPayment}>
+                    <SelectTrigger className="h-8 text-xs bg-white border-slate-200">
+                      <SelectValue placeholder="Select Payment" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="COD">Cash on Delivery</SelectItem>
+                      <SelectItem value="Prepaid">Prepaid (UPI / Card)</SelectItem>
+                    </SelectContent>
+                  </Select>
                 </div>
 
                 <div>
@@ -338,16 +346,17 @@ export default function DemoFeaturesView() {
                   <label className="text-[11px] font-semibold text-slate-600 block mb-1">
                     Destination Zone / State
                   </label>
-                  <select
-                    value={courierDestination}
-                    onChange={(e) => setCourierDestination(e.target.value)}
-                    className="w-full px-2.5 py-1.5 rounded-lg border border-slate-200 text-xs focus:outline-none focus:border-accent"
-                  >
-                    <option value="Karnataka">Karnataka (Zone C)</option>
-                    <option value="Maharashtra">Maharashtra (Zone A - Local)</option>
-                    <option value="Delhi NCR">Delhi NCR (Zone B)</option>
-                    <option value="North East">North East (Zone E)</option>
-                  </select>
+                  <Select value={courierDestination} onValueChange={setCourierDestination}>
+                    <SelectTrigger className="h-8 text-xs bg-white border-slate-200">
+                      <SelectValue placeholder="Select Zone" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="Karnataka">Karnataka (Zone C)</SelectItem>
+                      <SelectItem value="Maharashtra">Maharashtra (Zone A - Local)</SelectItem>
+                      <SelectItem value="Delhi NCR">Delhi NCR (Zone B)</SelectItem>
+                      <SelectItem value="North East">North East (Zone E)</SelectItem>
+                    </SelectContent>
+                  </Select>
                 </div>
               </div>
 
@@ -505,15 +514,16 @@ export default function DemoFeaturesView() {
                   <label className="text-[11px] font-semibold text-slate-600 block mb-1">
                     Event Trigger
                   </label>
-                  <select
-                    value={whatsappTemplate}
-                    onChange={(e) => setWhatsappTemplate(e.target.value)}
-                    className="w-full px-2.5 py-1.5 rounded-lg border border-slate-200 text-xs focus:outline-none focus:border-accent"
-                  >
-                    <option value="cart_recovery">Abandoned Cart Recovery</option>
-                    <option value="cod_otp">COD Verification OTP</option>
-                    <option value="dispatch">Dispatched with Live AWB</option>
-                  </select>
+                  <Select value={whatsappTemplate} onValueChange={setWhatsappTemplate}>
+                    <SelectTrigger className="h-8 text-xs bg-white border-slate-200">
+                      <SelectValue placeholder="Select Trigger" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="cart_recovery">Abandoned Cart Recovery</SelectItem>
+                      <SelectItem value="cod_otp">COD Verification OTP</SelectItem>
+                      <SelectItem value="dispatch">Dispatched with Live AWB</SelectItem>
+                    </SelectContent>
+                  </Select>
                 </div>
 
                 <div>
