@@ -6,7 +6,7 @@ import { useAppDispatch } from "@/store/hooks";
 import { setCategorySidebarOpen } from "@/store/slices/uiSlice";
 import { ArrowRight, Sparkles, Tag, ShieldCheck } from "lucide-react";
 
-export function CategoryFlyout({ category, onClose }) {
+export function CategoryFlyout({ category, top = 0, onClose }) {
   const navigate = useNavigate();
   const dispatch = useAppDispatch();
 
@@ -32,7 +32,10 @@ export function CategoryFlyout({ category, onClose }) {
   };
 
   return (
-    <div className="absolute left-[calc(100%+8px)] top-0 z-50 w-[460px] bg-white text-slate-800 shadow-2xl rounded-2xl border border-slate-200 p-5 animate-fadeIn flex flex-col justify-between before:absolute before:-left-3 before:top-0 before:bottom-0 before:w-3 before:content-['']">
+    <div
+      style={{ top: `${top}px` }}
+      className="absolute left-[calc(100%+8px)] z-50 w-[460px] bg-white text-slate-800 shadow-2xl rounded-2xl border border-slate-200 p-5 animate-fadeIn flex flex-col justify-between transition-[top] duration-150 ease-out before:absolute before:-left-3 before:top-0 before:bottom-0 before:w-3 before:content-['']"
+    >
       <div>
         {/* Category Header */}
         <div className="flex items-center justify-between border-b border-slate-100 pb-3 mb-3">

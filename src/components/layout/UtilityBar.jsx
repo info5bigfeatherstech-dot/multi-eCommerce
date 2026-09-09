@@ -1,9 +1,10 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
+import { Link } from "react-router-dom";
 import { useAppDispatch, useAppSelector } from "@/store/hooks";
 import { fetchOffers } from "@/store/slices/offerSlice";
-import { HelpCircle, MapPin, Sparkles } from "lucide-react";
+import { HelpCircle, MapPin, Sparkles, ShieldCheck } from "lucide-react";
 import Skeleton from "@/components/ui/Skeleton";
 
 export function UtilityBar() {
@@ -22,7 +23,16 @@ export function UtilityBar() {
       <div className="w-full px-3 sm:px-6 py-1.5 flex items-center justify-between gap-2 sm:gap-4 text-xs">
         
         {/* Left: Help & Location Pill */}
-        <div className="flex items-center gap-3 flex-shrink-0">
+        <div className="flex items-center gap-2 sm:gap-3 flex-shrink-0">
+          <Link
+            to="/admin/login"
+            className="flex items-center gap-1.5 bg-slate-800/80 hover:bg-slate-700 text-slate-300 hover:text-white font-poppins text-xs font-semibold px-2.5 py-1 rounded-md transition-all border border-slate-700/80"
+            title="Wholesale Admin Portal"
+          >
+            <ShieldCheck className="w-3.5 h-3.5 text-accent" />
+            <span>Admin</span>
+          </Link>
+
           <a
             href="tel:+9118001234567"
             className="flex items-center gap-1.5 bg-black hover:bg-slate-900 text-white font-poppins font-bold px-3 py-1 rounded-md text-xs transition-all shadow-xs border border-slate-800"

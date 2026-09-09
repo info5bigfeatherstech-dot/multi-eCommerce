@@ -48,29 +48,32 @@ export function HomePage() {
         </div>
       </div>
 
-      {/* 1. Category Cards Grid (11 Categories with Images) */}
-      <CategoryGrid onSelectCategory={handleSelectCategory} />
+      {/* Centered Content Container with left & right gaps below Header and Hero Section */}
+      <div className="max-w-[1520px] mx-auto px-2 sm:px-6 lg:px-8 w-full">
+        {/* 1. Category Cards Grid (11 Categories with Images) */}
+        <CategoryGrid onSelectCategory={handleSelectCategory} />
 
-      {/* 2. Budget Wholesale: Under ₹99 Store */}
-      <Under99Store onSelectProduct={handleSelectProduct} />
+        {/* 2. Budget Wholesale: Under ₹99 Store */}
+        <Under99Store onSelectProduct={handleSelectProduct} />
 
-      {/* 3. Today's Wholesale Flash Deals (Live Timer & Stock Progress) */}
-      <WholesaleDeals onSelectProduct={handleSelectProduct} />
+        {/* 3. Today's Wholesale Flash Deals (Live Timer & Stock Progress) */}
+        <WholesaleDeals onSelectProduct={handleSelectProduct} />
 
-      {/* 4. Mega Sale & Clearance Showcase (Up to 75% OFF) */}
-      <SaleProductShowcase onSelectProduct={handleSelectProduct} />
+        {/* 4. Mega Sale & Clearance Showcase (Up to 75% OFF) */}
+        <SaleProductShowcase onSelectProduct={handleSelectProduct} />
 
-      {/* 5. Category Feature Banners (Electronics, Home Decor, Gifts) */}
-      <PromoBanners onSelectCategory={handleSelectCategory} />
+        {/* 5. Category Feature Banners (Electronics, Home Decor, Gifts) */}
+        <PromoBanners onSelectCategory={handleSelectCategory} />
 
-      {/* 6. Category Spotlight & Tabbed Product Showcase */}
-      <CategorySpotlight onSelectProduct={handleSelectProduct} />
+        {/* 6. Category Spotlight & Tabbed Product Showcase */}
+        <CategorySpotlight onSelectProduct={handleSelectProduct} />
 
-      {/* 7. Featured Collection Product Grid */}
-      <FeaturedCollection onSelectProduct={handleSelectProduct} />
+        {/* 7. Featured Collection Product Grid */}
+        <FeaturedCollection onSelectProduct={handleSelectProduct} />
 
-      {/* 8. Customer Trust & Wholesale Testimonials */}
-      {/* <CustomerTrust /> */}
+        {/* 8. Customer Trust & Wholesale Testimonials */}
+        {/* <CustomerTrust /> */}
+      </div>
     </>
   );
 }

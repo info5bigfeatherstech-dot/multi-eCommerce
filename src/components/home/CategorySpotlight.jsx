@@ -172,7 +172,7 @@ export function CategorySpotlight({ onSelectProduct }) {
 
   return (
     <section className="py-8">
-      <div className="max-w-[1600px] mx-auto px-4">
+      <div className="w-full">
         {/* Section Header Matching Screenshot */}
         <div className="flex flex-col sm:flex-row sm:items-end justify-between mb-6 gap-3 text-left">
           <div className="space-y-1">

@@ -72,7 +72,7 @@ export function SaleProductShowcase({ onSelectProduct }) {
 
   return (
     <section className="py-8">
-      <div className="max-w-[1600px] mx-auto px-4">
+      <div className="w-full">
         {/* Sale Header Box */}
         <div className="mb-6 border-b border-slate-200 pb-5 text-left">
           <div className="space-y-1">

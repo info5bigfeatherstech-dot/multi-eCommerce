@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAppDispatch, useAppSelector } from "@/store/hooks";
 import { fetchCategories } from "@/store/slices/categorySlice";
@@ -44,6 +44,8 @@ export function CategorySidebar({ isMobile = false, onClose }) {
   const { items: categories, status } = useAppSelector((state) => state.categories);
 
   const [hoveredId, setHoveredId] = useState(null);
+  const [flyoutTop, setFlyoutTop] = useState(0);
+  const sidebarRef = useRef(null);
 
   useEffect(() => {
     if (status === "idle") {
@@ -55,9 +57,24 @@ export function CategorySidebar({ isMobile = false, onClose }) {
     ? categories.find((c) => c.slug === hoveredId || c.id === hoveredId)
     : null;
 
-  const handleCategoryHover = (catSlug) => {
+  const handleCategoryHover = (catSlug, e) => {
     setHoveredId(catSlug);
     dispatch(setActiveFlyoutCategoryId(catSlug));
+    if (e?.currentTarget && sidebarRef.current) {
+      const sidebarRect = sidebarRef.current.getBoundingClientRect();
+      const itemRect = e.currentTarget.getBoundingClientRect();
+      let targetTop = itemRect.top - sidebarRect.top;
+
+      // Ensure flyout stays comfortable within the screen
+      const estimatedFlyoutHeight = 280;
+      const viewportHeight = window.innerHeight;
+      if (itemRect.top + estimatedFlyoutHeight > viewportHeight - 16) {
+        const overflow = (itemRect.top + estimatedFlyoutHeight) - (viewportHeight - 16);
+        targetTop = Math.max(0, targetTop - overflow);
+      }
+
+      setFlyoutTop(Math.max(0, Math.round(targetTop)));
+    }
   };
 
   const handleCategoryClick = (catSlug) => {
@@ -68,6 +85,7 @@ export function CategorySidebar({ isMobile = false, onClose }) {
 
   return (
     <div
+      ref={sidebarRef}
       className={cn(
         "relative bg-white border border-slate-200/90 shadow-sm rounded-2xl flex flex-col justify-between overflow-visible z-30",
         isMobile ? "w-full shadow-none border-none" : "w-64 h-[440px] flex-shrink-0"
@@ -76,7 +94,10 @@ export function CategorySidebar({ isMobile = false, onClose }) {
     >
       {/* 1. DeoDap-Style Top Navy Header */}
       {!isMobile && (
-        <div className="bg-[#121f38] text-white px-3.5 py-2.5 flex items-center justify-between flex-shrink-0 rounded-t-2xl">
+        <div
+          onMouseEnter={() => setHoveredId(null)}
+          className="bg-[#121f38] text-white px-3.5 py-2.5 flex items-center justify-between flex-shrink-0 rounded-t-2xl"
+        >
           <div className="flex items-center gap-2">
             <Grid className="w-4 h-4 text-accent" />
             <span className="font-poppins font-bold text-xs uppercase tracking-wider">
@@ -106,7 +127,7 @@ export function CategorySidebar({ isMobile = false, onClose }) {
             return (
               <div
                 key={catSlug}
-                onMouseEnter={() => handleCategoryHover(catSlug)}
+                onMouseEnter={(e) => handleCategoryHover(catSlug, e)}
                 onClick={() => handleCategoryClick(catSlug)}
                 className={cn(
                   "group flex items-center justify-between px-2.5 py-1.5 rounded-lg cursor-pointer transition-colors font-poppins text-xs font-medium",
@@ -138,7 +159,10 @@ export function CategorySidebar({ isMobile = false, onClose }) {
       </div>
 
       {/* 3. Bottom Button: View All Categories */}
-      <div className="p-1.5 border-t border-slate-100 bg-slate-50/60 rounded-b-2xl flex-shrink-0">
+      <div
+        onMouseEnter={() => setHoveredId(null)}
+        className="p-1.5 border-t border-slate-100 bg-slate-50/60 rounded-b-2xl flex-shrink-0"
+      >
         <button
           onClick={(e) => {
             e.preventDefault();
@@ -163,7 +187,7 @@ export function CategorySidebar({ isMobile = false, onClose }) {
 
       {/* 4. Desktop Floating Submenu Flyout (Only when category is hovered) */}
       {!isMobile && hoveredId && activeCategoryObject && (
-        <CategoryFlyout category={activeCategoryObject} onClose={onClose} />
+        <CategoryFlyout category={activeCategoryObject} top={flyoutTop} onClose={onClose} />
       )}
     </div>
   );

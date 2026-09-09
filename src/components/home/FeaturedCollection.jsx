@@ -66,7 +66,7 @@ export function FeaturedCollection({ onSelectProduct }) {
 
   return (
     <section className="py-8">
-      <div className="max-w-[1600px] mx-auto px-4">
+      <div className="w-full">
         
         {/* Section Header */}
         <div className="flex flex-col sm:flex-row sm:items-end justify-between mb-8 gap-4 text-left">

@@ -1,5 +1,5 @@
 import React from "react";
-import { Routes, Route } from "react-router-dom";
+import { Routes, Route, Navigate, useLocation, useNavigate } from "react-router-dom";
 import TopBanner from "./components/layout/TopBanner";
 import UtilityBar from "./components/layout/UtilityBar";
 import Header from "./components/layout/Header";
@@ -20,16 +20,88 @@ import ScrollToTop from "./components/common/ScrollToTop";
 import Toaster from "./components/ui/Toaster";
 import { useAppDispatch, useAppSelector } from "./store/hooks";
 import { setMobileDrawerOpen, openAuthModal } from "./store/slices/uiSlice";
-import { useNavigate } from "react-router-dom";
 import {
   Store, X, Heart, User, ClipboardList, Truck,
   ShoppingBag, ChevronRight, LogIn, MapPin, ShieldCheck,
 } from "lucide-react";
 import AuthModal from "./components/auth/AuthModal";
 
+// Admin Panel Components
+import AdminLoginPage from "./components/admin/AdminLoginPage";
+import AdminProtectedRoute from "./components/admin/AdminProtectedRoute";
+import AdminLayout from "./components/admin/AdminLayout";
+import AllOrdersView from "./components/admin/orders/AllOrdersView";
+import OrderManagementView from "./components/admin/orders/OrderManagementView";
+import DeliveryVerificationView from "./components/admin/orders/DeliveryVerificationView";
+import OrderReportsView from "./components/admin/orders/OrderReportsView";
+import ReturnsView from "./components/admin/returns/ReturnsView";
+import RefundsView from "./components/admin/returns/RefundsView";
+import ReturnRefundWorkflowView from "./components/admin/returns/ReturnRefundWorkflowView";
+import ReturnReportsView from "./components/admin/returns/ReturnReportsView";
+import RtoOrdersView from "./components/admin/rto/RtoOrdersView";
+import RtoManagementView from "./components/admin/rto/RtoManagementView";
+import RtoVerificationView from "./components/admin/rto/RtoVerificationView";
+import RtoReportsView from "./components/admin/rto/RtoReportsView";
+import AllProductsView from "./components/admin/products/AllProductsView";
+import AddProductView from "./components/admin/products/AddProductView";
+import CategoriesView from "./components/admin/products/CategoriesView";
+import InventoryView from "./components/admin/products/InventoryView";
+import ProductAttributesView from "./components/admin/products/ProductAttributesView";
+import AnalyticsOverviewView from "./components/admin/analytics/AnalyticsOverviewView";
+import SalesAnalyticsView from "./components/admin/analytics/SalesAnalyticsView";
+import ProductAnalyticsView from "./components/admin/analytics/ProductAnalyticsView";
+import CustomerAnalyticsView from "./components/admin/analytics/CustomerAnalyticsView";
+import StoreReportsView from "./components/admin/analytics/StoreReportsView";
+import ArchivedProductsView from "./components/admin/archived/ArchivedProductsView";
+import ArchivedOrdersView from "./components/admin/archived/ArchivedOrdersView";
+import ArchivedCustomersView from "./components/admin/archived/ArchivedCustomersView";
+import ArchivedOtherDataView from "./components/admin/archived/ArchivedOtherDataView";
+import AllStockQueriesView from "./components/admin/stock-queries/AllStockQueriesView";
+import ProductRequestsView from "./components/admin/stock-queries/ProductRequestsView";
+import CustomerRequestsView from "./components/admin/stock-queries/CustomerRequestsView";
+import StockQueryReportsView from "./components/admin/stock-queries/StockQueryReportsView";
+import AllLeadsView from "./components/admin/leads/AllLeadsView";
+import CustomerLeadsView from "./components/admin/leads/CustomerLeadsView";
+import WholesaleLeadsView from "./components/admin/leads/WholesaleLeadsView";
+import DropshippingLeadsView from "./components/admin/leads/DropshippingLeadsView";
+import FranchiseLeadsView from "./components/admin/leads/FranchiseLeadsView";
+import CouponsOffersView from "./components/admin/utilities/CouponsOffersView";
+import LoyaltyProgramView from "./components/admin/utilities/LoyaltyProgramView";
+import CustomerNotificationsView from "./components/admin/utilities/CustomerNotificationsView";
+import GiftCardsView from "./components/admin/utilities/GiftCardsView";
+import OtherUtilitiesView from "./components/admin/utilities/OtherUtilitiesView";
+import HomepageSectionsView from "./components/admin/website/HomepageSectionsView";
+import WebsitePagesView from "./components/admin/website/WebsitePagesView";
+import PromotionalBannersView from "./components/admin/website/PromotionalBannersView";
+import WebsiteContentView from "./components/admin/website/WebsiteContentView";
+import SeoSettingsView from "./components/admin/website/SeoSettingsView";
+import RetailManagementView from "./components/admin/ecommerce/RetailManagementView";
+import WholesaleManagementView from "./components/admin/ecommerce/WholesaleManagementView";
+import DropshippingManagementView from "./components/admin/ecommerce/DropshippingManagementView";
+import VirtualFranchiseView from "./components/admin/ecommerce/VirtualFranchiseView";
+import PhysicalFranchiseView from "./components/admin/ecommerce/PhysicalFranchiseView";
+import CampaignsView from "./components/admin/marketing/CampaignsView";
+import PushNotificationsView from "./components/admin/marketing/PushNotificationsView";
+import WhatsAppMarketingView from "./components/admin/marketing/WhatsAppMarketingView";
+import EmailSmsMarketingView from "./components/admin/marketing/EmailSmsMarketingView";
+import MarketingReportsView from "./components/admin/marketing/MarketingReportsView";
+import ProductReviewsView from "./components/admin/reviews/ProductReviewsView";
+import CustomerFeedbackView from "./components/admin/reviews/CustomerFeedbackView";
+import ReviewManagementView from "./components/admin/reviews/ReviewManagementView";
+import ReviewReportsView from "./components/admin/reviews/ReviewReportsView";
+import AllStaffView from "./components/admin/staff/AllStaffView";
+import AddStaffView from "./components/admin/staff/AddStaffView";
+import RolesPermissionsView from "./components/admin/staff/RolesPermissionsView";
+import StaffActivityView from "./components/admin/staff/StaffActivityView";
+import SupportTicketsView from "./components/admin/support/SupportTicketsView";
+import CustomerQueriesView from "./components/admin/support/CustomerQueriesView";
+import CustomerComplaintsView from "./components/admin/support/CustomerComplaintsView";
+import SupportReportsView from "./components/admin/support/SupportReportsView";
+
 export default function App() {
   const dispatch = useAppDispatch();
   const navigate = useNavigate();
+  const location = useLocation();
   const isMobileDrawerOpen = useAppSelector((state) => state.ui.isMobileDrawerOpen);
   const { isAuthenticated, user } = useAppSelector((state) => state.ui);
   const wishlistCount = useAppSelector((state) => state.wishlist.totalCount);
@@ -42,6 +114,137 @@ export default function App() {
     navigate(path);
   };
 
+  const isAdminRoute = location.pathname.startsWith("/admin");
+
+  // ── Dedicated Admin Panel Layout & Routing ──
+  if (isAdminRoute) {
+    return (
+      <>
+        <ScrollToTop />
+        <Toaster />
+        <Routes>
+          <Route path="/admin/login" element={<AdminLoginPage />} />
+          <Route
+            path="/admin"
+            element={
+              <AdminProtectedRoute>
+                <AdminLayout />
+              </AdminProtectedRoute>
+            }
+          >
+            <Route index element={<Navigate to="/admin/orders" replace />} />
+            {/* Orders Sub-module */}
+            <Route path="orders" element={<AllOrdersView />} />
+            <Route path="orders/management" element={<OrderManagementView />} />
+            <Route path="orders/verification" element={<DeliveryVerificationView />} />
+            <Route path="orders/reports" element={<OrderReportsView />} />
+
+            {/* Products Sub-module */}
+            <Route path="products" element={<AllProductsView />} />
+            <Route path="products/add" element={<AddProductView />} />
+            <Route path="products/categories" element={<CategoriesView />} />
+            <Route path="products/inventory" element={<InventoryView />} />
+            <Route path="products/attributes" element={<ProductAttributesView />} />
+
+            {/* Returns & Refunds Sub-module */}
+            <Route path="returns" element={<ReturnsView />} />
+            <Route path="returns/refunds" element={<RefundsView />} />
+            <Route path="returns/management" element={<ReturnRefundWorkflowView />} />
+            <Route path="returns/reports" element={<ReturnReportsView />} />
+
+            {/* RTO (Return to Origin) Sub-module */}
+            <Route path="rto" element={<RtoOrdersView />} />
+            <Route path="rto/management" element={<RtoManagementView />} />
+            <Route path="rto/verification" element={<RtoVerificationView />} />
+            <Route path="rto/reports" element={<RtoReportsView />} />
+
+            {/* Store Analytics Sub-module */}
+            <Route path="analytics" element={<AnalyticsOverviewView />} />
+            <Route path="analytics/sales" element={<SalesAnalyticsView />} />
+            <Route path="analytics/products" element={<ProductAnalyticsView />} />
+            <Route path="analytics/customers" element={<CustomerAnalyticsView />} />
+            <Route path="analytics/reports" element={<StoreReportsView />} />
+
+            {/* Archived Sub-module */}
+            <Route path="archived" element={<Navigate to="/admin/archived/products" replace />} />
+            <Route path="archived/products" element={<ArchivedProductsView />} />
+            <Route path="archived/orders" element={<ArchivedOrdersView />} />
+            <Route path="archived/customers" element={<ArchivedCustomersView />} />
+            <Route path="archived/other" element={<ArchivedOtherDataView />} />
+
+            {/* Out of Stock Query Sub-module */}
+            <Route path="stock-queries" element={<AllStockQueriesView />} />
+            <Route path="stock-queries/products" element={<ProductRequestsView />} />
+            <Route path="stock-queries/customers" element={<CustomerRequestsView />} />
+            <Route path="stock-queries/reports" element={<StockQueryReportsView />} />
+
+            {/* Leads Sub-module */}
+            <Route path="leads" element={<AllLeadsView />} />
+            <Route path="leads/customers" element={<CustomerLeadsView />} />
+            <Route path="leads/wholesale" element={<WholesaleLeadsView />} />
+            <Route path="leads/dropshipping" element={<DropshippingLeadsView />} />
+            <Route path="leads/franchise" element={<FranchiseLeadsView />} />
+
+            {/* Utilities Sub-module */}
+            <Route path="utilities" element={<Navigate to="/admin/utilities/coupons" replace />} />
+            <Route path="utilities/coupons" element={<CouponsOffersView />} />
+            <Route path="utilities/loyalty" element={<LoyaltyProgramView />} />
+            <Route path="utilities/notifications" element={<CustomerNotificationsView />} />
+            <Route path="utilities/gift-cards" element={<GiftCardsView />} />
+            <Route path="utilities/other" element={<OtherUtilitiesView />} />
+
+            {/* Website Sub-module */}
+            <Route path="website" element={<Navigate to="/admin/website/homepage" replace />} />
+            <Route path="website/homepage" element={<HomepageSectionsView />} />
+            <Route path="website/pages" element={<WebsitePagesView />} />
+            <Route path="website/banners" element={<PromotionalBannersView />} />
+            <Route path="website/content" element={<WebsiteContentView />} />
+            <Route path="website/seo" element={<SeoSettingsView />} />
+
+            {/* E-Commerce Sub-module */}
+            <Route path="ecommerce" element={<Navigate to="/admin/ecommerce/retail" replace />} />
+            <Route path="ecommerce/retail" element={<RetailManagementView />} />
+            <Route path="ecommerce/wholesale" element={<WholesaleManagementView />} />
+            <Route path="ecommerce/dropshipping" element={<DropshippingManagementView />} />
+            <Route path="ecommerce/virtual-franchise" element={<VirtualFranchiseView />} />
+            <Route path="ecommerce/physical-franchise" element={<PhysicalFranchiseView />} />
+
+            {/* Marketing Sub-module */}
+            <Route path="marketing" element={<Navigate to="/admin/marketing/campaigns" replace />} />
+            <Route path="marketing/campaigns" element={<CampaignsView />} />
+            <Route path="marketing/push-notifications" element={<PushNotificationsView />} />
+            <Route path="marketing/whatsapp" element={<WhatsAppMarketingView />} />
+            <Route path="marketing/email-sms" element={<EmailSmsMarketingView />} />
+            <Route path="marketing/reports" element={<MarketingReportsView />} />
+
+            {/* Reviews Sub-module */}
+            <Route path="reviews" element={<Navigate to="/admin/reviews/products" replace />} />
+            <Route path="reviews/products" element={<ProductReviewsView />} />
+            <Route path="reviews/customers" element={<CustomerFeedbackView />} />
+            <Route path="reviews/management" element={<ReviewManagementView />} />
+            <Route path="reviews/reports" element={<ReviewReportsView />} />
+
+            {/* Staff Sub-module */}
+            <Route path="staff" element={<Navigate to="/admin/staff/all" replace />} />
+            <Route path="staff/all" element={<AllStaffView />} />
+            <Route path="staff/add" element={<AddStaffView />} />
+            <Route path="staff/roles" element={<RolesPermissionsView />} />
+            <Route path="staff/activity" element={<StaffActivityView />} />
+
+            {/* Support Sub-module */}
+            <Route path="support" element={<Navigate to="/admin/support/tickets" replace />} />
+            <Route path="support/tickets" element={<SupportTicketsView />} />
+            <Route path="support/queries" element={<CustomerQueriesView />} />
+            <Route path="support/complaints" element={<CustomerComplaintsView />} />
+            <Route path="support/reports" element={<SupportReportsView />} />
+          </Route>
+          <Route path="*" element={<Navigate to="/admin/orders" replace />} />
+        </Routes>
+      </>
+    );
+  }
+
+  // ── Public Storefront Layout & Routing ──
   return (
     <div className="min-h-screen flex flex-col bg-slate-100/70">
       {/* Instant Scroll to Top on route change */}
@@ -62,8 +265,8 @@ export default function App() {
       {/* 3. Category Navigation Bar */}
       <CategoryNavBar />
 
-      {/* Main Content Area: Routed with React Router (Entire Width) */}
-      <main className="flex-1 w-full px-2.5 sm:px-4 lg:px-6 pt-3 sm:pt-4 pb-8 max-w-[1700px] mx-auto">
+      {/* Main Content Area: Full width, perfectly aligned with navbars */}
+      <main className="flex-1 w-full px-3 sm:px-6 pt-3 sm:pt-4 pb-8">
         <Routes>
           <Route path="/" element={<HomePage />} />
           <Route path="/dropshipping" element={<DropshippingPage />} />
@@ -138,7 +341,7 @@ export default function App() {
                         {user?.name || "Wholesale Partner"}
                       </p>
                       <p className="text-[10px] text-slate-300 font-inter truncate">
-                        {user?.email || "Verified Retailer"}
+                        {user?.email || "verified buyer"}
                       </p>
                     </div>
                   </div>

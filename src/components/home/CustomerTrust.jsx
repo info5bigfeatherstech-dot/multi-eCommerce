@@ -43,7 +43,7 @@ export function CustomerTrust() {
 
   return (
     <section className="py-8">
-      <div className="max-w-[1600px] mx-auto px-4">
+      <div className="w-full">
         {/* Statistics Strip */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-10 bg-white rounded-3xl p-6 border border-slate-200 shadow-sm">
           {stats.map((stat, idx) => {

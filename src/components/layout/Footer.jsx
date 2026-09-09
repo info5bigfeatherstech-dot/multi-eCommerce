@@ -41,8 +41,8 @@ export function Footer() {
     <footer className="w-full bg-primary text-slate-300 font-albert-sans border-t border-primary-light/30 mt-12">
       
       {/* 1. Newsletter Subscription Bar */}
-      <div className="bg-gradient-to-r from-primary-dark via-primary to-primary-dark border-b border-primary-light/20 py-10 px-4">
-        <div className="max-w-[1600px] mx-auto flex flex-col lg:flex-row items-center justify-between gap-6">
+      <div className="bg-gradient-to-r from-primary-dark via-primary to-primary-dark border-b border-primary-light/20 py-10">
+        <div className="w-full px-3 sm:px-6 flex flex-col lg:flex-row items-center justify-between gap-6">
           <div className="space-y-1 text-center lg:text-left">
             <h3 className="text-xl sm:text-2xl font-black text-white tracking-tight flex items-center justify-center lg:justify-start gap-2">
               <span>Join ApexMart Wholesale Insider</span>

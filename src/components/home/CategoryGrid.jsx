@@ -43,7 +43,7 @@ export function CategoryGrid({ onSelectCategory }) {
 
   return (
     <section id="shop-by-category-section" className="py-6 sm:py-8">
-      <div className="max-w-[1600px] mx-auto px-1 sm:px-4">
+      <div className="w-full">
         {/* Section Header */}
         <div className="flex flex-col sm:flex-row sm:items-end justify-between mb-5 sm:mb-6 gap-3">
           <div>

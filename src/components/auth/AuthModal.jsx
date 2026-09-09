@@ -604,7 +604,7 @@ export default function AuthModal() {
         </div>
 
         {/* Security & Trust Badges footer */}
-        <div className="flex items-center justify-center gap-4 sm:gap-6 py-2.5 px-4 bg-slate-50 border-t border-slate-100 flex-shrink-0">
+        {/* <div className="flex items-center justify-center gap-4 sm:gap-6 py-2.5 px-4 bg-slate-50 border-t border-slate-100 flex-shrink-0">
           <div className="flex items-center gap-1.5 font-poppins text-[10px] sm:text-[11px] font-medium text-slate-500">
             <ShieldCheck size={13} className="text-accent" />
             <span>Secure Login</span>
@@ -617,7 +617,7 @@ export default function AuthModal() {
             <Sparkles size={13} className="text-accent" />
             <span>Wholesale Pricing</span>
           </div>
-        </div>
+        </div> */}
       </div>
     </div>
   );
