@@ -3,48 +3,57 @@
 @tailwind utilities;
 
 @font-face {
-  font-family: 'geograph-regular';
-  src: local('geograph-regular'),
-       local('Geograph Regular'),
-       local('Geograph-Regular'),
-       local('Geograph'),
-       url('/fonts/geograph-regular.woff2') format('woff2'),
-       url('/fonts/geograph-regular.woff') format('woff'),
-       url('/fonts/geograph-regular.ttf') format('truetype');
+  font-family: 'Neue Montreal';
+  src: local('PP Neue Montreal Regular'),
+       local('PP Neue Montreal'),
+       local('PPNeueMontreal-Regular'),
+       local('Neue Montreal'),
+       local('NeueMontreal-Regular'),
+       local('Montreal');
   font-weight: 400;
   font-style: normal;
   font-display: swap;
 }
 
 @font-face {
-  font-family: 'Geograph';
-  src: local('geograph-regular'),
-       local('Geograph Regular'),
-       local('Geograph-Regular'),
-       local('Geograph'),
-       url('/fonts/geograph-regular.woff2') format('woff2'),
-       url('/fonts/geograph-regular.woff') format('woff'),
-       url('/fonts/geograph-regular.ttf') format('truetype');
-  font-weight: 400;
+  font-family: 'Neue Montreal';
+  src: local('PP Neue Montreal Medium'),
+       local('PPNeueMontreal-Medium'),
+       local('Neue Montreal Medium'),
+       local('NeueMontreal-Medium');
+  font-weight: 500;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Neue Montreal';
+  src: local('PP Neue Montreal Bold'),
+       local('PPNeueMontreal-Bold'),
+       local('Neue Montreal Bold'),
+       local('NeueMontreal-Bold');
+  font-weight: 700;
   font-style: normal;
   font-display: swap;
 }
 
 :root {
-  --font-geograph: 'geograph-regular', 'Geograph', 'Montserrat', sans-serif;
-  --font-albert-sans: 'Montserrat', sans-serif;
-  --font-poppins: 'Playfair Display', Georgia, serif;
-  --font-inter: 'Montserrat', sans-serif;
-  --font-heading: 'Playfair Display', Georgia, serif;
-  --font-subheading: 'Montserrat', sans-serif;
-  --font-body: 'Montserrat', sans-serif;
+  --font-heading: 'Plus Jakarta Sans', 'Outfit', 'Poppins', -apple-system, BlinkMacSystemFont, sans-serif;
+  --font-subheading: 'Neue Montreal', 'PP Neue Montreal', 'Montreal', 'Montserrat', 'Inter', sans-serif;
+  --font-body: 'Neue Montreal', 'PP Neue Montreal', 'Montreal', 'Montserrat', 'Inter', sans-serif;
+  --font-montreal: 'Neue Montreal', 'PP Neue Montreal', 'Montreal', 'Montserrat', 'Inter', sans-serif;
+  --font-sans: var(--font-body);
+  --font-poppins: var(--font-heading);
+  --font-inter: var(--font-body);
+  --font-geograph: var(--font-body);
+  --font-albert-sans: var(--font-body);
 }
 
 @layer base {
   html, body {
     background-color: #F8FAFC;
     color: #0F172A;
-    font-family: 'Montserrat', sans-serif;
+    font-family: var(--font-body);
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
     overflow-x: hidden;
@@ -59,20 +68,27 @@
     width: 100%;
   }
 
-  /* All headings → Playfair Display */
-  h1, h2, h3, h4, h5, h6 {
+  /* All primary headings → Modern Plus Jakarta Sans / Outfit */
+  h1, h2, h3, h4 {
     font-family: var(--font-heading);
     font-weight: 700;
+    letter-spacing: -0.02em;
+  }
+
+  /* Subheadings → Montreal */
+  h5, h6, .subheading {
+    font-family: var(--font-subheading);
+    font-weight: 600;
     letter-spacing: -0.01em;
   }
 
-  /* Inputs, buttons, selects → Montserrat */
+  /* Inputs, buttons, selects */
   button, input, select, textarea {
     font-family: var(--font-body);
   }
 
-  /* Paragraphs, labels → Montserrat */
-  p, label {
+  /* Paragraphs, descriptions, labels → Montreal */
+  p, label, span, small {
     font-family: var(--font-body);
   }
 }
@@ -85,32 +101,39 @@
   }
 
   .section-subtitle {
-    font-family: var(--font-body);
+    font-family: var(--font-subheading);
     @apply text-xs sm:text-sm text-slate-500 max-w-lg font-medium;
   }
 
   .product-title {
-    font-family: var(--font-body);
-    @apply font-medium text-xs sm:text-sm text-slate-800 line-clamp-2 group-hover:text-primary transition-colors leading-snug;
+    font-family: var(--font-heading);
+    @apply font-semibold text-xs sm:text-sm text-slate-800 line-clamp-2 group-hover:text-primary transition-colors leading-snug;
   }
 
   .btn-primary {
-    font-family: var(--font-body);
+    font-family: var(--font-heading);
     @apply bg-primary hover:bg-primary-dark text-white font-bold py-2 px-4 rounded-xl transition-all shadow-sm active:scale-95 flex items-center justify-center gap-2;
   }
 
   .btn-accent {
-    font-family: var(--font-body);
+    font-family: var(--font-heading);
     @apply bg-accent hover:bg-accent-hover text-white font-bold py-2 px-4 rounded-xl transition-all shadow-md active:scale-95 flex items-center justify-center gap-2;
   }
 
-  /* Explicit Playfair Display helper */
-  .font-playfair {
+  /* Explicit Font helpers */
+  .font-heading {
     font-family: var(--font-heading) !important;
   }
 
-  /* Explicit Montserrat helper */
-  .font-montserrat {
+  .font-subheading {
+    font-family: var(--font-subheading) !important;
+  }
+
+  .font-montreal {
+    font-family: var(--font-montreal) !important;
+  }
+
+  .font-body {
     font-family: var(--font-body) !important;
   }
 }
@@ -232,13 +255,13 @@
   animation: sheetFadeOut 0.2s ease-in forwards;
 }
 
-/* ── Admin Panel: Use Montserrat for all headings (Playfair's & is too ornate for admin UI) ── */
+/* ── Admin Panel Headings ── */
 #admin-panel h1,
 #admin-panel h2,
 #admin-panel h3,
 #admin-panel h4,
 #admin-panel h5,
 #admin-panel h6 {
-  font-family: 'Montserrat', sans-serif !important;
-  letter-spacing: normal;
+  font-family: var(--font-heading) !important;
+  letter-spacing: -0.02em;
 }

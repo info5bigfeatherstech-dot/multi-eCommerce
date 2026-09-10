@@ -1,7 +1,9 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { useAppDispatch, useAppSelector } from "@/store/hooks";
-import { addProduct } from "@/store/slices/adminProductsSlice";
+import { addProduct, setCategories } from "@/store/slices/adminProductsSlice";
+import { createProduct } from "@/api/adminProducts";
+import { getAllCategories } from "@/api/adminCategories";
 import {
   PackagePlus,
   ArrowLeft,
@@ -64,6 +66,22 @@ export default function AddProductView() {
     material: "Die-Cast Aluminum",
   });
 
+  // Load live categories if Redux cache is empty
+  useEffect(() => {
+    if (!categories || categories.length === 0) {
+      getAllCategories()
+        .then((data) => {
+          if (Array.isArray(data) && data.length > 0) {
+            dispatch(setCategories(data));
+            if (!category && data[0]?.name) {
+              setCategory(data[0].name);
+            }
+          }
+        })
+        .catch((err) => console.warn("Could not load categories in AddProductView:", err));
+    }
+  }, [categories, dispatch, category]);
+
   const handleCategoryChange = (catName) => {
     setCategory(catName);
     const selected = categories.find((c) => c.name === catName);
@@ -78,7 +96,7 @@ export default function AddProductView() {
     setSelectedAttributes((prev) => ({ ...prev, [code]: val }));
   };
 
-  const handleSubmit = (publishStatus = "Active") => {
+  const handleSubmit = async (publishStatus = "Active") => {
     if (!name || !sku || !price || !mrp) {
       toast.error("Please fill all required product details (Title, SKU, Price, MRP)");
       return;
@@ -86,6 +104,7 @@ export default function AddProductView() {
 
     const newProductData = {
       name,
+      title: name,
       sku: sku.toUpperCase(),
       category,
       subCategory,
@@ -101,16 +120,48 @@ export default function AddProductView() {
       stock: Number(stock) || 0,
       lowStockThreshold: Number(lowStockThreshold) || 10,
       binLocation,
-      weightKg: Number(weightKg) || 1.0,
-      dimensionsCm,
+      shipping: {
+        weight: Number(weightKg) || 1.0,
+        dimensions: { length: 30, width: 20, height: 10 },
+      },
+      soldInfo: { enabled: false, count: 0 },
+      variants: [
+        {
+          productCode: sku.toUpperCase(),
+          price: { base: Number(mrp), sale: Number(price) },
+          inventory: {
+            quantity: Number(stock) || 0,
+            lowStockThreshold: Number(lowStockThreshold) || 10,
+            trackInventory: true,
+          },
+          isActive: publishStatus === "Active",
+          wholesale: true,
+          channelVisibility: { ecomm: "active" },
+        },
+      ],
       imageUrl,
-      status: publishStatus,
+      status: publishStatus.toLowerCase() === "active" ? "active" : "draft",
       attributes: selectedAttributes,
-      shortDescription,
+      description: shortDescription,
     };
 
-    dispatch(addProduct(newProductData));
-    toast.success(`Product ${name} successfully ${publishStatus === "Active" ? "published" : "saved as draft"}!`);
+    try {
+      // Hits POST /admin/products with multipart/form-data
+      await createProduct(newProductData);
+      toast.success(`Product ${name} successfully saved to server!`);
+    } catch (apiError) {
+      console.warn("Product API error:", apiError);
+      toast.error(apiError.message || "Failed to save product to backend server");
+    }
+
+    dispatch(
+      addProduct({
+        ...newProductData,
+        weightKg: Number(weightKg) || 1.0,
+        dimensionsCm,
+        status: publishStatus,
+      })
+    );
     navigate("/admin/products");
   };
 

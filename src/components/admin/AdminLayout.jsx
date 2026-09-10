@@ -44,6 +44,7 @@ import {
   Boxes,
   DollarSign,
   FileSpreadsheet,
+  UploadCloud,
   LineChart,
   Globe,
   FileText,
@@ -624,6 +625,12 @@ export default function AdminLayout() {
       icon: PlusCircle,
     },
     {
+      name: "Bulk Upload",
+      path: "/admin/products/bulk-upload",
+      description: "Import products via CSV & ZIP",
+      icon: UploadCloud,
+    },
+    {
       name: "Categories",
       path: "/admin/products/categories",
       description: "Categories and sub-categories manage",
@@ -647,20 +654,12 @@ export default function AdminLayout() {
 
   const orderSubItems = [
     {
-      name: "All Orders",
-      path: "/admin/orders",
-      description: "Complete overview of all orders",
-      badge: orders.length,
-      icon: ClipboardList,
-      exact: true,
-    },
-    {
       name: "Order Management",
-      path: "/admin/orders/management",
-      description: "Orders manage & process",
-      badge: actionRequiredOrdersCount > 0 ? actionRequiredOrdersCount : null,
-      badgeColor: "bg-amber-100 text-amber-800",
+      path: "/admin/orders",
+      description: "All orders overview & fulfillment processing",
+      badge: orders.length,
       icon: PackageCheck,
+      exact: true,
     },
     {
       name: "Delivery Verification",

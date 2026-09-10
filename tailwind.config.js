@@ -21,19 +21,20 @@ export default {
         },
       },
       fontFamily: {
-        // Body / default → Montserrat
-        sans: ["'Montserrat'", "sans-serif"],
-        // Heading → Playfair Display  (used via font-poppins throughout headings/nav)
-        poppins: ["'Playfair Display'", "Georgia", "serif"],
-        // Body descriptions → Montserrat  (used via font-inter throughout descriptions)
-        inter: ["'Montserrat'", "sans-serif"],
-        // Albert Sans alias → Montserrat
-        "albert-sans": ["'Montserrat'", "sans-serif"],
-        // Geograph (keep as fallback, used rarely)
-        geograph: ["'geograph-regular'", "Geograph", "'Montserrat'", "sans-serif"],
-        "geograph-regular": ["'geograph-regular'", "Geograph", "'Montserrat'", "sans-serif"],
-        // Explicit utilities
-        playfair: ["'Playfair Display'", "Georgia", "serif"],
+        // Subheadings, descriptions & body → Montreal (PP Neue Montreal)
+        sans: ["'Neue Montreal'", "'PP Neue Montreal'", "'Montreal'", "'Montserrat'", "'Inter'", "sans-serif"],
+        montreal: ["'Neue Montreal'", "'PP Neue Montreal'", "'Montreal'", "'Montserrat'", "'Inter'", "sans-serif"],
+        subheading: ["'Neue Montreal'", "'PP Neue Montreal'", "'Montreal'", "'Montserrat'", "'Inter'", "sans-serif"],
+        inter: ["'Neue Montreal'", "'PP Neue Montreal'", "'Montreal'", "'Montserrat'", "'Inter'", "sans-serif"],
+        "albert-sans": ["'Neue Montreal'", "'PP Neue Montreal'", "'Montreal'", "'Montserrat'", "sans-serif"],
+        geograph: ["'Neue Montreal'", "'PP Neue Montreal'", "'Montreal'", "'Montserrat'", "sans-serif"],
+        "geograph-regular": ["'Neue Montreal'", "'PP Neue Montreal'", "'Montreal'", "'Montserrat'", "sans-serif"],
+
+        // Headings → Modern Plus Jakarta Sans / Outfit
+        heading: ["'Plus Jakarta Sans'", "'Outfit'", "'Poppins'", "sans-serif"],
+        poppins: ["'Plus Jakarta Sans'", "'Outfit'", "'Poppins'", "sans-serif"],
+        jakarta: ["'Plus Jakarta Sans'", "sans-serif"],
+        outfit: ["'Outfit'", "sans-serif"],
         montserrat: ["'Montserrat'", "sans-serif"],
       },
       keyframes: {

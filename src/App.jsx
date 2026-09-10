@@ -47,6 +47,7 @@ import AddProductView from "./components/admin/products/AddProductView";
 import CategoriesView from "./components/admin/products/CategoriesView";
 import InventoryView from "./components/admin/products/InventoryView";
 import ProductAttributesView from "./components/admin/products/ProductAttributesView";
+import BulkUploadView from "./components/admin/products/BulkUploadView";
 import AnalyticsOverviewView from "./components/admin/analytics/AnalyticsOverviewView";
 import SalesAnalyticsView from "./components/admin/analytics/SalesAnalyticsView";
 import ProductAnalyticsView from "./components/admin/analytics/ProductAnalyticsView";
@@ -146,13 +147,14 @@ export default function App() {
             <Route index element={<Navigate to="/admin/orders" replace />} />
             {/* Orders Sub-module */}
             <Route path="orders" element={<AllOrdersView />} />
-            <Route path="orders/management" element={<OrderManagementView />} />
+            <Route path="orders/management" element={<AllOrdersView />} />
             <Route path="orders/verification" element={<DeliveryVerificationView />} />
             <Route path="orders/reports" element={<OrderReportsView />} />
 
             {/* Products Sub-module */}
             <Route path="products" element={<AllProductsView />} />
             <Route path="products/add" element={<AddProductView />} />
+            <Route path="products/bulk-upload" element={<BulkUploadView />} />
             <Route path="products/categories" element={<CategoriesView />} />
             <Route path="products/inventory" element={<InventoryView />} />
             <Route path="products/attributes" element={<ProductAttributesView />} />

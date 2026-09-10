@@ -14,7 +14,7 @@ export const DialogOverlay = React.forwardRef(({ className, ...props }, ref) => 
   <DialogPrimitive.Overlay
     ref={ref}
     className={cn(
-      "fixed inset-0 z-50 bg-slate-900/40 backdrop-blur-xs data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0",
+      "fixed inset-0 z-50 bg-slate-950/50 backdrop-blur-sm data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0",
       className
     )}
     {...props}
@@ -22,7 +22,7 @@ export const DialogOverlay = React.forwardRef(({ className, ...props }, ref) => 
 ));
 DialogOverlay.displayName = DialogPrimitive.Overlay.displayName;
 
-export const DialogContent = React.forwardRef(({ className, children, ...props }, ref) => (
+export const DialogContent = React.forwardRef(({ className, children, onClose, ...props }, ref) => (
   <DialogPortal>
     <DialogOverlay />
     <DialogPrimitive.Content
@@ -34,7 +34,10 @@ export const DialogContent = React.forwardRef(({ className, children, ...props }
       {...props}
     >
       {children}
-      <DialogPrimitive.Close className="absolute right-4 top-4 rounded-xl p-1.5 text-slate-400 opacity-70 ring-offset-white transition-opacity hover:opacity-100 hover:bg-slate-100 hover:text-slate-700 focus:outline-none disabled:pointer-events-none cursor-pointer">
+      <DialogPrimitive.Close
+        onClick={onClose}
+        className="absolute right-4 top-4 z-50 rounded-xl p-1.5 text-slate-400 opacity-70 ring-offset-white transition-opacity hover:opacity-100 hover:bg-slate-100 hover:text-slate-700 focus:outline-none disabled:pointer-events-none cursor-pointer"
+      >
         <X className="h-4 w-4" />
         <span className="sr-only">Close</span>
       </DialogPrimitive.Close>

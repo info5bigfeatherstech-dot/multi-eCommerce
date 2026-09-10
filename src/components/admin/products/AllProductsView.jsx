@@ -1,30 +1,36 @@
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useEffect, useCallback } from "react";
 import { Link } from "react-router-dom";
 import { useAppDispatch, useAppSelector } from "@/store/hooks";
 import {
   deleteProduct,
   toggleProductStatus,
-  updateProduct,
+  updateProduct as reduxUpdateProduct,
+  setCategories,
 } from "@/store/slices/adminProductsSlice";
+import {
+  getAllProducts,
+  updateProduct as apiUpdateProduct,
+  archiveProduct as apiArchiveProduct,
+} from "@/api/adminProducts";
+import { getAllCategories } from "@/api/adminCategories";
 import {
   Package,
   Plus,
   Search,
   Download,
+  UploadCloud,
   Edit2,
   Trash2,
-  Eye,
   AlertTriangle,
-  CheckCircle2,
-  XCircle,
-  Tag,
   Boxes,
   DollarSign,
-  TrendingUp,
   X,
-  ExternalLink,
-  Layers,
-  Sparkles,
+  RefreshCw,
+  ChevronLeft,
+  ChevronRight,
+  Loader2,
+  CheckCircle2,
+  XCircle,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
@@ -35,18 +41,102 @@ import {
   SelectContent,
   SelectItem,
 } from "@/components/ui/Select";
+import ConfirmDeleteDialog from "@/components/ui/ConfirmDeleteDialog";
+
+/**
+ * Normalizes backend product schema into standard dashboard table shape.
+ */
+function normalizeProduct(p) {
+  if (!p) return null;
+  const id = p._id || p.id || String(Math.random());
+  const name = p.name || p.title || "Untitled Product";
+  const variant0 = Array.isArray(p.variants) && p.variants.length > 0 ? p.variants[0] : null;
+  const sku = p.sku || variant0?.sku || variant0?.productCode || "N/A";
+  const slug = p.slug || sku.toLowerCase().replace(/[^a-z0-9]+/g, "-");
+  const category =
+    typeof p.category === "object" ? p.category?.name || "General" : p.category || "General";
+  const brand = p.brand || "ApexMart Wholesale";
+
+  const variantPrice = variant0?.price;
+  const price =
+    typeof p.price === "object"
+      ? Number(p.price.sale || p.price.base || 0)
+      : Number(p.price) ||
+        Number(variantPrice?.sale || variantPrice?.current || p.minPrice || 0);
+
+  const mrp =
+    typeof p.price === "object"
+      ? Number(p.price.base || price)
+      : Number(p.mrp) ||
+        Number(variantPrice?.base || p.maxPrice || price);
+
+  const moq =
+    Number(p.moq) ||
+    Number(variant0?.minimumOrderQuantity) ||
+    1;
+
+  const stock =
+    p.stock !== undefined
+      ? Number(p.stock)
+      : Number(variant0?.inventory?.quantity ?? 0);
+
+  const lowStockThreshold =
+    Number(p.lowStockThreshold || variant0?.inventory?.lowStockThreshold || 10);
+
+  const rawStatus = (p.status || "active").toLowerCase();
+  const status = rawStatus === "active" ? "Active" : "Draft";
+
+  const imageUrl =
+    (Array.isArray(p.images) && p.images[0]?.url) ||
+    (Array.isArray(p.images) && typeof p.images[0] === "string" && p.images[0]) ||
+    variant0?.images?.[0]?.url ||
+    p.seo?.og_image ||
+    p.imageUrl ||
+    "https://images.unsplash.com/photo-1590658268037-6bf12165a8df?auto=format&fit=crop&w=600&q=80";
+
+  const binLocation = p.binLocation || "Bay 1 / Rack A-01";
+  const tierPrices = p.tierPrices || null;
+
+  return {
+    ...p,
+    id,
+    slug,
+    name,
+    sku,
+    category,
+    brand,
+    price,
+    mrp,
+    moq,
+    stock,
+    lowStockThreshold,
+    status,
+    imageUrl,
+    binLocation,
+    tierPrices,
+  };
+}
 
 export default function AllProductsView() {
   const dispatch = useAppDispatch();
-  const products = useAppSelector((state) => state.adminProducts.products);
-  const categories = useAppSelector((state) => state.adminProducts.categories);
+  const reduxProducts = useAppSelector((state) => state.adminProducts.products) || [];
+  const categories = useAppSelector((state) => state.adminProducts.categories) || [];
 
+  // Filtering State
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("All");
   const [selectedStockStatus, setSelectedStockStatus] = useState("All"); // All, In Stock, Low Stock, Out of Stock
   const [selectedStatus, setSelectedStatus] = useState("All"); // All, Active, Draft
 
-  // Edit Modal State
+  // Pagination & API Data State
+  const [currentPage, setCurrentPage] = useState(1);
+  const [pageSize, setPageSize] = useState(10);
+  const [totalItems, setTotalItems] = useState(reduxProducts.length);
+  const [totalPages, setTotalPages] = useState(Math.ceil(reduxProducts.length / 10) || 1);
+  const [apiProducts, setApiProducts] = useState(null);
+  const [isLoading, setIsLoading] = useState(false);
+
+  // Quick Edit Modal State
   const [editingProduct, setEditingProduct] = useState(null);
   const [editPrice, setEditPrice] = useState("");
   const [editMrp, setEditMrp] = useState("");
@@ -54,16 +144,113 @@ export default function AllProductsView() {
   const [editStock, setEditStock] = useState("");
   const [editStatus, setEditStatus] = useState("Active");
 
-  // Summary KPIs
-  const totalProducts = products.length;
-  const totalStockUnits = products.reduce((acc, p) => acc + p.stock, 0);
-  const totalStockValue = products.reduce((acc, p) => acc + p.stock * p.price, 0);
-  const lowStockCount = products.filter((p) => p.stock > 0 && p.stock <= p.lowStockThreshold).length;
-  const outOfStockCount = products.filter((p) => p.stock === 0).length;
+  // Delete Confirmation Modal State
+  const [productToDelete, setProductToDelete] = useState(null);
+  const [isDeleting, setIsDeleting] = useState(false);
 
-  // Filtered Products
-  const filteredProducts = useMemo(() => {
-    return products.filter((item) => {
+  /**
+   * Fetch Live Products from API
+   * Endpoint: GET /admin/products/all?page=1&limit=10&search=&status=&category=
+   */
+  const fetchProductsList = useCallback(
+    async (page, limit, showToast = false) => {
+      const targetPage = page || 1;
+      const targetLimit = limit || 10;
+      setIsLoading(true);
+      try {
+        const params = {
+          page: targetPage,
+          limit: targetLimit,
+          search: searchQuery.trim(),
+          status: selectedStatus === "All" ? "" : selectedStatus.toLowerCase(),
+          category: selectedCategory === "All" ? "" : selectedCategory,
+        };
+
+        const res = await getAllProducts(params);
+        const list = res.products || res.data || res.items || (Array.isArray(res) ? res : []);
+
+        const count =
+          typeof res.totalProducts === "number"
+            ? res.totalProducts
+            : typeof res.pagination?.total === "number"
+            ? res.pagination.total
+            : typeof res.total === "number"
+            ? res.total
+            : typeof res.count === "number"
+            ? res.count
+            : typeof res.totalCount === "number"
+            ? res.totalCount
+            : list.length;
+
+        const pages =
+          typeof res.totalPages === "number"
+            ? res.totalPages
+            : typeof res.pagination?.totalPages === "number"
+            ? res.pagination.totalPages
+            : count > 0
+            ? Math.ceil(count / targetLimit)
+            : 1;
+
+        const normalized = list.map(normalizeProduct).filter(Boolean);
+        setApiProducts(normalized);
+        setTotalItems(count);
+        setTotalPages(pages);
+
+        if (showToast) {
+          toast.success(`Loaded ${normalized.length} products (Page ${targetPage} of ${pages})`);
+        }
+      } catch (err) {
+        console.warn("Could not fetch products from API, displaying cached catalog:", err);
+        if (showToast) {
+          toast.error(err.message || "Failed to fetch products from backend API");
+        }
+      } finally {
+        setIsLoading(false);
+      }
+    },
+    [searchQuery, selectedCategory, selectedStatus]
+  );
+
+  // Trigger fetch when search or filters change (reset to page 1)
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setCurrentPage(1);
+      fetchProductsList(1, pageSize);
+    }, searchQuery ? 300 : 0);
+    return () => clearTimeout(timer);
+  }, [searchQuery, selectedCategory, selectedStatus, selectedStockStatus, pageSize]);
+
+  // Page navigation handlers (clean, immediate response without debounce lag)
+  const handlePageChange = (newPage) => {
+    if (newPage < 1 || newPage > totalPagesCount || newPage === currentPage || isLoading) {
+      return;
+    }
+    setCurrentPage(newPage);
+    fetchProductsList(newPage, pageSize);
+  };
+
+  const handlePageSizeChange = (newSize) => {
+    setPageSize(newSize);
+    setCurrentPage(1);
+    fetchProductsList(1, newSize);
+  };
+
+  // Load live categories for filter dropdown if Redux cache is empty
+  useEffect(() => {
+    if (categories.length === 0) {
+      getAllCategories()
+        .then((data) => {
+          if (Array.isArray(data) && data.length > 0) {
+            dispatch(setCategories(data));
+          }
+        })
+        .catch((err) => console.warn("Could not load categories dropdown:", err));
+    }
+  }, [categories.length, dispatch]);
+
+  // Local filtered Redux products (used as high-reliability fallback if API is not yet loaded)
+  const filteredReduxProducts = useMemo(() => {
+    return reduxProducts.filter((item) => {
       const q = searchQuery.toLowerCase();
       const matchesSearch =
         item.name.toLowerCase().includes(q) ||
@@ -85,7 +272,55 @@ export default function AllProductsView() {
 
       return matchesSearch && matchesCategory && matchesStockStatus && matchesStatus;
     });
-  }, [products, searchQuery, selectedCategory, selectedStockStatus, selectedStatus]);
+  }, [reduxProducts, searchQuery, selectedCategory, selectedStockStatus, selectedStatus]);
+
+  // Active products to display in the table
+  const displayedProducts = useMemo(() => {
+    if (apiProducts && apiProducts.length > 0) {
+      // Further filter stock status client-side if API doesn't filter stock levels
+      if (selectedStockStatus !== "All") {
+        return apiProducts.filter((p) => {
+          if (selectedStockStatus === "In Stock") return p.stock > p.lowStockThreshold;
+          if (selectedStockStatus === "Low Stock") return p.stock > 0 && p.stock <= p.lowStockThreshold;
+          if (selectedStockStatus === "Out of Stock") return p.stock === 0;
+          return true;
+        });
+      }
+      return apiProducts;
+    }
+
+    // Fallback: paginate local Redux products
+    const startIndex = (currentPage - 1) * pageSize;
+    return filteredReduxProducts.slice(startIndex, startIndex + pageSize);
+  }, [apiProducts, filteredReduxProducts, selectedStockStatus, currentPage, pageSize]);
+
+  // Total count for pagination display
+  const totalCount = apiProducts !== null ? totalItems : filteredReduxProducts.length;
+  const totalPagesCount = Math.max(1, Math.ceil(totalCount / pageSize));
+
+  // Summary KPIs (calculated from active catalog)
+  const activeCatalog = apiProducts && apiProducts.length > 0 ? apiProducts : reduxProducts;
+  const totalStockUnits = activeCatalog.reduce((acc, p) => acc + (p.stock || 0), 0);
+  const totalStockValue = activeCatalog.reduce((acc, p) => acc + (p.stock || 0) * (p.price || 0), 0);
+  const lowStockCount = activeCatalog.filter((p) => p.stock > 0 && p.stock <= p.lowStockThreshold).length;
+  const outOfStockCount = activeCatalog.filter((p) => p.stock === 0).length;
+
+  // Pagination number generator (e.g., [1, 2, 3, 4, 5])
+  const pageNumbers = useMemo(() => {
+    const pages = [];
+    const maxPills = 5;
+    let start = Math.max(1, currentPage - 2);
+    let end = Math.min(totalPagesCount, start + maxPills - 1);
+
+    if (end - start < maxPills - 1) {
+      start = Math.max(1, end - maxPills + 1);
+    }
+
+    for (let i = start; i <= end; i++) {
+      pages.push(i);
+    }
+    return pages;
+  }, [currentPage, totalPagesCount]);
 
   const handleOpenEdit = (prod) => {
     setEditingProduct(prod);
@@ -96,31 +331,58 @@ export default function AllProductsView() {
     setEditStatus(prod.status);
   };
 
-  const handleSaveEdit = (e) => {
+  const handleSaveEdit = async (e) => {
     e.preventDefault();
     if (!editingProduct) return;
 
+    const updates = {
+      price: Number(editPrice),
+      mrp: Number(editMrp),
+      moq: Number(editMoq),
+      stock: Number(editStock),
+      status: editStatus,
+    };
+
+    try {
+      if (editingProduct.slug) {
+        await apiUpdateProduct(editingProduct.slug, updates);
+        toast.success(`Updated ${editingProduct.name} via API`);
+      }
+    } catch (err) {
+      console.warn("API update failed:", err);
+    }
+
     dispatch(
-      updateProduct({
+      reduxUpdateProduct({
         id: editingProduct.id,
-        updates: {
-          price: Number(editPrice),
-          mrp: Number(editMrp),
-          moq: Number(editMoq),
-          stock: Number(editStock),
-          status: editStatus,
-        },
+        updates,
       })
     );
 
-    toast.success(`Updated ${editingProduct.name}`);
     setEditingProduct(null);
+    fetchProductsList(currentPage, pageSize);
   };
 
-  const handleDelete = (id, name) => {
-    if (confirm(`Are you sure you want to delete ${name}?`)) {
-      dispatch(deleteProduct(id));
-      toast.success("Product removed from catalog");
+  const handleOpenDelete = (product) => {
+    setProductToDelete(product);
+  };
+
+  const handleConfirmDelete = async () => {
+    if (!productToDelete) return;
+    setIsDeleting(true);
+    try {
+      if (productToDelete.slug) {
+        await apiArchiveProduct(productToDelete.slug);
+      }
+      dispatch(deleteProduct(productToDelete.id));
+      toast.success(`Product "${productToDelete.name}" removed from catalog`);
+      setProductToDelete(null);
+      await fetchProductsList(currentPage, pageSize);
+    } catch (err) {
+      console.warn("API archive failed:", err);
+      toast.error(err.message || "Failed to remove product");
+    } finally {
+      setIsDeleting(false);
     }
   };
 
@@ -129,7 +391,6 @@ export default function AllProductsView() {
       "SKU",
       "Product Name",
       "Category",
-      "Sub Category",
       "Brand",
       "Base Wholesale Price (Rs)",
       "MRP (Rs)",
@@ -139,11 +400,10 @@ export default function AllProductsView() {
       "Bin Location",
     ];
 
-    const rows = filteredProducts.map((p) => [
+    const rows = (apiProducts || filteredReduxProducts).map((p) => [
       p.sku,
       `"${p.name}"`,
       `"${p.category}"`,
-      `"${p.subCategory || ""}"`,
       `"${p.brand || ""}"`,
       p.price,
       p.mrp,
@@ -160,7 +420,10 @@ export default function AllProductsView() {
     const encodedUri = encodeURI(csvContent);
     const link = document.createElement("a");
     link.setAttribute("href", encodedUri);
-    link.setAttribute("download", `apexmart_products_catalogue_${new Date().toISOString().substring(0, 10)}.csv`);
+    link.setAttribute(
+      "download",
+      `apexmart_products_catalogue_${new Date().toISOString().substring(0, 10)}.csv`
+    );
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
@@ -173,31 +436,50 @@ export default function AllProductsView() {
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-white p-6 rounded-2xl border border-slate-200 shadow-xs">
         <div>
           <div className="flex items-center gap-2">
-            <span className="px-2.5 py-0.5 rounded-full bg-orange-100 text-accent text-[10px] font-poppins font-black uppercase tracking-wider">
+            <span className="px-2.5 py-0.5 rounded-full bg-orange-100 text-accent text-[10px] font-heading font-black uppercase tracking-wider">
               Wholesale Catalog
             </span>
-            <span className="text-xs text-slate-400 font-inter">Inventory & SKU Database</span>
+            <span className="text-xs text-slate-400 font-montreal">Inventory & SKU Database</span>
           </div>
-          <h1 className="text-2xl font-poppins font-black text-slate-900 tracking-tight mt-1">
+          <h1 className="text-2xl font-heading font-black text-slate-900 tracking-tight mt-1">
             All Products Catalogue
           </h1>
-          <p className="text-xs text-slate-500 font-inter mt-0.5">
-            Manage your entire B2B wholesale master catalog, tier pricing, inventory levels, and visibility status.
+          <p className="text-xs text-slate-500 font-montreal mt-0.5">
+            Manage your wholesale master catalog, tier pricing, inventory levels, and paginated product feeds.
           </p>
         </div>
 
         <div className="flex items-center gap-3 flex-wrap">
+          {/* Sync API button to re-trigger GET /admin/products/all */}
+          <button
+            onClick={() => fetchProductsList(currentPage, pageSize, true)}
+            disabled={isLoading}
+            className="flex items-center gap-2 px-3.5 py-2.5 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-xs font-heading font-bold text-slate-700 transition-colors shadow-2xs cursor-pointer disabled:opacity-50"
+            title="Refresh from API (GET /admin/products/all)"
+          >
+            <RefreshCw className={cn("w-3.5 h-3.5 text-slate-500", isLoading && "animate-spin")} />
+            <span>{isLoading ? "Syncing..." : "Sync Products"}</span>
+          </button>
+
           <button
             onClick={handleExportCSV}
-            className="flex items-center gap-2 px-4 py-2.5 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-xs font-poppins font-bold text-slate-700 transition-colors shadow-2xs cursor-pointer"
+            className="flex items-center gap-2 px-4 py-2.5 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-xs font-heading font-bold text-slate-700 transition-colors shadow-2xs cursor-pointer"
           >
             <Download className="w-4 h-4 text-slate-500" />
             <span>Export CSV</span>
           </button>
 
           <Link
+            to="/admin/products/bulk-upload"
+            className="flex items-center gap-2 px-4 py-2.5 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-xs font-heading font-bold text-slate-700 transition-colors shadow-2xs cursor-pointer"
+          >
+            <UploadCloud className="w-4 h-4 text-slate-500" />
+            <span>Bulk Upload</span>
+          </Link>
+
+          <Link
             to="/admin/products/add"
-            className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-accent hover:bg-accent-hover text-white text-xs font-poppins font-bold transition-all shadow-xs active:scale-98"
+            className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-accent hover:bg-accent-hover text-white text-xs font-heading font-bold transition-all shadow-xs active:scale-98"
           >
             <Plus className="w-4 h-4" />
             <span>Add New Product</span>
@@ -209,56 +491,62 @@ export default function AllProductsView() {
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-xs space-y-1">
           <div className="flex items-center justify-between">
-            <span className="text-[11px] font-poppins font-bold uppercase tracking-wider text-slate-400">
+            <span className="text-[11px] font-heading font-bold uppercase tracking-wider text-slate-400">
               Total SKUs Listed
             </span>
             <div className="w-8 h-8 rounded-lg bg-orange-50 text-accent flex items-center justify-center">
               <Boxes className="w-4 h-4" />
             </div>
           </div>
-          <p className="text-2xl font-poppins font-black text-slate-900">{totalProducts}</p>
-          <span className="text-[10px] text-slate-400 font-inter">Master active items</span>
+          <p className="text-2xl font-heading font-black text-slate-900">{totalCount}</p>
+          <span className="text-[10px] text-slate-400 font-montreal">Master active items</span>
         </div>
 
         <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-xs space-y-1">
           <div className="flex items-center justify-between">
-            <span className="text-[11px] font-poppins font-bold uppercase tracking-wider text-slate-400">
+            <span className="text-[11px] font-heading font-bold uppercase tracking-wider text-slate-400">
               Total Stock Valuation
             </span>
             <div className="w-8 h-8 rounded-lg bg-emerald-50 text-emerald-600 flex items-center justify-center">
               <DollarSign className="w-4 h-4" />
             </div>
           </div>
-          <p className="text-2xl font-poppins font-black text-emerald-600">
+          <p className="text-2xl font-heading font-black text-emerald-600">
             ₹{totalStockValue.toLocaleString("en-IN")}
           </p>
-          <span className="text-[10px] text-slate-400 font-inter">{totalStockUnits} total units in warehouse</span>
+          <span className="text-[10px] text-slate-400 font-montreal">
+            {totalStockUnits} total units in warehouse
+          </span>
         </div>
 
         <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-xs space-y-1">
           <div className="flex items-center justify-between">
-            <span className="text-[11px] font-poppins font-bold uppercase tracking-wider text-slate-400">
+            <span className="text-[11px] font-heading font-bold uppercase tracking-wider text-slate-400">
               Low Stock Alerts
             </span>
             <div className="w-8 h-8 rounded-lg bg-amber-50 text-amber-600 flex items-center justify-center">
               <AlertTriangle className="w-4 h-4" />
             </div>
           </div>
-          <p className="text-2xl font-poppins font-black text-amber-600">{lowStockCount}</p>
-          <span className="text-[10px] text-amber-600 font-medium font-inter">Re-order threshold breached</span>
+          <p className="text-2xl font-heading font-black text-amber-600">{lowStockCount}</p>
+          <span className="text-[10px] text-amber-600 font-medium font-montreal">
+            Re-order threshold breached
+          </span>
         </div>
 
         <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-xs space-y-1">
           <div className="flex items-center justify-between">
-            <span className="text-[11px] font-poppins font-bold uppercase tracking-wider text-slate-400">
+            <span className="text-[11px] font-heading font-bold uppercase tracking-wider text-slate-400">
               Out of Stock
             </span>
             <div className="w-8 h-8 rounded-lg bg-rose-50 text-rose-600 flex items-center justify-center">
               <XCircle className="w-4 h-4" />
             </div>
           </div>
-          <p className="text-2xl font-poppins font-black text-rose-600">{outOfStockCount}</p>
-          <span className="text-[10px] text-rose-600 font-medium font-inter">Requires urgent replenishment</span>
+          <p className="text-2xl font-heading font-black text-rose-600">{outOfStockCount}</p>
+          <span className="text-[10px] text-rose-600 font-medium font-montreal">
+            Requires urgent replenishment
+          </span>
         </div>
       </div>
 
@@ -272,21 +560,30 @@ export default function AllProductsView() {
               type="text"
               placeholder="Search by Product name, SKU, Brand, or Category..."
               value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-slate-200 text-xs font-inter text-slate-800 placeholder:text-slate-400 focus:outline-none focus:border-accent bg-slate-50/50 focus:bg-white transition-colors"
+              onChange={(e) => {
+                setSearchQuery(e.target.value);
+                setCurrentPage(1);
+              }}
+              className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-slate-200 text-xs font-montreal text-slate-800 placeholder:text-slate-400 focus:outline-none focus:border-accent bg-slate-50/50 focus:bg-white transition-colors"
             />
           </div>
 
           {/* Category Filter */}
           <div className="w-44">
-            <Select value={selectedCategory} onValueChange={setSelectedCategory}>
-              <SelectTrigger className="h-10 text-xs bg-white border-slate-200">
+            <Select
+              value={selectedCategory}
+              onValueChange={(val) => {
+                setSelectedCategory(val);
+                setCurrentPage(1);
+              }}
+            >
+              <SelectTrigger className="h-10 text-xs bg-white border-slate-200 font-heading">
                 <SelectValue placeholder="All Categories" />
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="All">All Categories</SelectItem>
                 {categories.map((c) => (
-                  <SelectItem key={c.id} value={c.name}>
+                  <SelectItem key={c.id || c._id || c.name} value={c.name}>
                     {c.name}
                   </SelectItem>
                 ))}
@@ -296,8 +593,14 @@ export default function AllProductsView() {
 
           {/* Stock Status Filter */}
           <div className="w-40">
-            <Select value={selectedStockStatus} onValueChange={setSelectedStockStatus}>
-              <SelectTrigger className="h-10 text-xs bg-white border-slate-200">
+            <Select
+              value={selectedStockStatus}
+              onValueChange={(val) => {
+                setSelectedStockStatus(val);
+                setCurrentPage(1);
+              }}
+            >
+              <SelectTrigger className="h-10 text-xs bg-white border-slate-200 font-heading">
                 <SelectValue placeholder="All Stock Levels" />
               </SelectTrigger>
               <SelectContent>
@@ -311,8 +614,14 @@ export default function AllProductsView() {
 
           {/* Publish Status Filter */}
           <div className="w-36">
-            <Select value={selectedStatus} onValueChange={setSelectedStatus}>
-              <SelectTrigger className="h-10 text-xs bg-white border-slate-200">
+            <Select
+              value={selectedStatus}
+              onValueChange={(val) => {
+                setSelectedStatus(val);
+                setCurrentPage(1);
+              }}
+            >
+              <SelectTrigger className="h-10 text-xs bg-white border-slate-200 font-heading">
                 <SelectValue placeholder="All Statuses" />
               </SelectTrigger>
               <SelectContent>
@@ -323,19 +632,44 @@ export default function AllProductsView() {
             </Select>
           </div>
 
-          {(searchQuery || selectedCategory !== "All" || selectedStockStatus !== "All" || selectedStatus !== "All") && (
+          {(searchQuery ||
+            selectedCategory !== "All" ||
+            selectedStockStatus !== "All" ||
+            selectedStatus !== "All") && (
             <button
               onClick={() => {
                 setSearchQuery("");
                 setSelectedCategory("All");
                 setSelectedStockStatus("All");
                 setSelectedStatus("All");
+                setCurrentPage(1);
               }}
-              className="px-3 py-2.5 rounded-xl text-xs font-poppins font-bold text-slate-500 hover:bg-slate-100 transition-colors"
+              className="px-3 py-2.5 rounded-xl text-xs font-heading font-bold text-slate-500 hover:bg-slate-100 transition-colors cursor-pointer"
             >
               Reset
             </button>
           )}
+        </div>
+
+        {/* Live API Feed Status Pill */}
+        <div className="pt-2 border-t border-slate-100 flex items-center justify-between flex-wrap gap-2 text-[11px] font-montreal">
+          <div className="flex items-center gap-2">
+            <span className="flex h-2 w-2 relative">
+              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+              <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+            </span>
+            <span className="font-heading font-bold text-slate-700">
+              {apiProducts !== null ? "Live Database API" : "Connecting..."}
+            </span>
+            <span className="text-slate-400">•</span>
+            <span className="text-slate-500">
+              {totalCount} Total Products ({totalPagesCount} {totalPagesCount === 1 ? "Page" : "Pages"})
+            </span>
+          </div>
+
+          <div className="flex items-center gap-2 text-slate-400 font-mono text-[10px]">
+            <span>GET /api/products/all?page={currentPage}&limit={pageSize}</span>
+          </div>
         </div>
       </div>
 
@@ -344,7 +678,7 @@ export default function AllProductsView() {
         <div className="overflow-x-auto">
           <table className="w-full text-left border-collapse text-xs">
             <thead>
-              <tr className="bg-slate-50 border-b border-slate-200 text-[11px] font-poppins font-bold text-slate-500 uppercase tracking-wider">
+              <tr className="bg-slate-50 border-b border-slate-200 text-[11px] font-heading font-bold text-slate-500 uppercase tracking-wider">
                 <th className="py-3.5 px-4">Product Details</th>
                 <th className="py-3.5 px-4">Category & Brand</th>
                 <th className="py-3.5 px-4">Wholesale Price (₹)</th>
@@ -354,17 +688,29 @@ export default function AllProductsView() {
                 <th className="py-3.5 px-4 text-right">Actions</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-slate-100 font-inter">
-              {filteredProducts.length === 0 ? (
+            <tbody className="divide-y divide-slate-100 font-montreal">
+              {isLoading ? (
+                <tr>
+                  <td colSpan={7} className="py-16 text-center text-slate-400">
+                    <Loader2 className="w-8 h-8 mx-auto text-accent animate-spin mb-2" />
+                    <p className="text-sm font-heading font-bold text-slate-700">Loading Products from API...</p>
+                    <p className="text-xs text-slate-400 font-mono mt-0.5">
+                      GET /api/products/all?page={currentPage}&limit={pageSize}
+                    </p>
+                  </td>
+                </tr>
+              ) : displayedProducts.length === 0 ? (
                 <tr>
                   <td colSpan={7} className="py-12 text-center text-slate-400">
                     <Package className="w-10 h-10 mx-auto text-slate-300 mb-2 stroke-[1.5]" />
-                    <p className="text-sm font-poppins font-bold text-slate-700">No products found</p>
-                    <p className="text-xs text-slate-400 mt-0.5">Try altering your search or filters.</p>
+                    <p className="text-sm font-heading font-bold text-slate-700">No products found</p>
+                    <p className="text-xs text-slate-400 mt-0.5 font-montreal">
+                      Try altering your search query or filters.
+                    </p>
                   </td>
                 </tr>
               ) : (
-                filteredProducts.map((p) => {
+                displayedProducts.map((p) => {
                   const isLow = p.stock > 0 && p.stock <= p.lowStockThreshold;
                   const isOut = p.stock === 0;
 
@@ -379,7 +725,7 @@ export default function AllProductsView() {
                             className="w-12 h-12 rounded-xl object-cover border border-slate-200 flex-shrink-0 bg-slate-50"
                           />
                           <div className="min-w-0 max-w-[280px]">
-                            <p className="font-poppins font-bold text-slate-900 text-xs line-clamp-1">
+                            <p className="font-heading font-bold text-slate-900 text-xs line-clamp-1">
                               {p.name}
                             </p>
                             <span className="text-[11px] font-mono text-slate-400 font-medium">
@@ -391,14 +737,16 @@ export default function AllProductsView() {
 
                       {/* Category & Brand */}
                       <td className="py-4 px-4">
-                        <p className="font-poppins font-semibold text-slate-800 text-xs">
+                        <p className="font-heading font-semibold text-slate-800 text-xs">
                           {p.category}
                         </p>
-                        <p className="text-[11px] text-slate-400">{p.brand || "Generic Wholesale"}</p>
+                        <p className="text-[11px] text-slate-400 font-montreal">
+                          {p.brand || "Generic Wholesale"}
+                        </p>
                       </td>
 
                       {/* Price & MRP */}
-                      <td className="py-4 px-4 font-poppins">
+                      <td className="py-4 px-4 font-heading">
                         <p className="font-bold text-slate-900 text-sm">
                           ₹{p.price.toLocaleString("en-IN")}
                         </p>
@@ -408,7 +756,7 @@ export default function AllProductsView() {
                       </td>
 
                       {/* Tier Rates Preview */}
-                      <td className="py-4 px-4 font-inter text-[11px] text-slate-600 space-y-0.5">
+                      <td className="py-4 px-4 font-montreal text-[11px] text-slate-600 space-y-0.5">
                         {p.tierPrices ? (
                           <>
                             <div className="flex items-center gap-1.5">
@@ -425,7 +773,7 @@ export default function AllProductsView() {
                             </div>
                           </>
                         ) : (
-                          <span className="text-slate-400">Flat rate</span>
+                          <span className="text-slate-400">Flat wholesale rate</span>
                         )}
                       </td>
 
@@ -434,7 +782,7 @@ export default function AllProductsView() {
                         <div className="flex items-center gap-2">
                           <span
                             className={cn(
-                              "font-poppins font-bold text-xs",
+                              "font-heading font-bold text-xs",
                               isOut ? "text-rose-600" : isLow ? "text-amber-600" : "text-slate-900"
                             )}
                           >
@@ -461,10 +809,12 @@ export default function AllProductsView() {
                         <button
                           onClick={() => {
                             dispatch(toggleProductStatus(p.id));
-                            toast.info(`Toggled ${p.name} to ${p.status === "Active" ? "Draft" : "Active"}`);
+                            toast.info(
+                              `Toggled ${p.name} to ${p.status === "Active" ? "Draft" : "Active"}`
+                            );
                           }}
                           className={cn(
-                            "px-2.5 py-1 rounded-full text-[10px] font-poppins font-bold uppercase transition-colors cursor-pointer",
+                            "px-2.5 py-1 rounded-full text-[10px] font-heading font-bold uppercase transition-colors cursor-pointer",
                             p.status === "Active"
                               ? "bg-emerald-50 text-emerald-700 border border-emerald-200 hover:bg-emerald-100"
                               : "bg-slate-100 text-slate-600 border border-slate-200 hover:bg-slate-200"
@@ -480,14 +830,14 @@ export default function AllProductsView() {
                           <button
                             onClick={() => handleOpenEdit(p)}
                             title="Quick Edit Product"
-                            className="p-1.5 rounded-lg text-slate-400 hover:text-accent hover:bg-orange-50 transition-colors"
+                            className="p-1.5 rounded-lg text-slate-400 hover:text-accent hover:bg-orange-50 transition-colors cursor-pointer"
                           >
                             <Edit2 className="w-4 h-4" />
                           </button>
                           <button
-                            onClick={() => handleDelete(p.id, p.name)}
+                            onClick={() => handleOpenDelete(p)}
                             title="Delete Product"
-                            className="p-1.5 rounded-lg text-slate-400 hover:text-rose-600 hover:bg-rose-50 transition-colors"
+                            className="p-1.5 rounded-lg text-slate-400 hover:text-rose-600 hover:bg-rose-50 transition-colors cursor-pointer"
                           >
                             <Trash2 className="w-4 h-4" />
                           </button>
@@ -500,6 +850,79 @@ export default function AllProductsView() {
             </tbody>
           </table>
         </div>
+
+        {/* ── Pagination Controls Bar ── */}
+        <div className="p-4 border-t border-slate-100 bg-slate-50/50 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs font-montreal">
+          <div className="flex items-center gap-3 text-slate-500">
+            <span>
+              Showing{" "}
+              <strong className="text-slate-900 font-heading">
+                {totalCount === 0 ? 0 : (currentPage - 1) * pageSize + 1}
+              </strong>{" "}
+              to{" "}
+              <strong className="text-slate-900 font-heading">
+                {Math.min(currentPage * pageSize, totalCount)}
+              </strong>{" "}
+              of <strong className="text-slate-900 font-heading">{totalCount}</strong> products
+            </span>
+
+            {/* Rows Per Page Selector */}
+            <div className="flex items-center gap-1.5 ml-2">
+              <span className="text-slate-400">Rows:</span>
+              <select
+                value={pageSize}
+                onChange={(e) => handlePageSizeChange(Number(e.target.value))}
+                className="px-2 py-1 rounded-lg border border-slate-200 bg-white text-slate-700 font-heading font-bold focus:outline-none focus:border-accent cursor-pointer"
+              >
+                <option value={10}>10 / page</option>
+                <option value={25}>25 / page</option>
+                <option value={50}>50 / page</option>
+              </select>
+            </div>
+          </div>
+
+          {/* Navigation Page Buttons */}
+          <div className="flex items-center gap-1.5">
+            <button
+              onClick={() => handlePageChange(currentPage - 1)}
+              disabled={currentPage <= 1 || isLoading}
+              className="flex items-center gap-1 px-3 py-1.5 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 disabled:opacity-40 disabled:cursor-not-allowed text-slate-700 font-heading font-bold transition-colors cursor-pointer"
+              title="Previous Page"
+            >
+              <ChevronLeft className="w-4 h-4" />
+              <span className="hidden sm:inline">Previous</span>
+            </button>
+
+            {/* Page Number Pills */}
+            <div className="flex items-center gap-1">
+              {pageNumbers.map((p) => (
+                <button
+                  key={`page-${p}`}
+                  onClick={() => handlePageChange(p)}
+                  disabled={isLoading}
+                  className={cn(
+                    "w-8 h-8 rounded-xl font-heading font-bold text-xs transition-colors cursor-pointer flex items-center justify-center",
+                    currentPage === p
+                      ? "bg-accent text-white shadow-xs"
+                      : "border border-slate-200 bg-white hover:bg-slate-50 text-slate-700"
+                  )}
+                >
+                  {p}
+                </button>
+              ))}
+            </div>
+
+            <button
+              onClick={() => handlePageChange(currentPage + 1)}
+              disabled={currentPage >= totalPagesCount || isLoading}
+              className="flex items-center gap-1 px-3 py-1.5 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 disabled:opacity-40 disabled:cursor-not-allowed text-slate-700 font-heading font-bold transition-colors cursor-pointer"
+              title="Next Page"
+            >
+              <span className="hidden sm:inline">Next</span>
+              <ChevronRight className="w-4 h-4" />
+            </button>
+          </div>
+        </div>
       </div>
 
       {/* ── Quick Edit Modal ── */}
@@ -508,25 +931,25 @@ export default function AllProductsView() {
           <div className="bg-white w-full max-w-md rounded-2xl border border-slate-200 shadow-2xl overflow-hidden animate-in fade-in zoom-in-95 duration-150">
             <div className="p-5 border-b border-slate-100 flex items-center justify-between bg-slate-50/50">
               <div>
-                <h3 className="font-poppins font-bold text-slate-900 text-sm">Quick Edit Product</h3>
+                <h3 className="font-heading font-bold text-slate-900 text-sm">Quick Edit Product</h3>
                 <p className="text-[10px] text-slate-400 font-mono">{editingProduct.sku}</p>
               </div>
               <button
                 onClick={() => setEditingProduct(null)}
-                className="p-1.5 rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-100"
+                className="p-1.5 rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-100 cursor-pointer"
               >
                 <X className="w-4 h-4" />
               </button>
             </div>
 
-            <form onSubmit={handleSaveEdit} className="p-5 space-y-4 text-xs font-inter">
-              <p className="font-poppins font-bold text-slate-800 text-xs line-clamp-1">
+            <form onSubmit={handleSaveEdit} className="p-5 space-y-4 text-xs font-montreal">
+              <p className="font-heading font-bold text-slate-800 text-xs line-clamp-1">
                 {editingProduct.name}
               </p>
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block font-poppins font-bold text-slate-700 mb-1">
+                  <label className="block font-heading font-bold text-slate-700 mb-1">
                     Base Price (₹)
                   </label>
                   <input
@@ -534,12 +957,12 @@ export default function AllProductsView() {
                     required
                     value={editPrice}
                     onChange={(e) => setEditPrice(e.target.value)}
-                    className="w-full px-3 py-2 rounded-xl border border-slate-200 font-poppins font-bold text-slate-900 focus:outline-none focus:border-accent"
+                    className="w-full px-3 py-2 rounded-xl border border-slate-200 font-heading font-bold text-slate-900 focus:outline-none focus:border-accent"
                   />
                 </div>
 
                 <div>
-                  <label className="block font-poppins font-bold text-slate-700 mb-1">
+                  <label className="block font-heading font-bold text-slate-700 mb-1">
                     MRP (₹)
                   </label>
                   <input
@@ -554,21 +977,21 @@ export default function AllProductsView() {
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block font-poppins font-bold text-slate-700 mb-1">
-                    Stock Quantity
+                  <label className="block font-heading font-bold text-slate-700 mb-1">
+                    Available Stock
                   </label>
                   <input
                     type="number"
                     required
                     value={editStock}
                     onChange={(e) => setEditStock(e.target.value)}
-                    className="w-full px-3 py-2 rounded-xl border border-slate-200 font-poppins font-bold text-slate-900 focus:outline-none focus:border-accent"
+                    className="w-full px-3 py-2 rounded-xl border border-slate-200 text-slate-800 focus:outline-none focus:border-accent"
                   />
                 </div>
 
                 <div>
-                  <label className="block font-poppins font-bold text-slate-700 mb-1">
-                    MOQ (Min Order Qty)
+                  <label className="block font-heading font-bold text-slate-700 mb-1">
+                    MOQ Units
                   </label>
                   <input
                     type="number"
@@ -581,32 +1004,30 @@ export default function AllProductsView() {
               </div>
 
               <div>
-                <label className="block font-poppins font-bold text-slate-700 mb-1">
+                <label className="block font-heading font-bold text-slate-700 mb-1">
                   Catalog Status
                 </label>
-                <Select value={editStatus} onValueChange={setEditStatus}>
-                  <SelectTrigger className="w-full text-xs bg-white border-slate-200 font-poppins font-semibold">
-                    <SelectValue placeholder="Catalog Status" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="Active">Active (Visible to Buyers)</SelectItem>
-                    <SelectItem value="Draft">Draft (Internal Only)</SelectItem>
-                    <SelectItem value="Archived">Archived</SelectItem>
-                  </SelectContent>
-                </Select>
+                <select
+                  value={editStatus}
+                  onChange={(e) => setEditStatus(e.target.value)}
+                  className="w-full px-3 py-2 rounded-xl border border-slate-200 text-slate-800 focus:outline-none focus:border-accent bg-white"
+                >
+                  <option value="Active">Active (Public Catalog)</option>
+                  <option value="Draft">Draft (Internal Only)</option>
+                </select>
               </div>
 
               <div className="pt-2 flex justify-end gap-2.5">
                 <button
                   type="button"
                   onClick={() => setEditingProduct(null)}
-                  className="px-4 py-2 rounded-xl border border-slate-200 text-slate-700 font-poppins font-bold hover:bg-slate-50"
+                  className="px-4 py-2 rounded-xl border border-slate-200 text-slate-700 font-heading font-bold hover:bg-slate-50 cursor-pointer"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
-                  className="px-4 py-2 rounded-xl bg-accent hover:bg-accent-hover text-white font-poppins font-bold shadow-sm"
+                  className="px-4 py-2 rounded-xl bg-accent hover:bg-accent-hover text-white font-heading font-bold shadow-sm cursor-pointer"
                 >
                   Save Changes
                 </button>
@@ -615,6 +1036,18 @@ export default function AllProductsView() {
           </div>
         </div>
       )}
+
+      {/* ── Radix UI Delete Confirmation Dialog ── */}
+      <ConfirmDeleteDialog
+        isOpen={Boolean(productToDelete)}
+        onClose={() => setProductToDelete(null)}
+        onConfirm={handleConfirmDelete}
+        title="Delete Product"
+        description="Are you sure you want to remove this product from your wholesale catalog? This will archive the SKU and variants."
+        itemName={productToDelete?.name}
+        confirmText="Yes, Delete Product"
+        isLoading={isDeleting}
+      />
     </div>
   );
 }

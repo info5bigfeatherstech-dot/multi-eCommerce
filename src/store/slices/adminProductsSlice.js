@@ -409,6 +409,9 @@ const adminProductsSlice = createSlice({
     },
 
     // 3. Category Management
+    setCategories: (state, action) => {
+      state.categories = action.payload || [];
+    },
     addCategory: (state, action) => {
       const newCat = {
         ...action.payload,
@@ -475,6 +478,7 @@ export const {
   deleteProduct,
   toggleProductStatus,
   adjustStock,
+  setCategories,
   addCategory,
   addSubcategory,
   deleteCategory,
