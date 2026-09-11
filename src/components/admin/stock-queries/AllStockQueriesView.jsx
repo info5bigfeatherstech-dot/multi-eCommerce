@@ -6,6 +6,10 @@ import {
   deleteQuery,
 } from "@/store/slices/adminStockQueriesSlice";
 import {
+  useOosInquiriesQuery,
+  useUpdateOosInquiryStatusMutation,
+} from "@/hooks/useAdminOosQuery";
+import {
   BellRing,
   Search,
   Filter,
@@ -35,12 +39,26 @@ import {
 
 export default function AllStockQueriesView() {
   const dispatch = useAppDispatch();
-  const queries = useAppSelector((state) => state.adminStockQueries?.queries || []);
+  const reduxQueries = useAppSelector((state) => state.adminStockQueries?.queries || []);
 
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedStatus, setSelectedStatus] = useState("All");
   const [selectedPriority, setSelectedPriority] = useState("All");
   const [detailModalQuery, setDetailModalQuery] = useState(null);
+
+  // React Query hooks for OOS Inquiries
+  const { data: apiData } = useOosInquiriesQuery({
+    search: searchTerm,
+    status: selectedStatus === "All" ? "all" : selectedStatus,
+  });
+  const updateStatusMutation = useUpdateOosInquiryStatusMutation();
+
+  const queries = useMemo(() => {
+    if (apiData?.inquiries && Array.isArray(apiData.inquiries) && apiData.inquiries.length > 0) {
+      return apiData.inquiries;
+    }
+    return reduxQueries;
+  }, [apiData, reduxQueries]);
 
   const statuses = ["All", "Pending", "Notified", "Restocked", "Cancelled"];
   const priorities = ["All", "Urgent", "High", "Medium", "Low"];
@@ -48,19 +66,19 @@ export default function AllStockQueriesView() {
   const filteredQueries = useMemo(() => {
     return queries.filter((q) => {
       const matchSearch =
-        q.productName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        q.sku.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        q.customerName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        q.customerEmail.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        q.id.toLowerCase().includes(searchTerm.toLowerCase());
-      const matchStatus = selectedStatus === "All" || q.status === selectedStatus;
+        q.productName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        q.sku?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        q.customerName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        q.customerEmail?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        q.id?.toLowerCase().includes(searchTerm.toLowerCase());
+      const matchStatus = selectedStatus === "All" || q.status?.toLowerCase() === selectedStatus.toLowerCase();
       const matchPriority = selectedPriority === "All" || q.priority === selectedPriority;
       return matchSearch && matchStatus && matchPriority;
     });
   }, [queries, searchTerm, selectedStatus, selectedPriority]);
 
-  const pendingCount = useMemo(() => queries.filter((q) => q.status === "Pending").length, [queries]);
-  const notifiedCount = useMemo(() => queries.filter((q) => q.status === "Notified").length, [queries]);
+  const pendingCount = useMemo(() => queries.filter((q) => q.status?.toLowerCase() === "pending").length, [queries]);
+  const notifiedCount = useMemo(() => queries.filter((q) => q.status?.toLowerCase() === "notified" || q.status?.toLowerCase() === "contacted").length, [queries]);
   const totalPotentialRevenue = useMemo(() => queries.reduce((acc, q) => acc + (q.potentialRevenue || 0), 0), [queries]);
 
   const handleNotify = (query) => {
@@ -69,8 +87,15 @@ export default function AllStockQueriesView() {
   };
 
   const handleStatusChange = (id, newStatus) => {
-    dispatch(updateQueryStatus({ id, status: newStatus }));
-    toast.info(`Query marked as ${newStatus}.`);
+    updateStatusMutation.mutate(
+      { id, status: newStatus.toLowerCase(), adminNote: "" },
+      {
+        onSettled: () => {
+          dispatch(updateQueryStatus({ id, status: newStatus }));
+          toast.info(`Query marked as ${newStatus}.`);
+        },
+      }
+    );
   };
 
   const handleDelete = (id) => {

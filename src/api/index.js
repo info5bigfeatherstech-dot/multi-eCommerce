@@ -129,6 +129,8 @@ export {
 // Admin Analytics & Customer Management API
 export * as adminCustomerAnalytics from "./adminCustomerAnalytics.js";
 export {
+  getDashboardSummary,
+  getSeoAnalyticsOverview,
   getAdminUsers,
   getAdminUserDetail,
   exportAdminUsersExcel,
@@ -144,6 +146,49 @@ export {
   getStaleWishlists,
   getPopularWishlistProducts,
 } from "./adminCustomerAnalytics.js";
+
+// Staff Management & RBAC API
+export * as adminStaff from "./adminStaff.js";
+export {
+  VALID_STAFF_ROLES,
+  getStaffMembers,
+  getStaffMemberById,
+  createStaffMember,
+  updateStaffMember,
+  deleteStaffMember,
+  initiateStaffReset,
+  verifyStaffReset,
+  getStaffProfileMe,
+  initiateOwnPasswordReset,
+  verifyOwnPasswordReset,
+} from "./adminStaff.js";
+
+// Out of Stock (OOS) Queries API
+export * as adminOos from "./adminOos.js";
+export {
+  OOS_INQUIRY_STATUSES,
+  getOosInquiries,
+  updateOosInquiryStatus,
+  createStorefrontOosInquiry,
+} from "./adminOos.js";
+
+// Product Reviews & Moderation API
+export * as adminReviews from "./adminReviews.js";
+export {
+  getAdminProductReviews,
+  updateReviewStatus,
+  lookupProductVariant,
+  getGeneratedReviews,
+  getGeneratedReviewById,
+  createGeneratedReview,
+  updateGeneratedReview,
+  deleteGeneratedReview,
+  getPublicProductReviews,
+  getPublicProductReviewSummary,
+  getMyProductReview,
+  checkReviewEligibility,
+  submitProductReview,
+} from "./adminReviews.js";
 
 export default {
   client: () => import("./client.js").then((m) => m.apiClient),

@@ -7,6 +7,12 @@ import {
   updateStaffMember,
 } from "../../../store/slices/adminStaffSlice";
 import {
+  useStaffMembersQuery,
+  useUpdateStaffMutation,
+  useDeleteStaffMutation,
+  useInitiateStaffResetMutation,
+} from "@/hooks/useAdminStaffQuery";
+import {
   Users,
   UserPlus,
   ShieldCheck,
@@ -47,7 +53,7 @@ import {
 
 const AllStaffView = () => {
   const dispatch = useAppDispatch();
-  const staffMembers = useAppSelector(
+  const reduxStaffMembers = useAppSelector(
     (state) => state.adminStaff?.staffMembers || []
   );
   const roles = useAppSelector((state) => state.adminStaff?.roles || []);
@@ -56,6 +62,22 @@ const AllStaffView = () => {
   const [departmentFilter, setDepartmentFilter] = useState("all");
   const [roleFilter, setRoleFilter] = useState("all");
   const [statusFilter, setStatusFilter] = useState("all");
+
+  // React Query Hooks
+  const { data: apiData, isLoading } = useStaffMembersQuery({
+    search: searchQuery,
+    role: roleFilter,
+  });
+  const updateMutation = useUpdateStaffMutation();
+  const deleteMutation = useDeleteStaffMutation();
+  const resetMutation = useInitiateStaffResetMutation();
+
+  const staffMembers = useMemo(() => {
+    if (apiData?.staff && Array.isArray(apiData.staff) && apiData.staff.length > 0) {
+      return apiData.staff;
+    }
+    return reduxStaffMembers;
+  }, [apiData, reduxStaffMembers]);
 
   // Edit Modal State
   const [editModalOpen, setEditModalOpen] = useState(false);
@@ -84,11 +106,11 @@ const AllStaffView = () => {
 
       if (searchQuery.trim()) {
         const query = searchQuery.toLowerCase();
-        const matchName = staff.name.toLowerCase().includes(query);
-        const matchEmail = staff.email.toLowerCase().includes(query);
-        const matchId = staff.id.toLowerCase().includes(query);
-        const matchPhone = staff.phone.toLowerCase().includes(query);
-        const matchRole = staff.role.toLowerCase().includes(query);
+        const matchName = staff.name?.toLowerCase().includes(query);
+        const matchEmail = staff.email?.toLowerCase().includes(query);
+        const matchId = staff.id?.toLowerCase().includes(query);
+        const matchPhone = staff.phone?.toLowerCase().includes(query);
+        const matchRole = staff.role?.toLowerCase().includes(query);
         return matchName || matchEmail || matchId || matchPhone || matchRole;
       }
       return true;
@@ -97,20 +119,40 @@ const AllStaffView = () => {
 
   // Handlers
   const handleToggleStatus = (id, name, currentStatus) => {
-    dispatch(toggleStaffStatus(id));
-    const nextStatus = currentStatus === "Active" ? "Suspended" : "Active";
-    if (nextStatus === "Suspended") {
-      toast.error(`Account for ${name} has been suspended.`);
-    } else {
-      toast.success(`Account for ${name} has been reactivated.`);
-    }
+    const nextIsActive = currentStatus !== "Active";
+    updateMutation.mutate(
+      { id, isActive: nextIsActive },
+      {
+        onSettled: () => {
+          dispatch(toggleStaffStatus(id));
+          const nextStatus = currentStatus === "Active" ? "Suspended" : "Active";
+          if (nextStatus === "Suspended") {
+            toast.error(`Account for ${name} has been suspended.`);
+          } else {
+            toast.success(`Account for ${name} has been reactivated.`);
+          }
+        },
+      }
+    );
   };
 
   const handleDeleteStaff = (id, name) => {
     if (window.confirm(`Are you sure you want to permanently delete staff member ${name}?`)) {
-      dispatch(deleteStaffMember(id));
-      toast.success(`Removed ${name} from staff directory.`);
+      deleteMutation.mutate(id, {
+        onSettled: () => {
+          dispatch(deleteStaffMember(id));
+          toast.success(`Removed ${name} from staff directory.`);
+        },
+      });
     }
+  };
+
+  const handleInitiateReset = (staff) => {
+    resetMutation.mutate(staff.id, {
+      onSuccess: () => {
+        toast.success(`Password reset OTP dispatched to ${staff.name} (${staff.email}).`);
+      },
+    });
   };
 
   const openEditModal = (staff) => {
@@ -122,10 +164,24 @@ const AllStaffView = () => {
     e.preventDefault();
     if (!editingStaff) return;
 
-    dispatch(updateStaffMember(editingStaff));
-    toast.success(`Updated staff details for ${editingStaff.name}`);
-    setEditModalOpen(false);
-    setEditingStaff(null);
+    updateMutation.mutate(
+      {
+        id: editingStaff.id,
+        name: editingStaff.name,
+        phone: editingStaff.phone,
+        role: editingStaff.role,
+        isActive: editingStaff.status === "Active",
+        permissions: editingStaff.permissions,
+      },
+      {
+        onSettled: () => {
+          dispatch(updateStaffMember(editingStaff));
+          toast.success(`Updated staff details for ${editingStaff.name}`);
+          setEditModalOpen(false);
+          setEditingStaff(null);
+        },
+      }
+    );
   };
 
   // CSV Export
@@ -521,6 +577,15 @@ const AllStaffView = () => {
                           ) : (
                             <Unlock className="w-3.5 h-3.5" />
                           )}
+                        </button>
+
+                        {/* Trigger Password / OTP Reset */}
+                        <button
+                          onClick={() => handleInitiateReset(staff)}
+                          title="Trigger OTP / Password Reset"
+                          className="p-1.5 text-amber-600 hover:bg-amber-50 rounded-md border border-slate-200 hover:border-amber-200 transition-colors"
+                        >
+                          <KeyRound className="w-3.5 h-3.5" />
                         </button>
 
                         {/* Edit Staff */}

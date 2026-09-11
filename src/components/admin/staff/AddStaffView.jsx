@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { useAppDispatch, useAppSelector } from "../../../store/hooks";
 import { addStaffMember } from "../../../store/slices/adminStaffSlice";
+import { useCreateStaffMutation } from "@/hooks/useAdminStaffQuery";
 import {
   UserPlus,
   ArrowLeft,
@@ -37,9 +38,23 @@ const MODULES = [
   { id: "staff", label: "Staff & RBAC Settings" },
 ];
 
+const ROLE_MAPPING = {
+  "Super Admin": "admin",
+  admin: "admin",
+  "Catalog Manager": "product_manager",
+  product_manager: "product_manager",
+  "Store Manager": "order_manager",
+  order_manager: "order_manager",
+  "Marketing Specialist": "marketing_manager",
+  marketing_manager: "marketing_manager",
+  "Customer Support Lead": "order_manager",
+  "Inventory Specialist": "product_manager",
+};
+
 const AddStaffView = () => {
   const dispatch = useAppDispatch();
   const navigate = useNavigate();
+  const createMutation = useCreateStaffMutation();
   const roles = useAppSelector((state) => state.adminStaff?.roles || []);
   const staffMembers = useAppSelector(
     (state) => state.adminStaff?.staffMembers || []
@@ -95,6 +110,8 @@ const AddStaffView = () => {
       return;
     }
 
+    const validRole = ROLE_MAPPING[selectedRoleName] || "order_manager";
+
     const newStaff = {
       id: employeeId || nextStaffId,
       name: name.trim(),
@@ -110,13 +127,27 @@ const AddStaffView = () => {
       avatar: `https://images.unsplash.com/photo-${1534528741775 + (staffMembers.length * 1000)}?auto=format&fit=crop&w=200&q=80`,
     };
 
-    dispatch(addStaffMember(newStaff));
-    toast.success(
-      authMethod === "invite"
-        ? `Invitation email sent to ${newStaff.email}!`
-        : `Staff member ${newStaff.name} created successfully!`
+    createMutation.mutate(
+      {
+        name: newStaff.name,
+        email: newStaff.email,
+        phone: newStaff.phone,
+        role: validRole,
+        password: tempPassword,
+        permissions: customPermissions,
+      },
+      {
+        onSettled: () => {
+          dispatch(addStaffMember(newStaff));
+          toast.success(
+            authMethod === "invite"
+              ? `Invitation email sent to ${newStaff.email}!`
+              : `Staff member ${newStaff.name} created successfully!`
+          );
+          navigate("/admin/staff/all");
+        },
+      }
     );
-    navigate("/admin/staff/all");
   };
 
   return (

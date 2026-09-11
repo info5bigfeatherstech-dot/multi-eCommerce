@@ -1,5 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import {
+  getDashboardSummary,
+  getSeoAnalyticsOverview,
   getAdminUsers,
   getAdminUserDetail,
   exportAdminUsersExcel,
@@ -17,10 +19,36 @@ import {
 } from "@/api/adminCustomerAnalytics";
 import { toast } from "sonner";
 
+export const ADMIN_DASHBOARD_SUMMARY_KEY = ["admin", "analytics", "dashboard-summary"];
+export const ADMIN_SEO_OVERVIEW_KEY = ["admin", "seo-analytics", "overview"];
 export const ADMIN_USERS_KEY = ["admin", "users"];
 export const ADMIN_CARTS_KEY = ["admin", "carts"];
 export const ADMIN_WISHLISTS_KEY = ["admin", "wishlists"];
 export const ADMIN_PUSH_SETTINGS_KEY = ["admin", "pushSettings"];
+
+/**
+ * 0. Admin Executive Dashboard Summary Hook
+ * Top-level KPIs: revenue, orders, active products, users, abandoned carts
+ */
+export function useAdminDashboardSummaryQuery() {
+  return useQuery({
+    queryKey: ADMIN_DASHBOARD_SUMMARY_KEY,
+    queryFn: () => getDashboardSummary(),
+    staleTime: 45 * 1000,
+  });
+}
+
+/**
+ * 0b. Admin SEO Analytics Overview Hook
+ * Search traffic, crawler status, and SEO visibility score
+ */
+export function useAdminSeoAnalyticsOverviewQuery() {
+  return useQuery({
+    queryKey: ADMIN_SEO_OVERVIEW_KEY,
+    queryFn: () => getSeoAnalyticsOverview(),
+    staleTime: 60 * 1000,
+  });
+}
 
 /**
  * 1. Admin Customers List Hook

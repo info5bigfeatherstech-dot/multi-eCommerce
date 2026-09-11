@@ -7,6 +7,10 @@ import {
   batchApprovePending,
 } from "../../../store/slices/adminReviewsSlice";
 import {
+  useAdminProductReviewsQuery,
+  useUpdateReviewStatusMutation,
+} from "@/hooks/useProductReviewsQuery";
+import {
   ShieldCheck,
   CheckCircle2,
   XCircle,
@@ -34,13 +38,28 @@ import {
 
 const ReviewManagementView = () => {
   const dispatch = useAppDispatch();
-  const productReviews = useAppSelector(
+  const reduxProductReviews = useAppSelector(
     (state) => state.adminReviews?.productReviews || []
   );
 
   const [activeTab, setActiveTab] = useState("all"); // 'all' | 'pending' | 'approved' | 'rejected'
   const [searchQuery, setSearchQuery] = useState("");
   const [ratingFilter, setRatingFilter] = useState("all"); // 'all' | '5' | '4' | '3' | '2' | '1'
+
+  // React Query hooks for Product Reviews
+  const { data: apiData } = useAdminProductReviewsQuery({
+    search: searchQuery,
+    rating: ratingFilter === "all" ? undefined : ratingFilter,
+    source: "all",
+  });
+  const updateStatusMutation = useUpdateReviewStatusMutation();
+
+  const productReviews = useMemo(() => {
+    if (apiData?.reviews && Array.isArray(apiData.reviews) && apiData.reviews.length > 0) {
+      return apiData.reviews;
+    }
+    return reduxProductReviews;
+  }, [apiData, reduxProductReviews]);
 
   // Reply Modal State
   const [replyModalOpen, setReplyModalOpen] = useState(false);
@@ -69,11 +88,11 @@ const ReviewManagementView = () => {
       // Search query
       if (searchQuery.trim()) {
         const query = searchQuery.toLowerCase();
-        const matchesProduct = item.productName.toLowerCase().includes(query);
-        const matchesSku = item.sku.toLowerCase().includes(query);
-        const matchesReviewer = item.reviewerName.toLowerCase().includes(query);
-        const matchesComment = item.comment.toLowerCase().includes(query);
-        const matchesTitle = item.title.toLowerCase().includes(query);
+        const matchesProduct = item.productName?.toLowerCase().includes(query);
+        const matchesSku = item.sku?.toLowerCase().includes(query);
+        const matchesReviewer = item.reviewerName?.toLowerCase().includes(query);
+        const matchesComment = item.comment?.toLowerCase().includes(query);
+        const matchesTitle = item.title?.toLowerCase().includes(query);
         return (
           matchesProduct ||
           matchesSku ||
@@ -88,13 +107,27 @@ const ReviewManagementView = () => {
 
   // Handlers
   const handleApprove = (id, reviewer) => {
-    dispatch(approveReview(id));
-    toast.success(`Review from ${reviewer} approved & published!`);
+    updateStatusMutation.mutate(
+      { id, isActive: true },
+      {
+        onSettled: () => {
+          dispatch(approveReview(id));
+          toast.success(`Review from ${reviewer} approved & published!`);
+        },
+      }
+    );
   };
 
   const handleReject = (id, reviewer) => {
-    dispatch(rejectReview(id));
-    toast.error(`Review from ${reviewer} moved to Rejected queue.`);
+    updateStatusMutation.mutate(
+      { id, isActive: false },
+      {
+        onSettled: () => {
+          dispatch(rejectReview(id));
+          toast.error(`Review from ${reviewer} moved to Rejected queue.`);
+        },
+      }
+    );
   };
 
   const handleBatchApprove = () => {

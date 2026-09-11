@@ -298,7 +298,35 @@ export async function getPopularWishlistProducts() {
   }
 }
 
+/**
+ * 15. GET /admin/analytics/dashboard/summary
+ * Top-level KPIs: revenue, orders, active products, users, abandoned carts
+ */
+export async function getDashboardSummary() {
+  try {
+    const response = await apiClient.get(ENDPOINTS.ADMIN_ANALYTICS.DASHBOARD_SUMMARY);
+    return response.data?.data || response.data;
+  } catch (error) {
+    throw new Error(normalizeApiError(error));
+  }
+}
+
+/**
+ * 16. GET /admin/seo-analytics/overview
+ * Search traffic, crawler status, and SEO visibility score
+ */
+export async function getSeoAnalyticsOverview() {
+  try {
+    const response = await apiClient.get(ENDPOINTS.ADMIN_ANALYTICS.SEO_OVERVIEW);
+    return response.data?.data || response.data;
+  } catch (error) {
+    throw new Error(normalizeApiError(error));
+  }
+}
+
 export default {
+  getDashboardSummary,
+  getSeoAnalyticsOverview,
   getAdminUsers,
   getAdminUserDetail,
   exportAdminUsersExcel,

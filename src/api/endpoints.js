@@ -28,6 +28,8 @@ export const ENDPOINTS = {
 
   // Admin Analytics & Customer Management APIs
   ADMIN_ANALYTICS: {
+    DASHBOARD_SUMMARY: "/admin/analytics/dashboard/summary",
+    SEO_OVERVIEW: "/admin/seo-analytics/overview",
     USERS: "/admin/analytics/users",
     USER_DETAIL: (userId) => `/admin/analytics/users/${encodeURIComponent(userId)}`,
     USERS_EXPORT: "/admin/analytics/users/export",
@@ -41,6 +43,44 @@ export const ENDPOINTS = {
     WISHLISTS: "/admin/analytics/wishlists",
     WISHLISTS_STALE: "/admin/analytics/wishlists/stale",
     WISHLISTS_POPULAR: "/admin/analytics/wishlists/popular-products",
+  },
+
+  // Staff Management APIs
+  STAFF: {
+    LIST: "/admin/staff",
+    DETAIL: (id) => `/admin/staff/${encodeURIComponent(id)}`,
+    CREATE: "/admin/staff",
+    UPDATE: (id) => `/admin/staff/${encodeURIComponent(id)}`,
+    DELETE: (id) => `/admin/staff/${encodeURIComponent(id)}`,
+    INITIATE_RESET: (id) => `/admin/staff/${encodeURIComponent(id)}/initiate-reset`,
+    VERIFY_RESET: (id) => `/admin/staff/${encodeURIComponent(id)}/verify-reset`,
+    PROFILE_ME: "/admin/staff/profile/me",
+    PROFILE_INITIATE_PASSWORD_RESET: "/admin/staff/profile/me/initiate-password-reset",
+    PROFILE_VERIFY_PASSWORD_RESET: "/admin/staff/profile/me/verify-password-reset",
+  },
+
+  // Out of Stock (OOS) Query APIs
+  OOS_INQUIRIES: {
+    ADMIN_LIST: "/admin/oos-inquiries",
+    ADMIN_STATUS: (id) => `/admin/oos-inquiries/${encodeURIComponent(id)}/status`,
+    STOREFRONT_CREATE: "/oos-inquiries",
+  },
+
+  // Product Reviews & Moderation APIs
+  REVIEWS: {
+    ADMIN_LIST: "/admin/product-reviews",
+    ADMIN_STATUS: (id) => `/admin/product-reviews/${encodeURIComponent(id)}/status`,
+    VARIANT_LOOKUP: (code) => `/admin/products/variant/${encodeURIComponent(code)}`,
+    GENERATED_LIST: "/admin/product-reviews/generated",
+    GENERATED_DETAIL: (id) => `/admin/product-reviews/generated/${encodeURIComponent(id)}`,
+    GENERATED_CREATE: "/admin/product-reviews/generated",
+    GENERATED_UPDATE: (id) => `/admin/product-reviews/generated/${encodeURIComponent(id)}`,
+    GENERATED_DELETE: (id) => `/admin/product-reviews/generated/${encodeURIComponent(id)}`,
+    PUBLIC_LIST: (productId) => `/product-reviews/public/${encodeURIComponent(productId)}`,
+    PUBLIC_SUMMARY: (productId) => `/product-reviews/public/${encodeURIComponent(productId)}/summary`,
+    MINE: (productId) => `/product-reviews/mine/${encodeURIComponent(productId)}`,
+    ELIGIBILITY: (productId) => `/product-reviews/eligibility/${encodeURIComponent(productId)}`,
+    SUBMIT: "/product-reviews",
   },
 
   // Admin Products & Archiving APIs

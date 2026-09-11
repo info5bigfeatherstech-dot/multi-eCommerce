@@ -2,6 +2,10 @@ import React, { useState, useMemo } from "react";
 import { useAppDispatch, useAppSelector } from "@/store/hooks";
 import { addProductReview } from "@/store/slices/adminReviewsSlice";
 import {
+  useAdminProductReviewsQuery,
+  useCreateGeneratedReviewMutation,
+} from "@/hooks/useProductReviewsQuery";
+import {
   Star,
   Search,
   PlusCircle,
@@ -28,7 +32,7 @@ import {
 
 export default function ProductReviewsView() {
   const dispatch = useAppDispatch();
-  const reviews = useAppSelector(
+  const reduxReviews = useAppSelector(
     (state) => state.adminReviews?.productReviews || []
   );
 
@@ -37,6 +41,20 @@ export default function ProductReviewsView() {
   const [selectedStatus, setSelectedStatus] = useState("All");
   const [previewImage, setPreviewImage] = useState(null);
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+
+  // React Query hooks
+  const { data: apiData } = useAdminProductReviewsQuery({
+    search: searchTerm,
+    rating: selectedRating === "All" ? undefined : selectedRating,
+  });
+  const createGeneratedMutation = useCreateGeneratedReviewMutation();
+
+  const reviews = useMemo(() => {
+    if (apiData?.reviews && Array.isArray(apiData.reviews) && apiData.reviews.length > 0) {
+      return apiData.reviews;
+    }
+    return reduxReviews;
+  }, [apiData, reduxReviews]);
 
   // Add review state
   const [newProduct, setNewProduct] = useState(
@@ -115,12 +133,28 @@ export default function ProductReviewsView() {
       merchantReply: null,
     };
 
-    dispatch(addProductReview(reviewObj));
-    toast.success(`Review from ${newReviewer} added successfully!`);
-    setIsAddModalOpen(false);
-    setNewReviewer("");
-    setNewTitle("");
-    setNewComment("");
+    createGeneratedMutation.mutate(
+      {
+        productId: newProduct,
+        variantCode: newSku,
+        reviewerName: newReviewer.trim(),
+        rating: parseInt(newRating, 10),
+        title: newTitle.trim(),
+        comment: newComment.trim(),
+        verifiedPurchase: true,
+        date: new Date().toISOString(),
+      },
+      {
+        onSettled: () => {
+          dispatch(addProductReview(reviewObj));
+          toast.success(`Review from ${newReviewer} added successfully!`);
+          setIsAddModalOpen(false);
+          setNewReviewer("");
+          setNewTitle("");
+          setNewComment("");
+        },
+      }
+    );
   };
 
   const handleExportCSV = () => {
