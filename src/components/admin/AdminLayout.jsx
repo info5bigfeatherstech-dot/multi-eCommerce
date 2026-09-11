@@ -63,6 +63,7 @@ import {
   Cpu,
   PlayCircle,
   Plus,
+  Heart,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
@@ -112,6 +113,7 @@ export default function AdminLayout() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [isOrdersExpanded, setIsOrdersExpanded] = useState(false);
   const [isProductsExpanded, setIsProductsExpanded] = useState(false);
+  const [isCustomersExpanded, setIsCustomersExpanded] = useState(false);
   const [isReturnsExpanded, setIsReturnsExpanded] = useState(false);
   const [isRtoExpanded, setIsRtoExpanded] = useState(false);
   const [isAnalyticsExpanded, setIsAnalyticsExpanded] = useState(false);
@@ -677,6 +679,30 @@ export default function AdminLayout() {
     },
   ];
 
+  const customerSubItems = [
+    {
+      name: "All Customers",
+      path: "/admin/customers",
+      description: "Customer directory, roles & LTV",
+      icon: Users,
+      exact: true,
+    },
+    {
+      name: "Carts & Abandoned",
+      path: "/admin/carts",
+      description: "Active baskets & recovery alerts",
+      icon: ShoppingCart,
+      exact: true,
+    },
+    {
+      name: "Customer Wishlists",
+      path: "/admin/wishlists",
+      description: "Saved demand & popular products",
+      icon: Heart,
+      exact: true,
+    },
+  ];
+
   const returnSubItems = [
     {
       name: "Returns",
@@ -909,6 +935,58 @@ export default function AdminLayout() {
                             {item.badge}
                           </span>
                         )}
+                      </Link>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+
+            {/* Customers & Carts Accordion Parent */}
+            <div className="space-y-1 mt-2">
+              <button
+                type="button"
+                onClick={() => setIsCustomersExpanded(!isCustomersExpanded)}
+                className="w-full flex items-center justify-between px-3 py-2.5 rounded-xl text-xs font-poppins font-bold text-slate-800 hover:bg-slate-100 transition-colors cursor-pointer group"
+              >
+                <div className="flex items-center gap-2.5">
+                  <div className="p-1.5 rounded-lg bg-orange-50 text-accent group-hover:bg-accent group-hover:text-white transition-colors">
+                    <Users className="w-4 h-4" />
+                  </div>
+                  <span className="text-sm text-slate-900">Customers & Carts</span>
+                </div>
+                {isCustomersExpanded ? (
+                  <ChevronDown className="w-4 h-4 text-slate-400 transition-transform" />
+                ) : (
+                  <ChevronRight className="w-4 h-4 text-slate-400 transition-transform" />
+                )}
+              </button>
+
+              {/* Customers & Carts Submenu links */}
+              {isCustomersExpanded && (
+                <div className="pl-4 pr-1 py-1 space-y-1 border-l-2 border-slate-200 ml-5 animate-fadeIn">
+                  {customerSubItems.map((item) => {
+                    const isActive = item.exact
+                      ? location.pathname === item.path
+                      : location.pathname.startsWith(item.path);
+                    const ItemIcon = item.icon;
+
+                    return (
+                      <Link
+                        key={item.path}
+                        to={item.path}
+                        onClick={() => setIsSidebarOpen(false)}
+                        className={cn(
+                          "flex items-center justify-between px-3 py-2 rounded-xl text-xs font-poppins font-semibold transition-all group",
+                          isActive
+                            ? "bg-accent text-white shadow-xs font-bold"
+                            : "text-slate-600 hover:bg-slate-100 hover:text-slate-900"
+                        )}
+                      >
+                        <div className="flex items-center gap-2 min-w-0">
+                          <ItemIcon className={cn("w-3.5 h-3.5 flex-shrink-0", isActive ? "text-white" : "text-slate-400 group-hover:text-accent")} />
+                          <span className="truncate">{item.name}</span>
+                        </div>
                       </Link>
                     );
                   })}

@@ -6,6 +6,13 @@ import {
   DialogTitle,
   DialogDescription,
 } from "@/components/ui/Dialog";
+import {
+  Select,
+  SelectTrigger,
+  SelectValue,
+  SelectContent,
+  SelectItem,
+} from "@/components/ui/Select";
 import { AlertTriangle, X, Loader2, PackageX, ShieldAlert } from "lucide-react";
 import { formatCurrency } from "@/lib/utils";
 
@@ -99,23 +106,31 @@ export default function CancelOrderModal({
             </div>
           </div>
 
-          {/* Cancellation Reason Dropdown/Radios */}
+          {/* Cancellation Reason Dropdown */}
           <div className="space-y-2">
             <label className="text-xs font-bold text-slate-700">
               Reason for Cancellation <span className="text-rose-500">*</span>
             </label>
-            <select
+            <Select
               value={selectedReason}
-              onChange={(e) => setSelectedReason(e.target.value)}
+              onValueChange={setSelectedReason}
               disabled={isCancelling}
-              className="w-full text-xs font-medium bg-white border border-slate-200 rounded-xl p-3 text-slate-800 focus:outline-none focus:ring-2 focus:ring-rose-500/20 focus:border-rose-500 transition-all cursor-pointer"
             >
-              {CANCELLATION_REASONS.map((r) => (
-                <option key={r} value={r}>
-                  {r}
-                </option>
-              ))}
-            </select>
+              <SelectTrigger className="w-full text-xs font-medium bg-white border border-slate-200 rounded-xl px-3.5 py-2.5 h-11 text-slate-800 focus:ring-2 focus:ring-rose-500/20 focus:border-rose-500 transition-all shadow-2xs">
+                <SelectValue placeholder="Select cancellation reason" />
+              </SelectTrigger>
+              <SelectContent className="z-[9999] rounded-xl border border-slate-200 bg-white shadow-xl max-h-60 overflow-y-auto">
+                {CANCELLATION_REASONS.map((r) => (
+                  <SelectItem
+                    key={r}
+                    value={r}
+                    className="text-xs py-2.5 rounded-lg cursor-pointer hover:bg-slate-50 focus:bg-slate-100"
+                  >
+                    {r}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
 
           {/* Optional notes textarea */}

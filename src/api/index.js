@@ -99,6 +99,52 @@ export {
   sendReturnChat,
 } from "./adminOrders.js";
 
+// Centralized Endpoints Map
+export { ENDPOINTS } from "./endpoints.js";
+
+// Storefront Cart API
+export * as storefrontCart from "./storefrontCart.js";
+export {
+  getCart,
+  addToCart,
+  updateCartItem,
+  removeCartItem,
+  bulkRemoveCartItems,
+  clearCart,
+  mergeCart,
+} from "./storefrontCart.js";
+
+// Storefront Wishlist API
+export * as storefrontWishlist from "./storefrontWishlist.js";
+export {
+  getWishlist,
+  addToWishlist,
+  removeWishlistItem,
+  bulkRemoveWishlistItems,
+  clearWishlist,
+  mergeWishlist,
+  moveWishlistToCart,
+} from "./storefrontWishlist.js";
+
+// Admin Analytics & Customer Management API
+export * as adminCustomerAnalytics from "./adminCustomerAnalytics.js";
+export {
+  getAdminUsers,
+  getAdminUserDetail,
+  exportAdminUsersExcel,
+  sendBulkCartReminderEmail,
+  sendBulkCartReminderPush,
+  getPushSettings,
+  updatePushSettings,
+  getAdminCarts,
+  getAdminCartDetail,
+  getAbandonedCarts,
+  getHighValueCarts,
+  getAdminWishlists,
+  getStaleWishlists,
+  getPopularWishlistProducts,
+} from "./adminCustomerAnalytics.js";
+
 export default {
   client: () => import("./client.js").then((m) => m.apiClient),
 };

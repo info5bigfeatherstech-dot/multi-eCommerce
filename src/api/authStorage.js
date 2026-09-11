@@ -9,22 +9,54 @@ const AUTH_LEGACY_KEY = "apexmart_admin_auth";
 
 /**
  * Retrieve the current admin access token.
- * Checks dedicated key first, then falls back to legacy admin auth object.
+ * Checks dedicated keys first, common token keys, legacy admin auth object, and cookies.
  * @returns {string|null}
  */
 export function getAdminAccessToken() {
   if (typeof window === "undefined") return null;
   try {
-    const directToken = localStorage.getItem(ACCESS_TOKEN_KEY);
-    if (directToken) return directToken;
+    const candidateKeys = [
+      ACCESS_TOKEN_KEY,
+      "apexmart_admin_token",
+      "admin_access_token",
+      "admin_token",
+      "access_token",
+      "token",
+      "adminToken",
+      "accessToken",
+      "jwt",
+      "auth_token",
+    ];
 
-    // Fallback: check legacy JSON storage if present
-    const legacy = localStorage.getItem(AUTH_LEGACY_KEY);
-    if (legacy) {
-      const parsed = JSON.parse(legacy);
-      if (parsed?.token) return parsed.token;
-      if (parsed?.accessToken) return parsed.accessToken;
-      if (parsed?.adminUser?.token) return parsed.adminUser.token;
+    for (const key of candidateKeys) {
+      const val = localStorage.getItem(key);
+      if (val && typeof val === "string" && val.length > 10 && !val.startsWith("{")) {
+        return val;
+      }
+    }
+
+    // Check JSON objects in storage
+    const jsonKeys = [AUTH_LEGACY_KEY, "apexmart_user", "user", "admin", "auth"];
+    for (const key of jsonKeys) {
+      const raw = localStorage.getItem(key);
+      if (raw) {
+        try {
+          const parsed = JSON.parse(raw);
+          const token =
+            parsed?.token ||
+            parsed?.accessToken ||
+            parsed?.access_token ||
+            parsed?.adminUser?.token ||
+            parsed?.adminUser?.accessToken;
+          if (token) return token;
+        } catch {}
+      }
+    }
+
+    // Fallback: check document.cookie
+    if (typeof document !== "undefined" && document.cookie) {
+      const match = document.cookie.match(/(?:^|;\s*)(?:token|accessToken|admin_token|access_token)=([^;]+)/);
+      if (match && match[1]) return decodeURIComponent(match[1]);
     }
   } catch (e) {
     console.error("Error reading admin access token:", e);

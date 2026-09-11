@@ -10,6 +10,7 @@ import DropshippingPage from "./components/pages/DropshippingPage";
 import InquiryPage from "./components/pages/InquiryPage";
 import ContactPage from "./components/pages/ContactPage";
 import WishlistPage from "./components/wishlist/WishlistPage";
+import CartPage from "./components/cart/CartPage";
 import ProductDetail from "./components/product/ProductDetail";
 import CheckoutPage from "./components/pages/CheckoutPage";
 import CategoryPage from "./components/pages/CategoryPage";
@@ -53,6 +54,9 @@ import SalesAnalyticsView from "./components/admin/analytics/SalesAnalyticsView"
 import ProductAnalyticsView from "./components/admin/analytics/ProductAnalyticsView";
 import CustomerAnalyticsView from "./components/admin/analytics/CustomerAnalyticsView";
 import StoreReportsView from "./components/admin/analytics/StoreReportsView";
+import AdminCustomersView from "./components/admin/customers/AdminCustomersView";
+import AdminCartsView from "./components/admin/carts/AdminCartsView";
+import AdminWishlistsView from "./components/admin/wishlists/AdminWishlistsView";
 import ArchivedProductsView from "./components/admin/archived/ArchivedProductsView";
 import ArchivedOrdersView from "./components/admin/archived/ArchivedOrdersView";
 import ArchivedCustomersView from "./components/admin/archived/ArchivedCustomersView";
@@ -158,6 +162,11 @@ export default function App() {
             <Route path="products/categories" element={<CategoriesView />} />
             <Route path="products/inventory" element={<InventoryView />} />
             <Route path="products/attributes" element={<ProductAttributesView />} />
+
+            {/* Customer Management, Carts & Wishlists Sub-module */}
+            <Route path="customers" element={<AdminCustomersView />} />
+            <Route path="carts" element={<AdminCartsView />} />
+            <Route path="wishlists" element={<AdminWishlistsView />} />
 
             {/* Returns & Refunds Sub-module */}
             <Route path="returns" element={<ReturnsView />} />
@@ -302,6 +311,7 @@ export default function App() {
           <Route path="/dropshipping" element={<DropshippingPage />} />
           <Route path="/inquiry" element={<InquiryPage />} />
           <Route path="/contact" element={<ContactPage />} />
+          <Route path="/cart" element={<CartPage />} />
           <Route path="/wishlist" element={<WishlistPage />} />
           <Route path="/checkout" element={<CheckoutPage />} />
           <Route path="/profile" element={<ProfilePage />} />

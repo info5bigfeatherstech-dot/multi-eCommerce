@@ -1,8 +1,13 @@
-import React from "react";
+import React, { useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAppDispatch, useAppSelector } from "@/store/hooks";
 import { setCartDrawerOpen } from "@/store/slices/uiSlice";
 import { addItem, removeItem } from "@/store/slices/cartSlice";
+import {
+  useUpdateCartItemMutation,
+  useRemoveCartItemMutation,
+} from "@/hooks/useCartQuery";
+import { useAddToWishlistMutation } from "@/hooks/useWishlistQuery";
 import { formatCurrency, cn } from "@/lib/utils";
 import {
   X,
@@ -14,6 +19,8 @@ import {
   ArrowRight,
   Tag,
   CheckCircle2,
+  Heart,
+  ExternalLink,
 } from "lucide-react";
 import {
   Drawer,
@@ -24,6 +31,7 @@ import {
   DrawerClose,
 } from "@/components/ui/Drawer";
 import Button from "@/components/ui/Button";
+import { toast } from "sonner";
 
 export function CartDrawer() {
   const dispatch = useAppDispatch();
@@ -33,12 +41,72 @@ export function CartDrawer() {
     (state) => state.cart
   );
 
+  const updateCartMutation = useUpdateCartItemMutation();
+  const removeCartMutation = useRemoveCartItemMutation();
+  const addToWishlistMutation = useAddToWishlistMutation();
+
+  const debounceTimers = useRef({});
+
   const freeShippingThreshold = 599;
   const progressPercent = Math.min(100, Math.round((totalAmount / freeShippingThreshold) * 100));
 
   const handleProceedToCheckout = () => {
     dispatch(setCartDrawerOpen(false));
     navigate("/checkout");
+  };
+
+  const handleGoToFullCart = () => {
+    dispatch(setCartDrawerOpen(false));
+    navigate("/cart");
+  };
+
+  const handleQuantityChange = (item, newQuantity) => {
+    if (newQuantity < 1) {
+      handleRemoveItem(item);
+      return;
+    }
+
+    // Update Redux state immediately for snappy local badge response
+    if (newQuantity > item.quantity) {
+      dispatch(addItem(item));
+    } else {
+      dispatch(removeItem(item.id));
+    }
+
+    // Debounce API sync to PUT /cart/item
+    const itemKey = `${item.id || item.slug}_${item.variantId || ""}`;
+    if (debounceTimers.current[itemKey]) {
+      clearTimeout(debounceTimers.current[itemKey]);
+    }
+    debounceTimers.current[itemKey] = setTimeout(() => {
+      updateCartMutation.mutate({
+        productId: item.id || item.slug,
+        variantId: item.variantId,
+        quantity: newQuantity,
+      });
+    }, 300);
+  };
+
+  const handleRemoveItem = (item) => {
+    dispatch(removeItem(item.id));
+    removeCartMutation.mutate({
+      productId: item.id || item.slug,
+      variantId: item.variantId,
+    });
+    toast.success(`Removed "${item.name}" from cart.`);
+  };
+
+  const handleMoveToWishlist = (item) => {
+    dispatch(removeItem(item.id));
+    removeCartMutation.mutate({
+      productId: item.id || item.slug,
+      variantId: item.variantId,
+    });
+    addToWishlistMutation.mutate({
+      productSlug: item.slug || item.id,
+      variantId: item.variantId,
+      product: item,
+    });
   };
 
   return (
@@ -49,7 +117,7 @@ export function CartDrawer() {
     >
       <DrawerContent
         direction="right"
-        className="w-full sm:max-w-md md:max-w-[460px] h-full flex flex-col p-0 border-l border-slate-200/80 bg-white z-50 shadow-2xl"
+        className="w-full sm:max-w-md md:max-w-[460px] h-full flex flex-col p-0 border-l border-slate-200/80 bg-white z-50 shadow-2xl font-poppins"
       >
         <DrawerHeader className="sr-only">
           <DrawerTitle>Shopping Cart</DrawerTitle>
@@ -171,12 +239,12 @@ export function CartDrawer() {
                     )}
                   </div>
 
-                  {/* Quantity Stepper & Remove */}
+                  {/* Quantity Stepper & Actions */}
                   <div className="flex items-center justify-between pt-1">
                     <div className="flex items-center border border-slate-200 rounded-lg bg-slate-50 overflow-hidden">
                       <button
-                        onClick={() => dispatch(removeItem(item.id))}
-                        className="p-1 hover:bg-slate-200 text-slate-600 transition-colors active:scale-95"
+                        onClick={() => handleQuantityChange(item, item.quantity - 1)}
+                        className="p-1 hover:bg-slate-200 text-slate-600 transition-colors active:scale-95 cursor-pointer"
                         aria-label="Decrease quantity"
                       >
                         <Minus className="w-3 h-3" />
@@ -185,22 +253,33 @@ export function CartDrawer() {
                         {item.quantity}
                       </span>
                       <button
-                        onClick={() => dispatch(addItem(item))}
-                        className="p-1 hover:bg-slate-200 text-slate-600 transition-colors active:scale-95"
+                        onClick={() => handleQuantityChange(item, item.quantity + 1)}
+                        className="p-1 hover:bg-slate-200 text-slate-600 transition-colors active:scale-95 cursor-pointer"
                         aria-label="Increase quantity"
                       >
                         <Plus className="w-3 h-3" />
                       </button>
                     </div>
 
-                    <button
-                      onClick={() => dispatch(removeItem(item.id))}
-                      className="text-slate-400 hover:text-rose-600 p-1.5 rounded-lg hover:bg-rose-50 transition-colors"
-                      title="Remove Item"
-                      aria-label="Remove item from cart"
-                    >
-                      <Trash2 className="w-3.5 h-3.5" />
-                    </button>
+                    <div className="flex items-center gap-1">
+                      <button
+                        onClick={() => handleMoveToWishlist(item)}
+                        className="text-slate-400 hover:text-rose-500 p-1.5 rounded-lg hover:bg-rose-50 transition-colors cursor-pointer"
+                        title="Move to Wishlist"
+                        aria-label="Move item to wishlist"
+                      >
+                        <Heart className="w-3.5 h-3.5" />
+                      </button>
+
+                      <button
+                        onClick={() => handleRemoveItem(item)}
+                        className="text-slate-400 hover:text-rose-600 p-1.5 rounded-lg hover:bg-rose-50 transition-colors cursor-pointer"
+                        title="Remove Item"
+                        aria-label="Remove item from cart"
+                      >
+                        <Trash2 className="w-3.5 h-3.5" />
+                      </button>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -233,16 +312,26 @@ export function CartDrawer() {
               </div>
             </div>
 
-            <Button
-              onClick={handleProceedToCheckout}
-              variant="coral"
-              size="lg"
-              className="w-full gap-2 shadow-md hover:shadow-xl font-poppins font-bold text-xs uppercase tracking-wider py-3.5 rounded-xl transition-all active:scale-98 cursor-pointer"
-            >
-              <ShieldCheck className="w-4 h-4 stroke-[2.2]" />
-              <span>Proceed to Wholesale Checkout</span>
-              <ArrowRight className="w-4 h-4 ml-auto" />
-            </Button>
+            <div className="space-y-2">
+              <Button
+                onClick={handleProceedToCheckout}
+                variant="coral"
+                size="lg"
+                className="w-full gap-2 shadow-md hover:shadow-xl font-poppins font-bold text-xs uppercase tracking-wider py-3.5 rounded-xl transition-all active:scale-98 cursor-pointer"
+              >
+                <ShieldCheck className="w-4 h-4 stroke-[2.2]" />
+                <span>Proceed to Wholesale Checkout</span>
+                <ArrowRight className="w-4 h-4 ml-auto" />
+              </Button>
+
+              <button
+                onClick={handleGoToFullCart}
+                className="w-full py-2 rounded-xl text-center text-xs font-bold text-slate-600 hover:text-slate-900 hover:bg-slate-200/60 transition-colors flex items-center justify-center gap-1.5 cursor-pointer"
+              >
+                <span>View Full Cart & Apply Coupons</span>
+                <ExternalLink className="w-3 h-3" />
+              </button>
+            </div>
           </div>
         )}
       </DrawerContent>

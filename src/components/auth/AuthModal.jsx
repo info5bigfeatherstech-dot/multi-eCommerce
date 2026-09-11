@@ -3,6 +3,7 @@
 import React, { useState, useEffect, useRef } from "react";
 import { useAppDispatch, useAppSelector } from "@/store/hooks";
 import { closeAuthModal, setAuthModalTab, loginSuccess } from "@/store/slices/uiSlice";
+import { mergeCart, mergeWishlist } from "@/api";
 import { siteConfig } from "@/config/site";
 import { cn } from "@/lib/utils";
 import {
@@ -175,6 +176,9 @@ export default function AuthModal() {
           businessName: "Wholesale Partner",
         })
       );
+      // Synchronize guest localStorage cart and wishlist with cloud account upon login
+      mergeCart().catch(() => {});
+      mergeWishlist().catch(() => {});
       setTimeout(() => {
         dispatch(closeAuthModal());
       }, 1000);
@@ -208,6 +212,9 @@ export default function AuthModal() {
           businessName: regForm.businessName || "Wholesale Partner",
         })
       );
+      // Synchronize guest localStorage cart and wishlist upon registration
+      mergeCart().catch(() => {});
+      mergeWishlist().catch(() => {});
       setTimeout(() => {
         dispatch(closeAuthModal());
       }, 1000);
