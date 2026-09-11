@@ -283,16 +283,22 @@ export async function bulkUpdateProductFlags({ slugs, flagType, value }) {
 
 /**
  * 10. List Archived Products
- * Endpoint: GET /admin/products/archived?page=1&limit=50
+ * Endpoint: GET /admin/products/archived?page=1&limit=50&search=
  * @param {Object} [params]
  * @param {number} [params.page=1]
  * @param {number} [params.limit=50]
+ * @param {string} [params.search=""]
  * @returns {Promise<Object>}
  */
-export async function getArchivedProducts({ page = 1, limit = 50 } = {}) {
+export async function getArchivedProducts({ page = 1, limit = 50, search = "" } = {}) {
   try {
+    const query = new URLSearchParams();
+    if (page) query.set("page", String(page));
+    if (limit) query.set("limit", String(limit));
+    if (search) query.set("search", search);
+
     const response = await apiClient.get(
-      `/admin/products/archived?page=${page}&limit=${limit}`
+      `/admin/products/archived?${query.toString()}`
     );
     return response.data?.data || response.data;
   } catch (error) {
@@ -350,6 +356,32 @@ export async function hardDeleteProduct(slug) {
 }
 
 /**
+ * 14. Bulk Restore Archived Products
+ * Endpoint: PATCH /admin/products/bulk-status with { channelStatus: { ecomm: "active" } }
+ * @param {string[]} slugs
+ * @returns {Promise<Object>}
+ */
+export async function bulkRestoreProducts(slugs) {
+  return bulkUpdateProductStatus({
+    slugs,
+    channelStatus: { ecomm: "active" },
+  });
+}
+
+/**
+ * 15. Bulk Hard Delete Archived Products
+ * Endpoint: DELETE /admin/products/hard/:slug
+ * @param {string[]} slugs
+ * @returns {Promise<Object[]>}
+ */
+export async function bulkHardDeleteProducts(slugs) {
+  const results = await Promise.allSettled(
+    slugs.map((slug) => hardDeleteProduct(slug))
+  );
+  return results;
+}
+
+/**
  * 14. Download Bulk Upload Excel/CSV Template
  * Endpoint: GET /admin/products/bulk-upload-template
  * @returns {Promise<void>} Triggers browser download
@@ -377,7 +409,7 @@ export async function downloadBulkUploadTemplate() {
  * @param {File} [files.imagesZip] - Optional ZIP file of images
  * @returns {Promise<Object>}
  */
-export async function previewBulkUpload({ csvFile, imagesZip } = {}) {
+export async function previewBulkUpload({ csvFile, imagesZip, onUploadProgress } = {}) {
   try {
     const formData = new FormData();
     if (csvFile) formData.append("csvFile", csvFile);
@@ -387,6 +419,15 @@ export async function previewBulkUpload({ csvFile, imagesZip } = {}) {
       headers: {
         "Content-Type": "multipart/form-data",
       },
+      timeout: 120000, // 2-minute timeout for large files
+      onUploadProgress: onUploadProgress
+        ? (progressEvent) => {
+            const pct = progressEvent.total
+              ? Math.round((progressEvent.loaded * 100) / progressEvent.total)
+              : 0;
+            onUploadProgress(pct);
+          }
+        : undefined,
     });
     return response.data?.data || response.data;
   } catch (error) {
@@ -400,7 +441,7 @@ export async function previewBulkUpload({ csvFile, imagesZip } = {}) {
  * @param {File} csvFile
  * @returns {Promise<Object>}
  */
-export async function importProductsFromCSV(csvFile) {
+export async function importProductsFromCSV(csvFile, onUploadProgress) {
   try {
     const formData = new FormData();
     if (csvFile) formData.append("csvFile", csvFile);
@@ -409,6 +450,15 @@ export async function importProductsFromCSV(csvFile) {
       headers: {
         "Content-Type": "multipart/form-data",
       },
+      timeout: 120000, // 2-minute timeout for large imports
+      onUploadProgress: onUploadProgress
+        ? (progressEvent) => {
+            const pct = progressEvent.total
+              ? Math.round((progressEvent.loaded * 100) / progressEvent.total)
+              : 0;
+            onUploadProgress(pct);
+          }
+        : undefined,
     });
     return response.data?.data || response.data;
   } catch (error) {
@@ -424,7 +474,7 @@ export async function importProductsFromCSV(csvFile) {
  * @param {File} files.imagesZip
  * @returns {Promise<Object>}
  */
-export async function bulkUploadNewProductsWithImages({ csvFile, imagesZip } = {}) {
+export async function bulkUploadNewProductsWithImages({ csvFile, imagesZip, onUploadProgress } = {}) {
   try {
     const formData = new FormData();
     if (csvFile) formData.append("csvFile", csvFile);
@@ -434,6 +484,15 @@ export async function bulkUploadNewProductsWithImages({ csvFile, imagesZip } = {
       headers: {
         "Content-Type": "multipart/form-data",
       },
+      timeout: 300000, // 5-minute timeout for CSV + ZIP uploads
+      onUploadProgress: onUploadProgress
+        ? (progressEvent) => {
+            const pct = progressEvent.total
+              ? Math.round((progressEvent.loaded * 100) / progressEvent.total)
+              : 0;
+            onUploadProgress(pct);
+          }
+        : undefined,
     });
     return response.data?.data || response.data;
   } catch (error) {

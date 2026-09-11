@@ -1,10 +1,18 @@
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useEffect } from "react";
+import { createPortal } from "react-dom";
 import { useAppDispatch, useAppSelector } from "@/store/hooks";
 import {
-  restoreProduct,
-  deleteProductPermanently,
-  batchRestoreProducts,
-  batchDeleteProducts,
+  useArchivedProductsQuery,
+  useRestoreProductMutation,
+  useHardDeleteProductMutation,
+  useBulkRestoreProductsMutation,
+  useBulkHardDeleteProductsMutation,
+} from "@/hooks/useAdminArchivedProductsQuery";
+import {
+  restoreProduct as reduxRestoreProduct,
+  deleteProductPermanently as reduxDeleteProductPermanently,
+  batchRestoreProducts as reduxBatchRestore,
+  batchDeleteProducts as reduxBatchDelete,
 } from "@/store/slices/adminArchivedSlice";
 import {
   Archive,
@@ -20,8 +28,14 @@ import {
   Info,
   ExternalLink,
   ChevronDown,
+  ChevronLeft,
+  ChevronRight,
   Layers,
   Sparkles,
+  RefreshCw,
+  Clock,
+  Tag,
+  ShieldAlert,
 } from "lucide-react";
 import { toast } from "sonner";
 import {
@@ -31,213 +45,439 @@ import {
   SelectContent,
   SelectItem,
 } from "@/components/ui/Select";
+import ConfirmDeleteDialog from "@/components/ui/ConfirmDeleteDialog";
+import { cn, formatCurrency } from "@/lib/utils";
+
+/**
+ * Normalizes backend product schema or fallback Redux shape into table structure.
+ */
+function normalizeArchivedProduct(p) {
+  if (!p) return null;
+  const id = p._id || p.id || String(Math.random());
+  const name = p.name || p.title || "Untitled Product";
+  const variant0 = Array.isArray(p.variants) && p.variants.length > 0 ? p.variants[0] : null;
+  const sku = p.sku || variant0?.sku || variant0?.productCode || "N/A";
+  const slug = p.slug || sku.toLowerCase().replace(/[^a-z0-9]+/g, "-");
+  const category =
+    typeof p.category === "object" ? p.category?.name || "General" : p.category || "General";
+  const brand = p.brand || "ApexMart Wholesale";
+
+  const price =
+    typeof p.price === "object"
+      ? Number(p.price.sale || p.price.base || 0)
+      : Number(p.price || p.originalPrice || 0);
+
+  const thumbnail =
+    (Array.isArray(p.images) && p.images[0]?.url) ||
+    (Array.isArray(p.images) && typeof p.images[0] === "string" && p.images[0]) ||
+    variant0?.images?.[0]?.url ||
+    p.thumbnail ||
+    p.imageUrl ||
+    "https://images.unsplash.com/photo-1590658268037-6bf12165a8df?auto=format&fit=crop&w=600&q=80";
+
+  let formattedDate = p.archiveDate || "N/A";
+  if (p.archivedAt) {
+    try {
+      const d = new Date(p.archivedAt);
+      if (!isNaN(d.getTime())) {
+        const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sept", "Oct", "Nov", "Dec"];
+        const day = d.getDate();
+        const month = months[d.getMonth()];
+        const year = d.getFullYear();
+        let hours = d.getHours();
+        const minutes = d.getMinutes().toString().padStart(2, "0");
+        const ampm = hours >= 12 ? "pm" : "am";
+        hours = hours % 12 || 12;
+        formattedDate = `${day} ${month} ${year}, ${hours}:${minutes} ${ampm}`;
+      }
+    } catch {
+      formattedDate = p.archiveDate || "N/A";
+    }
+  }
+
+  const reason = p.reason || "Discontinued by Admin";
+  const archivedBy = p.archivedBy || "Catalog Team";
+  const totalHistoricalSales = Number(p.totalHistoricalSales || p.soldCount || 0);
+  const stockAtArchive = Number(p.stockAtArchive ?? p.stock ?? 0);
+
+  return {
+    ...p,
+    id,
+    slug,
+    name,
+    sku,
+    category,
+    brand,
+    price,
+    thumbnail,
+    archiveDate: formattedDate,
+    rawArchivedAt: p.archivedAt || p.archiveDate,
+    reason,
+    archivedBy,
+    totalHistoricalSales,
+    stockAtArchive,
+  };
+}
 
 export default function ArchivedProductsView() {
   const dispatch = useAppDispatch();
-  const products = useAppSelector((state) => state.adminArchived?.products || []);
+  const reduxProducts = useAppSelector((state) => state.adminArchived?.products || []);
 
+  // Filter & Pagination State
   const [searchTerm, setSearchTerm] = useState("");
+  const [debouncedSearch, setDebouncedSearch] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("All");
-  const [selectedReason, setSelectedReason] = useState("All");
-  const [selectedProductIds, setSelectedProductIds] = useState([]);
+  const [selectedProductSlugs, setSelectedProductSlugs] = useState([]);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [pageSize, setPageSize] = useState(50);
+
+  // Modal State
   const [detailModalProduct, setDetailModalProduct] = useState(null);
-  const [confirmDeleteId, setConfirmDeleteId] = useState(null);
+  const [productToDelete, setProductToDelete] = useState(null);
+  const [isBulkDeleteModalOpen, setIsBulkDeleteModalOpen] = useState(false);
 
-  const categories = useMemo(() => {
-    const set = new Set(products.map((p) => p.category));
-    return ["All", ...Array.from(set)];
-  }, [products]);
+  // Debounce search input
+  useEffect(() => {
+    const handler = setTimeout(() => {
+      setDebouncedSearch(searchTerm.trim());
+      setCurrentPage(1);
+    }, 300);
+    return () => clearTimeout(handler);
+  }, [searchTerm]);
 
-  const reasons = useMemo(() => {
-    const set = new Set(products.map((p) => p.reason));
-    return ["All", ...Array.from(set)];
-  }, [products]);
+  // Lock body scroll and listen for Escape key when dossier modal is open
+  useEffect(() => {
+    if (!detailModalProduct) return;
+    const handleKeyDown = (e) => {
+      if (e.key === "Escape") setDetailModalProduct(null);
+    };
+    const prevOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    window.addEventListener("keydown", handleKeyDown);
+    return () => {
+      document.body.style.overflow = prevOverflow;
+      window.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [detailModalProduct]);
 
-  const filteredProducts = useMemo(() => {
-    return products.filter((p) => {
+  // React Query Queries & Mutations
+  const {
+    data: queryData,
+    isLoading,
+    isFetching,
+    isError,
+    error,
+    refetch,
+  } = useArchivedProductsQuery({
+    page: currentPage,
+    limit: pageSize,
+    search: debouncedSearch,
+  });
+
+  const restoreMutation = useRestoreProductMutation();
+  const hardDeleteMutation = useHardDeleteProductMutation();
+  const bulkRestoreMutation = useBulkRestoreProductsMutation();
+  const bulkHardDeleteMutation = useBulkHardDeleteProductsMutation();
+
+  // Extract products and pagination from query result or fallback to Redux
+  const { products, totalCount, totalPages } = useMemo(() => {
+    const rawList =
+      queryData?.products ||
+      queryData?.data?.products ||
+      queryData?.data ||
+      (Array.isArray(queryData) ? queryData : null);
+
+    if (rawList && Array.isArray(rawList)) {
+      const normalized = rawList.map(normalizeArchivedProduct).filter(Boolean);
+      const total =
+        queryData?.pagination?.total ??
+        queryData?.data?.pagination?.total ??
+        queryData?.total ??
+        normalized.length;
+      const pages =
+        queryData?.pagination?.totalPages ??
+        queryData?.data?.pagination?.totalPages ??
+        queryData?.totalPages ??
+        Math.max(1, Math.ceil(total / pageSize));
+
+      return {
+        products: normalized,
+        totalCount: total,
+        totalPages: pages,
+      };
+    }
+
+    // Fallback: Redux mock store
+    const normalizedRedux = reduxProducts.map(normalizeArchivedProduct).filter(Boolean);
+    const filtered = normalizedRedux.filter((p) => {
+      const q = debouncedSearch.toLowerCase();
       const matchSearch =
-        p.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        p.sku.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        p.id.toLowerCase().includes(searchTerm.toLowerCase());
-      const matchCategory = selectedCategory === "All" || p.category === selectedCategory;
-      const matchReason = selectedReason === "All" || p.reason === selectedReason;
-      return matchSearch && matchCategory && matchReason;
+        p.name.toLowerCase().includes(q) ||
+        p.slug.toLowerCase().includes(q) ||
+        p.sku.toLowerCase().includes(q) ||
+        p.brand.toLowerCase().includes(q);
+      const matchCat = selectedCategory === "All" || p.category === selectedCategory;
+      return matchSearch && matchCat;
     });
-  }, [products, searchTerm, selectedCategory, selectedReason]);
 
+    const total = filtered.length;
+    const pages = Math.max(1, Math.ceil(total / pageSize));
+    const start = (currentPage - 1) * pageSize;
+    const paginated = filtered.slice(start, start + pageSize);
+
+    return {
+      products: paginated,
+      totalCount: total,
+      totalPages: pages,
+    };
+  }, [queryData, reduxProducts, debouncedSearch, selectedCategory, currentPage, pageSize]);
+
+  // Dynamic category list for filter dropdown
+  const categories = useMemo(() => {
+    const all = (queryData?.products || reduxProducts).map((p) =>
+      typeof p.category === "object" ? p.category?.name || "General" : p.category || "General"
+    );
+    const unique = Array.from(new Set(all.filter(Boolean)));
+    return ["All", ...unique];
+  }, [queryData, reduxProducts]);
+
+  // Multi-select handlers
   const handleSelectAll = (e) => {
     if (e.target.checked) {
-      setSelectedProductIds(filteredProducts.map((p) => p.id));
+      setSelectedProductSlugs(products.map((p) => p.slug || p.id));
     } else {
-      setSelectedProductIds([]);
+      setSelectedProductSlugs([]);
     }
   };
 
-  const handleSelectOne = (id) => {
-    if (selectedProductIds.includes(id)) {
-      setSelectedProductIds(selectedProductIds.filter((item) => item !== id));
+  const handleSelectOne = (slug) => {
+    if (selectedProductSlugs.includes(slug)) {
+      setSelectedProductSlugs(selectedProductSlugs.filter((s) => s !== slug));
     } else {
-      setSelectedProductIds([...selectedProductIds, id]);
+      setSelectedProductSlugs([...selectedProductSlugs, slug]);
     }
   };
 
-  const handleRestore = (product) => {
-    dispatch(restoreProduct(product.id));
-    toast.success(`Product "${product.name}" restored to Active Catalog.`);
+  // Restore single product
+  const handleRestore = async (product) => {
+    const targetSlug = product.slug || product.id;
+    try {
+      await restoreMutation.mutateAsync(targetSlug);
+      dispatch(reduxRestoreProduct(product.id));
+      setSelectedProductSlugs((prev) => prev.filter((s) => s !== targetSlug));
+    } catch {
+      // Handled by mutation onError
+    }
   };
 
-  const handleBatchRestore = () => {
-    if (selectedProductIds.length === 0) return;
-    dispatch(batchRestoreProducts(selectedProductIds));
-    toast.success(`${selectedProductIds.length} products restored to active catalog.`);
-    setSelectedProductIds([]);
+  // Hard delete single product
+  const handleConfirmHardDelete = async () => {
+    if (!productToDelete) return;
+    const targetSlug = productToDelete.slug || productToDelete.id;
+    try {
+      await hardDeleteMutation.mutateAsync(targetSlug);
+      dispatch(reduxDeleteProductPermanently(productToDelete.id));
+      setSelectedProductSlugs((prev) => prev.filter((s) => s !== targetSlug));
+      setProductToDelete(null);
+    } catch {
+      // Handled by mutation onError
+    }
   };
 
-  const handleDeletePermanently = (product) => {
-    dispatch(deleteProductPermanently(product.id));
-    setConfirmDeleteId(null);
-    toast.error(`Product "${product.name}" permanently deleted from vault.`);
+  // Bulk restore
+  const handleBatchRestore = async () => {
+    if (selectedProductSlugs.length === 0) return;
+    try {
+      await bulkRestoreMutation.mutateAsync(selectedProductSlugs);
+      dispatch(reduxBatchRestore(selectedProductSlugs));
+      setSelectedProductSlugs([]);
+    } catch {
+      // Handled by mutation onError
+    }
   };
 
-  const handleBatchDelete = () => {
-    if (selectedProductIds.length === 0) return;
-    dispatch(batchDeleteProducts(selectedProductIds));
-    toast.error(`${selectedProductIds.length} products purged permanently.`);
-    setSelectedProductIds([]);
+  // Bulk hard delete
+  const handleConfirmBulkHardDelete = async () => {
+    if (selectedProductSlugs.length === 0) return;
+    try {
+      await bulkHardDeleteMutation.mutateAsync(selectedProductSlugs);
+      dispatch(reduxBatchDelete(selectedProductSlugs));
+      setSelectedProductSlugs([]);
+      setIsBulkDeleteModalOpen(false);
+    } catch {
+      // Handled by mutation onError
+    }
   };
 
+  // Export CSV
   const handleExportCSV = () => {
-    const headers = ["Archive ID", "SKU", "Name", "Category", "Original Price", "Archive Date", "Reason", "Historical Sales"];
-    const rows = filteredProducts.map((p) => [
+    const headers = [
+      "ID",
+      "Slug",
+      "SKU",
+      "Name",
+      "Category",
+      "Brand",
+      "Wholesale Price (Rs)",
+      "Archive Date",
+      "Reason",
+      "Historical Sales Units",
+    ];
+    const rows = products.map((p) => [
       p.id,
-      p.sku,
+      `"${p.slug}"`,
+      `"${p.sku}"`,
       `"${p.name.replace(/"/g, '""')}"`,
-      p.category,
-      p.originalPrice,
-      p.archiveDate,
+      `"${p.category}"`,
+      `"${p.brand}"`,
+      p.price,
+      `"${p.archiveDate}"`,
       `"${p.reason}"`,
       p.totalHistoricalSales,
     ]);
-    const csvContent = "data:text/csv;charset=utf-8," + [headers.join(","), ...rows.map((r) => r.join(","))].join("\n");
+    const csvContent =
+      "data:text/csv;charset=utf-8," + [headers.join(","), ...rows.map((r) => r.join(","))].join("\n");
     const encodedUri = encodeURI(csvContent);
     const link = document.createElement("a");
     link.setAttribute("href", encodedUri);
-    link.setAttribute("download", `archived_products_${new Date().toISOString().split("T")[0]}.csv`);
+    link.setAttribute(
+      "download",
+      `archived_products_${new Date().toISOString().split("T")[0]}.csv`
+    );
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
-    toast.success("Archived products exported as CSV.");
+    toast.success("Archived catalog exported as CSV");
   };
 
   return (
-    <div className="space-y-6">
-      {/* Header Banner */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
+    <div className="space-y-6 animate-fadeIn font-poppins">
+      {/* ── Top Header Banner ── */}
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-white p-6 rounded-3xl border border-slate-200 shadow-xs">
         <div>
           <div className="flex items-center gap-2">
-            <span className="px-2.5 py-0.5 rounded-full text-xs font-semibold bg-slate-100 text-slate-700 border border-slate-200 flex items-center gap-1.5">
-              <Archive className="w-3.5 h-3.5 text-slate-500" />
+            <span className="px-2.5 py-0.5 rounded-full text-xs font-semibold bg-amber-50 text-amber-800 border border-amber-200 flex items-center gap-1.5">
+              <Archive className="w-3.5 h-3.5 text-amber-600" />
               Cold Storage Vault
             </span>
             <span className="text-xs text-slate-400">•</span>
-            <span className="text-xs text-slate-500 font-inter">Audit Compliant</span>
+            <span className="text-xs text-slate-500 font-inter">Audit Compliant Catalog</span>
           </div>
-          <h1 className="text-2xl font-poppins font-bold text-slate-900 mt-1.5">
-            Archived Products Record
+          <h1 className="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight mt-1.5 flex items-center gap-3">
+            <span>Archived Products Record</span>
+            <span className="text-xs font-bold px-2.5 py-1 rounded-full bg-slate-100 text-slate-700">
+              {totalCount} In Vault
+            </span>
           </h1>
-          <p className="text-sm text-slate-500 font-inter mt-1">
-            Historical catalogue of discontinued, seasonal, or superseded SKUs with full sales logs and restore capabilities.
+          <p className="text-xs text-slate-500 font-inter mt-1">
+            Historical catalogue of discontinued, seasonal, or superseded SKUs. Restore back to active or permanently purge.
           </p>
         </div>
 
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2.5">
+          <button
+            onClick={() => refetch()}
+            disabled={isFetching}
+            title="Refresh Vault Data"
+            className="p-2.5 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 text-xs font-bold transition-colors cursor-pointer"
+          >
+            <RefreshCw className={cn("w-4 h-4 text-slate-600", isFetching && "animate-spin text-accent")} />
+          </button>
           <button
             onClick={handleExportCSV}
-            className="inline-flex items-center gap-2 px-4 py-2 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 text-sm font-semibold transition-all shadow-sm"
+            className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 text-xs font-bold transition-all shadow-xs cursor-pointer"
           >
             <Download className="w-4 h-4 text-slate-500" />
-            Export Archive CSV
+            <span>Export Archive CSV</span>
           </button>
         </div>
       </div>
 
-      {/* KPI Stats Cards */}
+      {/* ── KPI Stats Cards ── */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm">
+        <div className="bg-white p-5 rounded-3xl border border-slate-200/80 shadow-xs">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Total In Vault</span>
-            <div className="w-8 h-8 rounded-lg bg-slate-100 text-slate-700 flex items-center justify-center">
+            <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">
+              Total In Vault
+            </span>
+            <div className="w-8 h-8 rounded-xl bg-slate-100 text-slate-700 flex items-center justify-center">
               <Package className="w-4 h-4" />
             </div>
           </div>
-          <p className="text-2xl font-poppins font-bold text-slate-900 mt-3">{products.length}</p>
-          <p className="text-xs text-slate-400 mt-1">Archived product lines</p>
+          <p className="text-2xl font-black text-slate-900 mt-2">{totalCount}</p>
+          <p className="text-[11px] text-slate-400 font-inter mt-0.5">Archived product lines</p>
         </div>
 
-        <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm">
+        <div className="bg-white p-5 rounded-3xl border border-slate-200/80 shadow-xs">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Historical Units Sold</span>
-            <div className="w-8 h-8 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center">
+            <span className="text-[11px] font-bold text-blue-600 uppercase tracking-wider">
+              Historical Units Sold
+            </span>
+            <div className="w-8 h-8 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center">
               <Sparkles className="w-4 h-4" />
             </div>
           </div>
-          <p className="text-2xl font-poppins font-bold text-slate-900 mt-3">
+          <p className="text-2xl font-black text-blue-600 mt-2">
             {products.reduce((acc, p) => acc + (p.totalHistoricalSales || 0), 0).toLocaleString()}
           </p>
-          <p className="text-xs text-slate-400 mt-1">Units fulfilled before archive</p>
+          <p className="text-[11px] text-slate-400 font-inter mt-0.5">Units fulfilled before archive</p>
         </div>
 
-        <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm">
+        <div className="bg-white p-5 rounded-3xl border border-slate-200/80 shadow-xs">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Supplier EOL</span>
-            <div className="w-8 h-8 rounded-lg bg-amber-50 text-amber-600 flex items-center justify-center">
+            <span className="text-[11px] font-bold text-amber-600 uppercase tracking-wider">
+              Supplier EOL Lines
+            </span>
+            <div className="w-8 h-8 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center">
               <AlertCircle className="w-4 h-4" />
             </div>
           </div>
-          <p className="text-2xl font-poppins font-bold text-slate-900 mt-3">
-            {products.filter((p) => p.reason.toLowerCase().includes("supplier") || p.reason.toLowerCase().includes("eol")).length}
+          <p className="text-2xl font-black text-amber-600 mt-2">
+            {products.filter((p) => p.reason.toLowerCase().includes("eol") || p.reason.toLowerCase().includes("discontinued")).length}
           </p>
-          <p className="text-xs text-slate-400 mt-1">Vendor discontinued lines</p>
+          <p className="text-[11px] text-slate-400 font-inter mt-0.5">Vendor discontinued items</p>
         </div>
 
-        <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm">
+        <div className="bg-white p-5 rounded-3xl border border-slate-200/80 shadow-xs">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Zero Stock Remaining</span>
-            <div className="w-8 h-8 rounded-lg bg-emerald-50 text-emerald-600 flex items-center justify-center">
+            <span className="text-[11px] font-bold text-emerald-600 uppercase tracking-wider">
+              Zero Stock Depleted
+            </span>
+            <div className="w-8 h-8 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center">
               <CheckCircle2 className="w-4 h-4" />
             </div>
           </div>
-          <p className="text-2xl font-poppins font-bold text-slate-900 mt-3">
+          <p className="text-2xl font-black text-emerald-600 mt-2">
             {products.filter((p) => p.stockAtArchive === 0).length}
           </p>
-          <p className="text-xs text-slate-400 mt-1">Cleanly depleted inventory</p>
+          <p className="text-[11px] text-slate-400 font-inter mt-0.5">Cleanly cleared inventory</p>
         </div>
       </div>
 
-      {/* Filter and Search Bar */}
-      <div className="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm flex flex-col md:flex-row items-stretch md:items-center justify-between gap-3">
-        <div className="flex-1 relative">
-          <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
+      {/* ── Search & Filter Controls ── */}
+      <div className="bg-white p-4 rounded-2xl border border-slate-200 shadow-xs flex flex-col sm:flex-row items-center justify-between gap-3">
+        <div className="relative w-full sm:w-80">
+          <Search className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
           <input
             type="text"
-            placeholder="Search by product name, SKU, or archive ID..."
+            placeholder="Search by name, slug, brand, or SKU..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-full pl-10 pr-4 py-2 text-sm bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-slate-900 focus:bg-white transition-all font-inter text-slate-800"
+            className="w-full pl-9 pr-4 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-poppins focus:outline-none focus:border-accent text-slate-800"
           />
         </div>
 
-        <div className="flex flex-wrap items-center gap-2.5">
-          <div className="flex items-center gap-1.5 bg-slate-50 border border-slate-200 rounded-xl px-2 py-1">
-            <Filter className="w-3.5 h-3.5 text-slate-500 ml-1" />
-            <span className="text-xs font-medium text-slate-500">Category:</span>
+        <div className="flex flex-wrap items-center gap-2.5 w-full sm:w-auto justify-end">
+          <div className="flex items-center gap-1.5 bg-slate-50 border border-slate-200 rounded-xl px-2.5 py-1">
+            <Filter className="w-3.5 h-3.5 text-slate-400" />
+            <span className="text-xs font-semibold text-slate-500">Category:</span>
             <Select value={selectedCategory} onValueChange={setSelectedCategory}>
-              <SelectTrigger className="w-[140px] h-8 text-xs font-semibold text-slate-800 border-none bg-transparent shadow-none focus:ring-0">
+              <SelectTrigger className="w-[140px] h-7 text-xs font-bold text-slate-800 border-none bg-transparent shadow-none focus:ring-0">
                 <SelectValue placeholder="Category" />
               </SelectTrigger>
               <SelectContent>
                 {categories.map((c) => (
-                  <SelectItem key={c} value={c}>
+                  <SelectItem key={c} value={c} className="text-xs font-poppins">
                     {c}
                   </SelectItem>
                 ))}
@@ -245,179 +485,245 @@ export default function ArchivedProductsView() {
             </Select>
           </div>
 
-          <div className="flex items-center gap-1.5 bg-slate-50 border border-slate-200 rounded-xl px-2 py-1">
-            <span className="text-xs font-medium text-slate-500 ml-1">Reason:</span>
-            <Select value={selectedReason} onValueChange={setSelectedReason}>
-              <SelectTrigger className="w-[180px] h-8 text-xs font-semibold text-slate-800 border-none bg-transparent shadow-none focus:ring-0">
-                <SelectValue placeholder="Reason" />
+          <div className="flex items-center gap-1.5 bg-slate-50 border border-slate-200 rounded-xl px-2.5 py-1">
+            <span className="text-xs font-semibold text-slate-500">Rows:</span>
+            <Select
+              value={String(pageSize)}
+              onValueChange={(val) => {
+                setPageSize(Number(val));
+                setCurrentPage(1);
+              }}
+            >
+              <SelectTrigger className="w-[75px] h-7 text-xs font-bold text-slate-800 border-none bg-transparent shadow-none focus:ring-0">
+                <SelectValue placeholder="Limit" />
               </SelectTrigger>
               <SelectContent>
-                {reasons.map((r) => (
-                  <SelectItem key={r} value={r}>
-                    {r}
-                  </SelectItem>
-                ))}
+                <SelectItem value="20" className="text-xs">20</SelectItem>
+                <SelectItem value="50" className="text-xs">50</SelectItem>
+                <SelectItem value="100" className="text-xs">100</SelectItem>
               </SelectContent>
             </Select>
           </div>
         </div>
       </div>
 
-      {/* Batch Actions Bar when items selected */}
-      {selectedProductIds.length > 0 && (
-        <div className="bg-slate-900 text-white p-4 rounded-2xl shadow-lg flex items-center justify-between animate-in fade-in slide-in-from-top-2 duration-200">
-          <div className="flex items-center gap-2">
-            <span className="w-6 h-6 rounded-full bg-white/20 text-xs font-bold flex items-center justify-center">
-              {selectedProductIds.length}
+      {/* ── Floating Bulk Actions Bar ── */}
+      {selectedProductSlugs.length > 0 && (
+        <div className="bg-slate-900 text-white p-3.5 sm:p-4 rounded-2xl shadow-xl flex items-center justify-between gap-3 animate-in fade-in slide-in-from-top-2 duration-200">
+          <div className="flex items-center gap-2.5">
+            <span className="w-6 h-6 rounded-full bg-accent/20 text-accent text-xs font-black flex items-center justify-center">
+              {selectedProductSlugs.length}
             </span>
-            <span className="text-sm font-medium">products selected</span>
+            <span className="text-xs sm:text-sm font-semibold text-slate-200">
+              products selected in vault
+            </span>
           </div>
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2">
             <button
               onClick={handleBatchRestore}
-              className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-emerald-500 hover:bg-emerald-600 text-white text-xs font-semibold transition-all shadow"
+              disabled={bulkRestoreMutation.isPending}
+              className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-emerald-500 hover:bg-emerald-600 disabled:opacity-50 text-white text-xs font-bold transition-all shadow-xs cursor-pointer"
             >
-              <RotateCcw className="w-3.5 h-3.5" />
-              Restore Selected
+              <RotateCcw className={cn("w-3.5 h-3.5", bulkRestoreMutation.isPending && "animate-spin")} />
+              <span>Restore Selected</span>
             </button>
             <button
-              onClick={handleBatchDelete}
-              className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-rose-500 hover:bg-rose-600 text-white text-xs font-semibold transition-all shadow"
+              onClick={() => setIsBulkDeleteModalOpen(true)}
+              className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-rose-500 hover:bg-rose-600 text-white text-xs font-bold transition-all shadow-xs cursor-pointer"
             >
               <Trash2 className="w-3.5 h-3.5" />
-              Purge Permanently
+              <span>Purge Permanently</span>
             </button>
           </div>
         </div>
       )}
 
-      {/* Products Table */}
-      <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+      {/* ── Archived Products Table ── */}
+      <div className="bg-white rounded-3xl border border-slate-200 overflow-hidden shadow-xs">
         <div className="overflow-x-auto">
-          <table className="w-full text-left border-collapse">
-            <thead>
-              <tr className="bg-slate-50/80 border-b border-slate-200 text-[11px] font-bold uppercase tracking-wider text-slate-500 font-poppins">
-                <th className="p-4 w-10">
+          <table className="w-full text-left text-xs font-poppins">
+            <thead className="bg-slate-50 text-slate-500 font-bold uppercase tracking-wider text-[10px] border-b border-slate-200">
+              <tr>
+                <th className="py-4 px-4 w-10 text-center">
                   <input
                     type="checkbox"
-                    checked={
-                      filteredProducts.length > 0 &&
-                      selectedProductIds.length === filteredProducts.length
-                    }
+                    checked={products.length > 0 && selectedProductSlugs.length === products.length}
                     onChange={handleSelectAll}
-                    className="rounded border-slate-300 text-slate-900 focus:ring-slate-900 cursor-pointer"
+                    className="rounded border-slate-300 text-accent focus:ring-accent cursor-pointer"
                   />
                 </th>
-                <th className="p-4">Product Details</th>
-                <th className="p-4">Category</th>
-                <th className="p-4">Archive Reason</th>
-                <th className="p-4">Archived On</th>
-                <th className="p-4">Sales & Stock</th>
-                <th className="p-4 text-right">Actions</th>
+                <th className="py-4 px-4">Product Details</th>
+                <th className="py-4 px-4">Category</th>
+                <th className="py-4 px-4">Brand</th>
+                <th className="py-4 px-4">Archived On</th>
+                <th className="py-4 px-4">Historical Sales</th>
+                <th className="py-4 px-4 text-right">Actions</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-slate-100 text-sm font-inter">
-              {filteredProducts.length === 0 ? (
+            <tbody className="divide-y divide-slate-100">
+              {isLoading && !queryData ? (
                 <tr>
-                  <td colSpan={7} className="text-center py-12 text-slate-400">
-                    <Package className="w-10 h-10 mx-auto text-slate-300 mb-2" />
-                    <p className="font-semibold text-slate-600">No archived products found</p>
-                    <p className="text-xs text-slate-400 mt-1">Try adjusting your search or filters</p>
+                  <td colSpan={7} className="py-14 text-center text-slate-400 font-inter">
+                    <RefreshCw className="w-6 h-6 animate-spin mx-auto mb-2 text-accent" />
+                    <span>Loading archived products vault...</span>
+                  </td>
+                </tr>
+              ) : isError && products.length === 0 ? (
+                <tr>
+                  <td colSpan={7} className="py-12 text-center text-rose-500 font-inter space-y-2">
+                    <AlertCircle className="w-6 h-6 mx-auto text-rose-500" />
+                    <p className="font-bold text-slate-800">Failed to load archived catalog</p>
+                    <p className="text-xs text-slate-400">{error?.message || "Please check backend connection"}</p>
+                    <button
+                      onClick={() => refetch()}
+                      className="px-3 py-1 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg text-xs font-bold cursor-pointer transition-colors mt-2"
+                    >
+                      Retry
+                    </button>
+                  </td>
+                </tr>
+              ) : products.length === 0 ? (
+                <tr>
+                  <td colSpan={7} className="py-16 text-center text-slate-400 font-inter space-y-2">
+                    <Package className="w-8 h-8 mx-auto text-slate-300" />
+                    <p className="font-bold text-slate-700">No archived products found</p>
+                    <p className="text-xs text-slate-400">
+                      {debouncedSearch
+                        ? `No products match "${debouncedSearch}".`
+                        : "Active catalog is clean; no products are currently archived."}
+                    </p>
                   </td>
                 </tr>
               ) : (
-                filteredProducts.map((product) => {
-                  const isSelected = selectedProductIds.includes(product.id);
+                products.map((product) => {
+                  const slug = product.slug || product.id;
+                  const isSelected = selectedProductSlugs.includes(slug);
+
                   return (
                     <tr
-                      key={product.id}
-                      className={`hover:bg-slate-50/70 transition-colors ${
-                        isSelected ? "bg-slate-50" : ""
-                      }`}
+                      key={slug}
+                      className={cn(
+                        "hover:bg-slate-50/70 transition-colors group",
+                        isSelected && "bg-orange-50/30"
+                      )}
                     >
-                      <td className="p-4">
+                      {/* Checkbox */}
+                      <td className="py-3.5 px-4 text-center">
                         <input
                           type="checkbox"
                           checked={isSelected}
-                          onChange={() => handleSelectOne(product.id)}
-                          className="rounded border-slate-300 text-slate-900 focus:ring-slate-900 cursor-pointer"
+                          onChange={() => handleSelectOne(slug)}
+                          className="rounded border-slate-300 text-accent focus:ring-accent cursor-pointer"
                         />
                       </td>
-                      <td className="p-4">
+
+                      {/* Product details */}
+                      <td className="py-3.5 px-4">
                         <div className="flex items-center gap-3">
                           <img
                             src={product.thumbnail}
                             alt={product.name}
-                            className="w-12 h-12 rounded-xl object-cover border border-slate-200 bg-slate-100 flex-shrink-0"
+                            className="w-11 h-11 rounded-xl object-cover border border-slate-200 bg-slate-50 shrink-0"
+                            onError={(e) => {
+                              e.currentTarget.src =
+                                "https://images.unsplash.com/photo-1590658268037-6bf12165a8df?auto=format&fit=crop&w=600&q=80";
+                            }}
                           />
-                          <div>
-                            <p className="font-semibold text-slate-900 line-clamp-1">{product.name}</p>
-                            <div className="flex items-center gap-2 mt-0.5 text-xs text-slate-400">
-                              <span className="font-mono bg-slate-100 px-1.5 py-0.5 rounded text-slate-600">
+                          <div className="min-w-0">
+                            <p className="font-bold text-slate-900 text-xs truncate max-w-[240px]">
+                              {product.name}
+                            </p>
+                            <div className="flex items-center gap-2 mt-0.5 text-[11px] text-slate-400 font-inter">
+                              <span className="font-mono bg-slate-100 text-slate-600 px-1 py-0.2 rounded text-[10px]">
                                 {product.sku}
                               </span>
                               <span>•</span>
-                              <span>₹{product.originalPrice.toLocaleString()}</span>
+                              <span className="font-mono text-slate-500 truncate max-w-[140px]">
+                                /{product.slug}
+                              </span>
+                              {product.price > 0 && (
+                                <>
+                                  <span>•</span>
+                                  <span className="font-semibold text-slate-700">
+                                    {formatCurrency(product.price)}
+                                  </span>
+                                </>
+                              )}
                             </div>
                           </div>
                         </div>
                       </td>
-                      <td className="p-4">
-                        <span className="inline-flex items-center px-2.5 py-1 rounded-lg text-xs font-semibold bg-slate-100 text-slate-700">
+
+                      {/* Category */}
+                      <td className="py-3.5 px-4">
+                        <span className="inline-flex items-center px-2.5 py-1 rounded-lg text-[11px] font-bold bg-slate-100 text-slate-700">
                           {product.category}
                         </span>
                       </td>
-                      <td className="p-4">
-                        <div>
-                          <span className="inline-flex items-center gap-1.5 text-xs font-medium text-amber-700 bg-amber-50 px-2.5 py-1 rounded-md border border-amber-200">
-                            {product.reason}
-                          </span>
-                          <p className="text-[11px] text-slate-400 mt-1">By: {product.archivedBy}</p>
-                        </div>
+
+                      {/* Brand */}
+                      <td className="py-3.5 px-4">
+                        <span className="text-xs font-semibold text-slate-700">
+                          {product.brand}
+                        </span>
                       </td>
-                      <td className="p-4">
-                        <div className="text-xs text-slate-600">
-                          <p className="font-semibold flex items-center gap-1 text-slate-800">
-                            <Calendar className="w-3.5 h-3.5 text-slate-400" />
-                            {product.archiveDate}
-                          </p>
-                          <p className="text-[11px] text-slate-400 mt-0.5">ID: {product.id}</p>
+
+                      {/* Archived Date */}
+                      <td className="py-3.5 px-4">
+                        <div className="flex items-center gap-1.5 text-slate-700 text-xs">
+                          <Calendar className="w-3.5 h-3.5 text-slate-400 shrink-0" />
+                          <span className="font-semibold">{product.archiveDate}</span>
                         </div>
+                        <p className="text-[10px] text-slate-400 font-inter mt-0.5 truncate max-w-[160px]">
+                          {product.reason}
+                        </p>
                       </td>
-                      <td className="p-4">
+
+                      {/* Sales & Stock */}
+                      <td className="py-3.5 px-4">
                         <div className="text-xs space-y-0.5">
-                          <p className="text-slate-800 font-semibold">
-                            {product.totalHistoricalSales.toLocaleString()} <span className="text-slate-400 font-normal">sold</span>
+                          <p className="text-slate-900 font-bold">
+                            {product.totalHistoricalSales.toLocaleString()}{" "}
+                            <span className="text-slate-400 font-normal text-[11px]">sold</span>
                           </p>
-                          <p className="text-[11px] text-slate-500">
-                            Vault Stock:{" "}
-                            <span className={product.stockAtArchive > 0 ? "text-amber-600 font-semibold" : "text-slate-400"}>
+                          <p className="text-[11px] text-slate-500 font-inter">
+                            Depleted Stock:{" "}
+                            <strong className={product.stockAtArchive > 0 ? "text-amber-600" : "text-slate-400"}>
                               {product.stockAtArchive}
-                            </span>
+                            </strong>
                           </p>
                         </div>
                       </td>
-                      <td className="p-4 text-right">
+
+                      {/* Actions */}
+                      <td className="py-3.5 px-4 text-right">
                         <div className="flex items-center justify-end gap-1.5">
+                          {/* Info Button */}
                           <button
                             onClick={() => setDetailModalProduct(product)}
                             title="Inspect Archive Meta"
-                            className="p-1.5 text-slate-500 hover:text-slate-800 hover:bg-slate-100 rounded-lg transition-all"
+                            className="p-1.5 text-slate-400 hover:text-slate-700 hover:bg-slate-100 rounded-lg transition-colors cursor-pointer"
                           >
                             <Info className="w-4 h-4" />
                           </button>
+
+                          {/* Restore Button */}
                           <button
                             onClick={() => handleRestore(product)}
-                            title="Restore Product to Live Catalog"
-                            className="inline-flex items-center gap-1 px-2.5 py-1.5 text-xs font-semibold text-emerald-700 bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 rounded-lg transition-all"
+                            disabled={restoreMutation.isPending}
+                            title="Restore to Active Storefront Catalog"
+                            className="inline-flex items-center gap-1 px-2.5 py-1.5 text-xs font-bold text-emerald-700 bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 rounded-xl transition-all cursor-pointer shadow-2xs"
                           >
                             <RotateCcw className="w-3.5 h-3.5" />
-                            Restore
+                            <span>Restore</span>
                           </button>
+
+                          {/* Permanently Delete Button */}
                           <button
-                            onClick={() => setConfirmDeleteId(product.id)}
-                            title="Purge Permanently"
-                            className="p-1.5 text-rose-500 hover:text-rose-700 hover:bg-rose-50 rounded-lg transition-all"
+                            onClick={() => setProductToDelete(product)}
+                            disabled={hardDeleteMutation.isPending}
+                            title="Permanently Delete (Hard Delete)"
+                            className="p-1.5 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition-colors cursor-pointer"
                           >
                             <Trash2 className="w-4 h-4" />
                           </button>
@@ -430,117 +736,143 @@ export default function ArchivedProductsView() {
             </tbody>
           </table>
         </div>
-      </div>
 
-      {/* Confirmation Modal for Permanent Delete */}
-      {confirmDeleteId && (
-        <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl border border-slate-200 animate-in fade-in zoom-in-95 duration-150">
-            <div className="w-12 h-12 rounded-xl bg-rose-50 border border-rose-200 text-rose-600 flex items-center justify-center mb-4">
-              <Trash2 className="w-6 h-6" />
-            </div>
-            <h3 className="text-lg font-poppins font-bold text-slate-900">
-              Permanently Purge Product?
-            </h3>
-            <p className="text-sm text-slate-500 font-inter mt-2">
-              This action cannot be undone. All historical archive logs and metadata for this SKU will be permanently erased.
-            </p>
-            <div className="flex items-center justify-end gap-3 mt-6">
-              <button
-                onClick={() => setConfirmDeleteId(null)}
-                className="px-4 py-2 rounded-xl border border-slate-200 text-slate-700 text-sm font-semibold hover:bg-slate-50 transition-all"
-              >
-                Cancel
-              </button>
-              <button
-                onClick={() => {
-                  const target = products.find((p) => p.id === confirmDeleteId);
-                  if (target) handleDeletePermanently(target);
-                }}
-                className="px-4 py-2 rounded-xl bg-rose-600 hover:bg-rose-700 text-white text-sm font-semibold transition-all shadow-md"
-              >
-                Purge Forever
-              </button>
-            </div>
+        {/* ── Table Footer & Pagination ── */}
+        <div className="p-4 border-t border-slate-100 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-slate-500 font-inter">
+          <div>
+            Showing{" "}
+            <strong className="text-slate-900 font-semibold">
+              {totalCount === 0 ? 0 : (currentPage - 1) * pageSize + 1}
+            </strong>{" "}
+            to{" "}
+            <strong className="text-slate-900 font-semibold">
+              {Math.min(currentPage * pageSize, totalCount)}
+            </strong>{" "}
+            of <strong className="text-slate-900 font-semibold">{totalCount}</strong> archived products
+          </div>
+
+          <div className="flex items-center gap-2">
+            <button
+              disabled={currentPage <= 1 || isLoading}
+              onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+              className="px-3.5 py-1.5 rounded-xl text-xs font-bold bg-slate-100 text-slate-700 hover:bg-slate-200 disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer transition-colors flex items-center gap-1"
+            >
+              <ChevronLeft className="w-3.5 h-3.5" />
+              <span>Prev</span>
+            </button>
+            <span className="px-2 text-slate-600 font-semibold">
+              Page {currentPage} of {totalPages}
+            </span>
+            <button
+              disabled={currentPage >= totalPages || isLoading}
+              onClick={() => setCurrentPage((p) => p + 1)}
+              className="px-3.5 py-1.5 rounded-xl text-xs font-bold bg-slate-900 hover:bg-slate-800 text-white disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer transition-colors flex items-center gap-1 shadow-2xs"
+            >
+              <span>Next</span>
+              <ChevronRight className="w-3.5 h-3.5" />
+            </button>
           </div>
         </div>
-      )}
+      </div>
 
-      {/* Detail Modal */}
-      {detailModalProduct && (
-        <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="bg-white rounded-2xl max-w-lg w-full p-6 shadow-2xl border border-slate-200 animate-in fade-in zoom-in-95 duration-150">
+      {/* ── Single Product Permanent Delete Dialog ── */}
+      <ConfirmDeleteDialog
+        isOpen={Boolean(productToDelete)}
+        onClose={() => setProductToDelete(null)}
+        onConfirm={handleConfirmHardDelete}
+        title="Permanently Delete Product?"
+        description="This action cannot be undone. The product, all associated variants, inventory history, and database records will be permanently erased."
+        itemName={productToDelete ? `${productToDelete.name} (${productToDelete.slug})` : ""}
+        confirmText="Permanently Delete"
+        isLoading={hardDeleteMutation.isPending}
+      />
+
+      {/* ── Bulk Permanent Delete Dialog ── */}
+      <ConfirmDeleteDialog
+        isOpen={isBulkDeleteModalOpen}
+        onClose={() => setIsBulkDeleteModalOpen(false)}
+        onConfirm={handleConfirmBulkHardDelete}
+        title="Purge Selected Products Permanently?"
+        description={`Are you sure you want to permanently erase ${selectedProductSlugs.length} selected products from the database? This action is irreversible.`}
+        confirmText="Purge Selected Permanently"
+        isLoading={bulkHardDeleteMutation.isPending}
+      />
+
+      {/* ── Archive Product Dossier / Metadata Modal ── */}
+      {detailModalProduct && typeof document !== "undefined" && createPortal(
+        <div
+          onClick={(e) => {
+            if (e.target === e.currentTarget) {
+              setDetailModalProduct(null);
+            }
+          }}
+          className="fixed inset-0 z-[99999] bg-slate-950/60 backdrop-blur-md flex items-center justify-center p-4 animate-in fade-in duration-150"
+          style={{ backdropFilter: "blur(12px)", WebkitBackdropFilter: "blur(12px)" }}
+        >
+          <div
+            onClick={(e) => e.stopPropagation()}
+            className="bg-white rounded-3xl max-w-lg w-full p-6 shadow-2xl border border-slate-200/90 animate-in fade-in zoom-in-95 duration-150 font-poppins relative z-10"
+          >
             <div className="flex items-center justify-between pb-4 border-b border-slate-100">
               <div className="flex items-center gap-2.5">
-                <span className="p-2 rounded-xl bg-slate-100 text-slate-700">
+                <span className="p-2 rounded-xl bg-amber-50 text-amber-600">
                   <Archive className="w-5 h-5" />
                 </span>
                 <div>
-                  <h3 className="font-poppins font-bold text-slate-900 text-base">
+                  <h3 className="font-bold text-slate-900 text-base">
                     Archive Metadata Dossier
                   </h3>
-                  <p className="text-xs text-slate-400">{detailModalProduct.id}</p>
+                  <p className="text-xs text-slate-400 font-mono">{detailModalProduct.slug}</p>
                 </div>
               </div>
               <button
                 onClick={() => setDetailModalProduct(null)}
-                className="text-slate-400 hover:text-slate-600 p-1.5 rounded-lg hover:bg-slate-100"
+                className="text-slate-400 hover:text-slate-600 p-1.5 rounded-lg hover:bg-slate-100 transition-colors cursor-pointer"
               >
                 ✕
               </button>
             </div>
 
-            <div className="space-y-4 my-5 text-sm font-inter">
-              <div className="flex items-center gap-3 p-3 rounded-xl bg-slate-50 border border-slate-200">
+            <div className="space-y-4 my-5 text-xs font-poppins">
+              <div className="flex items-center gap-3.5 p-3 rounded-2xl bg-slate-50 border border-slate-200/80">
                 <img
                   src={detailModalProduct.thumbnail}
                   alt={detailModalProduct.name}
-                  className="w-14 h-14 rounded-lg object-cover border border-slate-200"
+                  className="w-14 h-14 rounded-xl object-cover border border-slate-200 bg-white shrink-0"
                 />
-                <div>
-                  <p className="font-bold text-slate-900">{detailModalProduct.name}</p>
-                  <p className="text-xs text-slate-500 font-mono mt-0.5">SKU: {detailModalProduct.sku}</p>
-                  <p className="text-xs text-slate-600 mt-1">₹{detailModalProduct.originalPrice.toLocaleString()} • {detailModalProduct.category}</p>
+                <div className="min-w-0">
+                  <p className="font-bold text-slate-900 text-sm truncate">{detailModalProduct.name}</p>
+                  <p className="text-slate-500 font-mono mt-0.5">SKU: {detailModalProduct.sku}</p>
+                  <p className="text-slate-700 font-semibold mt-0.5">
+                    {formatCurrency(detailModalProduct.price)} • {detailModalProduct.category}
+                  </p>
                 </div>
               </div>
 
-              <div className="grid grid-cols-2 gap-3 text-xs">
-                <div className="p-3 rounded-xl border border-slate-200 bg-white">
-                  <span className="text-slate-400 block font-medium">Archive Date</span>
-                  <span className="text-slate-800 font-semibold mt-0.5 block">{detailModalProduct.archiveDate}</span>
+              <div className="grid grid-cols-2 gap-2.5">
+                <div className="p-3 rounded-2xl border border-slate-200 bg-white">
+                  <span className="text-slate-400 block font-medium text-[11px]">Archived Date</span>
+                  <span className="text-slate-900 font-bold mt-0.5 block">{detailModalProduct.archiveDate}</span>
                 </div>
-                <div className="p-3 rounded-xl border border-slate-200 bg-white">
-                  <span className="text-slate-400 block font-medium">Archived By</span>
-                  <span className="text-slate-800 font-semibold mt-0.5 block">{detailModalProduct.archivedBy}</span>
+                <div className="p-3 rounded-2xl border border-slate-200 bg-white">
+                  <span className="text-slate-400 block font-medium text-[11px]">Archived By</span>
+                  <span className="text-slate-900 font-bold mt-0.5 block">{detailModalProduct.archivedBy}</span>
                 </div>
-                <div className="p-3 rounded-xl border border-slate-200 bg-white">
-                  <span className="text-slate-400 block font-medium">Archive Reason</span>
-                  <span className="text-amber-700 font-semibold mt-0.5 block">{detailModalProduct.reason}</span>
+                <div className="p-3 rounded-2xl border border-slate-200 bg-white">
+                  <span className="text-slate-400 block font-medium text-[11px]">Archive Reason</span>
+                  <span className="text-amber-700 font-bold mt-0.5 block">{detailModalProduct.reason}</span>
                 </div>
-                <div className="p-3 rounded-xl border border-slate-200 bg-white">
-                  <span className="text-slate-400 block font-medium">Lifetime Sales Count</span>
-                  <span className="text-emerald-700 font-semibold mt-0.5 block">{detailModalProduct.totalHistoricalSales} units</span>
+                <div className="p-3 rounded-2xl border border-slate-200 bg-white">
+                  <span className="text-slate-400 block font-medium text-[11px]">Lifetime Sales Units</span>
+                  <span className="text-blue-600 font-bold mt-0.5 block">{detailModalProduct.totalHistoricalSales} units</span>
                 </div>
               </div>
-
-              {detailModalProduct.tags && (
-                <div>
-                  <span className="text-xs font-semibold text-slate-500 block mb-1.5">Historical Tags</span>
-                  <div className="flex flex-wrap gap-1.5">
-                    {detailModalProduct.tags.map((tag) => (
-                      <span key={tag} className="text-xs px-2 py-0.5 rounded-md bg-slate-100 text-slate-600 border border-slate-200">
-                        #{tag}
-                      </span>
-                    ))}
-                  </div>
-                </div>
-              )}
             </div>
 
             <div className="flex items-center justify-end gap-2.5 pt-4 border-t border-slate-100">
               <button
                 onClick={() => setDetailModalProduct(null)}
-                className="px-4 py-2 rounded-xl border border-slate-200 text-slate-700 text-xs font-semibold hover:bg-slate-50"
+                className="px-4 py-2 rounded-xl border border-slate-200 text-slate-700 text-xs font-bold hover:bg-slate-50 cursor-pointer"
               >
                 Close
               </button>
@@ -549,14 +881,16 @@ export default function ArchivedProductsView() {
                   handleRestore(detailModalProduct);
                   setDetailModalProduct(null);
                 }}
-                className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold shadow"
+                disabled={restoreMutation.isPending}
+                className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold shadow-xs cursor-pointer"
               >
                 <RotateCcw className="w-3.5 h-3.5" />
-                Restore to Live Catalog
+                <span>Restore to Active Catalog</span>
               </button>
             </div>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
     </div>
   );

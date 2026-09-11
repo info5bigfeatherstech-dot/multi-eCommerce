@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Link, useLocation, useNavigate, Outlet } from "react-router-dom";
 import { useAppDispatch, useAppSelector } from "@/store/hooks";
 import { adminLogout } from "@/store/slices/adminAuthSlice";
@@ -111,24 +111,59 @@ export default function AdminLayout() {
   const supportComplaints = useAppSelector((state) => state.adminSupport?.complaints || []);
 
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
-  const [isOrdersExpanded, setIsOrdersExpanded] = useState(false);
-  const [isProductsExpanded, setIsProductsExpanded] = useState(false);
-  const [isCustomersExpanded, setIsCustomersExpanded] = useState(false);
-  const [isReturnsExpanded, setIsReturnsExpanded] = useState(false);
-  const [isRtoExpanded, setIsRtoExpanded] = useState(false);
-  const [isAnalyticsExpanded, setIsAnalyticsExpanded] = useState(false);
-  const [isArchivedExpanded, setIsArchivedExpanded] = useState(false);
-  const [isStockQueriesExpanded, setIsStockQueriesExpanded] = useState(false);
-  const [isLeadsExpanded, setIsLeadsExpanded] = useState(false);
-  const [isUtilitiesExpanded, setIsUtilitiesExpanded] = useState(false);
-  const [isWebsiteExpanded, setIsWebsiteExpanded] = useState(false);
-  const [isEcommerceExpanded, setIsEcommerceExpanded] = useState(false);
-  const [isMarketingExpanded, setIsMarketingExpanded] = useState(false);
-  const [isReviewsExpanded, setIsReviewsExpanded] = useState(false);
-  const [isStaffExpanded, setIsStaffExpanded] = useState(false);
-  const [isSupportExpanded, setIsSupportExpanded] = useState(false);
-  const [isSettingsExpanded, setIsSettingsExpanded] = useState(false);
-  const [isDemoExpanded, setIsDemoExpanded] = useState(false);
+  const currentPath = location.pathname;
+  const [isOrdersExpanded, setIsOrdersExpanded] = useState(() => currentPath.startsWith("/admin/orders"));
+  const [isProductsExpanded, setIsProductsExpanded] = useState(() => currentPath.startsWith("/admin/products"));
+  const [isCustomersExpanded, setIsCustomersExpanded] = useState(
+    () =>
+      currentPath.startsWith("/admin/customers") ||
+      currentPath.startsWith("/admin/carts") ||
+      currentPath.startsWith("/admin/wishlists")
+  );
+  const [isReturnsExpanded, setIsReturnsExpanded] = useState(() => currentPath.startsWith("/admin/returns"));
+  const [isRtoExpanded, setIsRtoExpanded] = useState(() => currentPath.startsWith("/admin/rto"));
+  const [isAnalyticsExpanded, setIsAnalyticsExpanded] = useState(() => currentPath.startsWith("/admin/analytics"));
+  const [isArchivedExpanded, setIsArchivedExpanded] = useState(() => currentPath.startsWith("/admin/archived"));
+  const [isStockQueriesExpanded, setIsStockQueriesExpanded] = useState(() => currentPath.startsWith("/admin/stock-queries"));
+  const [isLeadsExpanded, setIsLeadsExpanded] = useState(() => currentPath.startsWith("/admin/leads"));
+  const [isUtilitiesExpanded, setIsUtilitiesExpanded] = useState(() => currentPath.startsWith("/admin/utilities"));
+  const [isWebsiteExpanded, setIsWebsiteExpanded] = useState(() => currentPath.startsWith("/admin/website"));
+  const [isEcommerceExpanded, setIsEcommerceExpanded] = useState(() => currentPath.startsWith("/admin/ecommerce"));
+  const [isMarketingExpanded, setIsMarketingExpanded] = useState(() => currentPath.startsWith("/admin/marketing"));
+  const [isReviewsExpanded, setIsReviewsExpanded] = useState(() => currentPath.startsWith("/admin/reviews"));
+  const [isStaffExpanded, setIsStaffExpanded] = useState(() => currentPath.startsWith("/admin/staff"));
+  const [isSupportExpanded, setIsSupportExpanded] = useState(() => currentPath.startsWith("/admin/support"));
+  const [isSettingsExpanded, setIsSettingsExpanded] = useState(() => currentPath.startsWith("/admin/settings"));
+  const [isDemoExpanded, setIsDemoExpanded] = useState(() => currentPath.startsWith("/admin/demo"));
+
+  // Keep sidebar section open whenever navigating to any of its child pages
+  useEffect(() => {
+    const path = location.pathname;
+    if (path.startsWith("/admin/products")) setIsProductsExpanded(true);
+    if (path.startsWith("/admin/orders")) setIsOrdersExpanded(true);
+    if (
+      path.startsWith("/admin/customers") ||
+      path.startsWith("/admin/carts") ||
+      path.startsWith("/admin/wishlists")
+    ) {
+      setIsCustomersExpanded(true);
+    }
+    if (path.startsWith("/admin/returns")) setIsReturnsExpanded(true);
+    if (path.startsWith("/admin/rto")) setIsRtoExpanded(true);
+    if (path.startsWith("/admin/analytics")) setIsAnalyticsExpanded(true);
+    if (path.startsWith("/admin/archived")) setIsArchivedExpanded(true);
+    if (path.startsWith("/admin/stock-queries")) setIsStockQueriesExpanded(true);
+    if (path.startsWith("/admin/leads")) setIsLeadsExpanded(true);
+    if (path.startsWith("/admin/utilities")) setIsUtilitiesExpanded(true);
+    if (path.startsWith("/admin/website")) setIsWebsiteExpanded(true);
+    if (path.startsWith("/admin/ecommerce")) setIsEcommerceExpanded(true);
+    if (path.startsWith("/admin/marketing")) setIsMarketingExpanded(true);
+    if (path.startsWith("/admin/reviews")) setIsReviewsExpanded(true);
+    if (path.startsWith("/admin/staff")) setIsStaffExpanded(true);
+    if (path.startsWith("/admin/support")) setIsSupportExpanded(true);
+    if (path.startsWith("/admin/settings")) setIsSettingsExpanded(true);
+    if (path.startsWith("/admin/demo")) setIsDemoExpanded(true);
+  }, [location.pathname]);
 
   const pendingReviewsCount = (productReviews || []).filter((r) => r?.status === "Pending").length;
   const activeStaffCount = (staffMembers || []).filter((s) => s?.status === "Active").length;
@@ -627,12 +662,6 @@ export default function AdminLayout() {
       icon: PlusCircle,
     },
     {
-      name: "Bulk Upload",
-      path: "/admin/products/bulk-upload",
-      description: "Import products via CSV & ZIP",
-      icon: UploadCloud,
-    },
-    {
       name: "Categories",
       path: "/admin/products/categories",
       description: "Categories and sub-categories manage",
@@ -645,12 +674,6 @@ export default function AdminLayout() {
       badge: lowStockCount > 0 ? `${lowStockCount} Low` : null,
       badgeColor: "bg-amber-100 text-amber-800",
       icon: Boxes,
-    },
-    {
-      name: "Product Attributes",
-      path: "/admin/products/attributes",
-      description: "Product specifications and attributes manage",
-      icon: Sliders,
     },
   ];
 
@@ -2061,174 +2084,7 @@ export default function AdminLayout() {
 
       {/* ── Main Content Column (Offset by fixed left sidebar on desktop) ── */}
       <div className="flex-1 flex flex-col min-w-0 lg:pl-72 bg-slate-50/70 min-h-screen">
-        {/* Top White Navbar */}
-        <header className="h-16 bg-white border-b border-slate-200 px-4 sm:px-6 flex items-center justify-between gap-4 sticky top-0 z-30 shadow-2xs">
-          {/* Mobile hamburger & Live status */}
-          <div className="flex items-center gap-3">
-            <button
-              onClick={() => setIsSidebarOpen(true)}
-              className="p-2 rounded-xl text-slate-600 hover:bg-slate-100 lg:hidden cursor-pointer"
-            >
-              <Menu className="w-5 h-5" />
-            </button>
-
-            <div className="hidden sm:flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-50 border border-emerald-200 text-emerald-700 text-xs font-poppins font-bold">
-              <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-              <span>Wholesale Gateway Live</span>
-            </div>
-          </div>
-
-          {/* Right actions */}
-          <div className="flex items-center gap-3">
-            {/* Quick Actions Shadcn Dropdown */}
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <button className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-white text-xs font-poppins font-bold shadow-xs cursor-pointer transition-all">
-                  <Plus className="w-3.5 h-3.5 text-amber-400" />
-                  <span>Quick Action</span>
-                  <ChevronDown className="w-3 h-3 opacity-60 ml-0.5" />
-                </button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="w-52">
-                <DropdownMenuLabel>Fast Actions</DropdownMenuLabel>
-                <DropdownMenuItem onClick={() => navigate("/admin/products/add")}>
-                  <Boxes className="w-4 h-4 mr-2 text-blue-500" />
-                  <span>Add New Product</span>
-                </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => navigate("/admin/orders/management")}>
-                  <ClipboardList className="w-4 h-4 mr-2 text-indigo-500" />
-                  <span>Process Orders</span>
-                </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => navigate("/admin/utilities/coupons")}>
-                  <Tag className="w-4 h-4 mr-2 text-amber-500" />
-                  <span>Create Coupon</span>
-                </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => navigate("/admin/marketing/campaigns")}>
-                  <Target className="w-4 h-4 mr-2 text-rose-500" />
-                  <span>Launch Campaign</span>
-                </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => navigate("/admin/staff/add")}>
-                  <UserPlus className="w-4 h-4 mr-2 text-emerald-500" />
-                  <span>Invite Staff Member</span>
-                </DropdownMenuItem>
-                <DropdownMenuSeparator />
-                <DropdownMenuItem onClick={() => navigate("/admin/demo/dashboard")}>
-                  <Sparkles className="w-4 h-4 mr-2 text-accent" />
-                  <span>Open Demo Sandbox</span>
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
-
-            {/* Notifications Shadcn Dropdown */}
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <button
-                  className="relative p-2 rounded-xl text-slate-600 hover:bg-slate-100 transition-colors cursor-pointer"
-                  title="Admin Notifications & Alerts"
-                >
-                  <Bell className="w-4 h-4" />
-                  {(pendingVerificationCount + pendingSupportCount + pendingStockQueriesCount) > 0 && (
-                    <span className="absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-rose-500 ring-2 ring-white" />
-                  )}
-                </button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="w-72 p-2">
-                <div className="flex items-center justify-between px-2 py-1.5">
-                  <DropdownMenuLabel className="p-0">Alerts & Inquiries</DropdownMenuLabel>
-                  <span className="px-1.5 py-0.5 rounded-full text-[9px] font-bold bg-rose-100 text-rose-800">
-                    {pendingVerificationCount + pendingSupportCount + pendingStockQueriesCount} Pending
-                  </span>
-                </div>
-                <DropdownMenuSeparator />
-                <DropdownMenuItem onClick={() => navigate("/admin/orders/verification")} className="flex items-start gap-2.5 py-2.5">
-                  <div className="p-1.5 rounded-lg bg-rose-50 text-rose-600 mt-0.5">
-                    <ShieldCheck className="w-3.5 h-3.5" />
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <p className="font-poppins font-bold text-slate-900 truncate">Delivery Verification</p>
-                    <p className="text-[11px] text-slate-500 font-inter">{pendingVerificationCount} orders awaiting KYC/OTP review</p>
-                  </div>
-                </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => navigate("/admin/support/tickets")} className="flex items-start gap-2.5 py-2.5">
-                  <div className="p-1.5 rounded-lg bg-amber-50 text-amber-600 mt-0.5">
-                    <LifeBuoy className="w-3.5 h-3.5" />
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <p className="font-poppins font-bold text-slate-900 truncate">Customer Support</p>
-                    <p className="text-[11px] text-slate-500 font-inter">{pendingSupportCount} tickets need staff response</p>
-                  </div>
-                </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => navigate("/admin/stock-queries")} className="flex items-start gap-2.5 py-2.5">
-                  <div className="p-1.5 rounded-lg bg-blue-50 text-blue-600 mt-0.5">
-                    <BellRing className="w-3.5 h-3.5" />
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <p className="font-poppins font-bold text-slate-900 truncate">Stock Queries</p>
-                    <p className="text-[11px] text-slate-500 font-inter">{pendingStockQueriesCount} customer stock alerts</p>
-                  </div>
-                </DropdownMenuItem>
-                <DropdownMenuSeparator />
-                <DropdownMenuItem onClick={() => navigate("/admin/settings/notifications")} className="justify-center text-accent font-bold">
-                  <span>Notification Settings →</span>
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
-
-            <div className="h-6 w-px bg-slate-200" />
-
-            {/* Admin User Profile Shadcn Dropdown */}
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <button className="flex items-center gap-2 p-1 pl-2 rounded-xl hover:bg-slate-100 transition-colors cursor-pointer text-left">
-                  <div className="hidden md:block text-right leading-tight">
-                    <span className="block text-xs font-poppins font-bold text-slate-900">
-                      {adminUser?.name || "Super Admin"}
-                    </span>
-                    <span className="text-[10px] text-slate-400 font-inter">
-                      {adminUser?.role || "Master Administrator"}
-                    </span>
-                  </div>
-                  <Avatar className="w-8 h-8 rounded-xl border border-slate-200">
-                    <AvatarImage src={adminUser?.avatar || "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=200&q=80"} alt="User" />
-                    <AvatarFallback>{(adminUser?.name || "AD").slice(0, 2).toUpperCase()}</AvatarFallback>
-                  </Avatar>
-                  <ChevronDown className="w-3.5 h-3.5 text-slate-400 hidden sm:block" />
-                </button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="w-56">
-                <div className="p-2.5 bg-slate-50 rounded-lg mb-1 border border-slate-100">
-                  <p className="text-xs font-poppins font-bold text-slate-900">{adminUser?.name || "Super Admin"}</p>
-                  <p className="text-[11px] text-slate-500 truncate">{adminUser?.email || "admin@apexmart.com"}</p>
-                  <span className="inline-block mt-1 px-1.5 py-0.2 rounded bg-accent/10 text-accent text-[9px] font-black uppercase">
-                    {adminUser?.role || "Master Admin"}
-                  </span>
-                </div>
-                <DropdownMenuLabel>Account & Controls</DropdownMenuLabel>
-                <DropdownMenuItem onClick={() => navigate("/admin/settings/general")}>
-                  <Settings className="w-4 h-4 mr-2 text-slate-500" />
-                  <span>General Settings</span>
-                </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => navigate("/admin/settings/security")}>
-                  <ShieldCheck className="w-4 h-4 mr-2 text-slate-500" />
-                  <span>Security & 2FA</span>
-                </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => navigate("/admin/staff/activity")}>
-                  <Activity className="w-4 h-4 mr-2 text-slate-500" />
-                  <span>Staff Activity Trail</span>
-                </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => navigate("/admin/demo/dashboard")}>
-                  <Sparkles className="w-4 h-4 mr-2 text-amber-500" />
-                  <span>Demo Sandbox</span>
-                </DropdownMenuItem>
-                <DropdownMenuSeparator />
-                <DropdownMenuItem onClick={handleLogout} className="text-rose-600 focus:bg-rose-50 focus:text-rose-700">
-                  <LogOut className="w-4 h-4 mr-2" />
-                  <span>Sign Out of Admin</span>
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
-          </div>
-        </header>
+        
 
         {/* Dynamic Admin Body Content */}
         <main className="flex-1 p-4 sm:p-6 lg:p-8 overflow-y-auto">

@@ -42,6 +42,17 @@ export const ENDPOINTS = {
     WISHLISTS_STALE: "/admin/analytics/wishlists/stale",
     WISHLISTS_POPULAR: "/admin/analytics/wishlists/popular-products",
   },
+
+  // Admin Products & Archiving APIs
+  ADMIN_PRODUCTS: {
+    ALL: "/admin/products/all",
+    GET_BY_SLUG: (slug) => `/admin/products/${encodeURIComponent(slug)}`,
+    ARCHIVE: (slug) => `/admin/products/${encodeURIComponent(slug)}`, // DELETE (Soft delete)
+    ARCHIVED_LIST: "/admin/products/archived", // GET
+    RESTORE: (slug) => `/admin/products/restore/${encodeURIComponent(slug)}`, // PATCH
+    HARD_DELETE: (slug) => `/admin/products/hard/${encodeURIComponent(slug)}`, // DELETE (Permanent)
+    BULK_STATUS: "/admin/products/bulk-status", // PATCH
+  },
 };
 
 export default ENDPOINTS;
