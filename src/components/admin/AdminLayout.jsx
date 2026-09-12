@@ -668,6 +668,12 @@ export default function AdminLayout() {
       icon: FolderTree,
     },
     {
+      name: "Labels",
+      path: "/admin/products/labels",
+      description: "Storefront marketing labels manage",
+      icon: Tag,
+    },
+    {
       name: "Inventory",
       path: "/admin/products/inventory",
       description: "Stock and inventory manage",

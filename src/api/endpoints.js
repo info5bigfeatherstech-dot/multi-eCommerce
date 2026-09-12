@@ -92,6 +92,15 @@ export const ENDPOINTS = {
     RESTORE: (slug) => `/admin/products/restore/${encodeURIComponent(slug)}`, // PATCH
     HARD_DELETE: (slug) => `/admin/products/hard/${encodeURIComponent(slug)}`, // DELETE (Permanent)
     BULK_STATUS: "/admin/products/bulk-status", // PATCH
+    UPDATE_FLAGS: "/admin/products/updateFlags",
+  },
+
+  ADMIN_PRODUCT_LABELS: {
+    LIST: "/admin/product-labels",
+    DETAIL: (idOrSlug) => `/admin/product-labels/${encodeURIComponent(idOrSlug)}`,
+    CREATE: "/admin/product-labels",
+    UPDATE: (idOrSlug) => `/admin/product-labels/${encodeURIComponent(idOrSlug)}`,
+    DELETE: (idOrSlug) => `/admin/product-labels/${encodeURIComponent(idOrSlug)}`,
   },
 };
 

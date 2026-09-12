@@ -55,6 +55,17 @@ export {
   exportProductsCSV,
 } from "./adminProducts.js";
 
+// Product marketing labels
+export * as adminProductLabels from "./adminProductLabels.js";
+export {
+  getAdminProductLabels,
+  getAdminProductLabel,
+  createAdminProductLabel,
+  updateAdminProductLabel,
+  deleteAdminProductLabel,
+  assignProductsToLabel,
+} from "./adminProductLabels.js";
+
 // Enterprise Order Management System (OMS) & Fulfillment API
 export * as adminOrders from "./adminOrders.js";
 export {

@@ -46,6 +46,7 @@ import RtoReportsView from "./components/admin/rto/RtoReportsView";
 import AllProductsView from "./components/admin/products/AllProductsView";
 import AddProductView from "./components/admin/products/AddProductView";
 import CategoriesView from "./components/admin/products/CategoriesView";
+import ProductLabelsView from "./components/admin/products/ProductLabelsView";
 import InventoryView from "./components/admin/products/InventoryView";
 import ProductAttributesView from "./components/admin/products/ProductAttributesView";
 import BulkUploadView from "./components/admin/products/BulkUploadView";
@@ -160,6 +161,7 @@ export default function App() {
             <Route path="products/add" element={<AddProductView />} />
             <Route path="products/bulk-upload" element={<BulkUploadView />} />
             <Route path="products/categories" element={<CategoriesView />} />
+            <Route path="products/labels" element={<ProductLabelsView />} />
             <Route path="products/inventory" element={<InventoryView />} />
             <Route path="products/attributes" element={<ProductAttributesView />} />
 

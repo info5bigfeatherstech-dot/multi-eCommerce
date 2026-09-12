@@ -12,6 +12,7 @@ import {
   updateProduct as apiUpdateProduct,
   archiveProduct as apiArchiveProduct,
 } from "@/api/adminProducts";
+import { getAdminProductLabels, assignProductsToLabel } from "@/api/adminProductLabels";
 import { getAllCategories } from "@/api/adminCategories";
 import {
   Package,
@@ -120,6 +121,7 @@ function normalizeProduct(p) {
     imageUrl,
     binLocation,
     tierPrices,
+    tags: Array.isArray(p.tags) ? p.tags : Array.isArray(p.appliedTags) ? p.appliedTags : [],
   };
 }
 
@@ -166,6 +168,12 @@ export default function AllProductsView() {
 
   // Bulk Upload Pop-up Modal State
   const [isBulkUploadModalOpen, setIsBulkUploadModalOpen] = useState(false);
+
+  // Label assignment (bulk)
+  const [availableLabels, setAvailableLabels] = useState([]);
+  const [selectedProductSlugs, setSelectedProductSlugs] = useState([]);
+  const [bulkLabelSlug, setBulkLabelSlug] = useState("");
+  const [isAssigningLabel, setIsAssigningLabel] = useState(false);
 
   /**
    * Fetch Live Products from API
@@ -269,6 +277,69 @@ export default function AllProductsView() {
     }
   }, [categories.length, dispatch]);
 
+  useEffect(() => {
+    let cancelled = false;
+    getAdminProductLabels({ activeOnly: true })
+      .then((res) => {
+        if (!cancelled) setAvailableLabels(res.labels || []);
+      })
+      .catch(() => {
+        if (!cancelled) setAvailableLabels([]);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  const toggleSelectProduct = (slug) => {
+    const key = String(slug || "").trim();
+    if (!key) return;
+    setSelectedProductSlugs((prev) =>
+      prev.includes(key) ? prev.filter((s) => s !== key) : [...prev, key]
+    );
+  };
+
+  const toggleSelectPage = () => {
+    setSelectedProductSlugs((prev) => {
+      if (allPageSelected) {
+        return prev.filter((s) => !pageProductSlugs.includes(s));
+      }
+      return [...new Set([...prev, ...pageProductSlugs])];
+    });
+  };
+
+  const handleBulkLabelAssign = async (value) => {
+    if (!bulkLabelSlug) {
+      toast.error("Choose a label first");
+      return;
+    }
+    if (!selectedProductSlugs.length) {
+      toast.error("Select at least one product");
+      return;
+    }
+    setIsAssigningLabel(true);
+    try {
+      const res = await assignProductsToLabel({
+        slugs: selectedProductSlugs,
+        flagType: bulkLabelSlug,
+        value,
+      });
+      const labelName =
+        availableLabels.find((l) => l.slug === bulkLabelSlug)?.name || bulkLabelSlug;
+      toast.success(
+        value
+          ? `Applied “${labelName}” to ${res.updatedCount || selectedProductSlugs.length} product(s)`
+          : `Removed “${labelName}” from ${res.updatedCount || selectedProductSlugs.length} product(s)`
+      );
+      setSelectedProductSlugs([]);
+      await fetchProductsList(currentPage, pageSize);
+    } catch (error) {
+      toast.error(error.message || "Failed to update labels");
+    } finally {
+      setIsAssigningLabel(false);
+    }
+  };
+
   // Local filtered Redux products (used as high-reliability fallback if API is not yet loaded)
   const filteredReduxProducts = useMemo(() => {
     return reduxProducts.filter((item) => {
@@ -317,6 +388,17 @@ export default function AllProductsView() {
     const startIndex = (currentPage - 1) * pageSize;
     return filteredReduxProducts.slice(startIndex, startIndex + pageSize);
   }, [apiProducts, filteredReduxProducts, selectedStockStatus, currentPage, pageSize]);
+
+  const pageProductSlugs = useMemo(
+    () =>
+      displayedProducts
+        .map((p) => String(p.slug || "").trim())
+        .filter(Boolean),
+    [displayedProducts]
+  );
+
+  const allPageSelected =
+    pageProductSlugs.length > 0 && pageProductSlugs.every((s) => selectedProductSlugs.includes(s));
 
   // Total count for pagination display
   const totalCount = apiProducts !== null ? totalItems : filteredReduxProducts.length;
@@ -735,12 +817,66 @@ export default function AllProductsView() {
         </div>
       </div>
 
+      {selectedProductSlugs.length > 0 && (
+        <div className="bg-white p-3.5 rounded-2xl border border-accent/20 shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+          <p className="text-xs font-heading font-bold text-slate-800">
+            {selectedProductSlugs.length} product(s) selected
+          </p>
+          <div className="flex flex-wrap items-center gap-2">
+            <select
+              value={bulkLabelSlug}
+              onChange={(e) => setBulkLabelSlug(e.target.value)}
+              className="px-3 py-2 rounded-xl border border-slate-200 bg-white text-xs font-heading font-bold text-slate-700 focus:outline-none focus:border-accent"
+            >
+              <option value="">Choose label...</option>
+              {availableLabels.map((label) => (
+                <option key={label.slug} value={label.slug}>
+                  {label.name}
+                </option>
+              ))}
+            </select>
+            <button
+              type="button"
+              disabled={isAssigningLabel || !bulkLabelSlug}
+              onClick={() => handleBulkLabelAssign(true)}
+              className="px-3.5 py-2 rounded-xl bg-accent hover:bg-accent-hover text-white text-xs font-bold disabled:opacity-40 cursor-pointer"
+            >
+              Apply label
+            </button>
+            <button
+              type="button"
+              disabled={isAssigningLabel || !bulkLabelSlug}
+              onClick={() => handleBulkLabelAssign(false)}
+              className="px-3.5 py-2 rounded-xl border border-slate-200 bg-white text-xs font-bold text-slate-700 hover:bg-slate-50 disabled:opacity-40 cursor-pointer"
+            >
+              Remove label
+            </button>
+            <button
+              type="button"
+              onClick={() => setSelectedProductSlugs([])}
+              className="px-3 py-2 rounded-xl text-xs font-bold text-slate-500 hover:text-slate-800 cursor-pointer"
+            >
+              Clear
+            </button>
+          </div>
+        </div>
+      )}
+
       {/* ── Products Table ── */}
       <div className="bg-white rounded-2xl border border-slate-200 shadow-xs overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full text-left border-collapse text-xs">
             <thead>
               <tr className="bg-slate-50 border-b border-slate-200 text-[11px] font-heading font-bold text-slate-500 uppercase tracking-wider">
+                <th className="py-3.5 px-3 w-10">
+                  <input
+                    type="checkbox"
+                    checked={allPageSelected}
+                    onChange={toggleSelectPage}
+                    className="rounded border-slate-300 text-accent focus:ring-accent"
+                    aria-label="Select all products on this page"
+                  />
+                </th>
                 <th className="py-3.5 px-4">Product Details</th>
                 <th className="py-3.5 px-4">Category & Brand</th>
                 <th className="py-3.5 px-4">Wholesale Price (₹)</th>
@@ -753,7 +889,7 @@ export default function AllProductsView() {
             <tbody className="divide-y divide-slate-100 font-montreal">
               {isLoading ? (
                 <tr>
-                  <td colSpan={7} className="py-16 text-center text-slate-400">
+                  <td colSpan={8} className="py-16 text-center text-slate-400">
                     <Loader2 className="w-8 h-8 mx-auto text-accent animate-spin mb-2" />
                     <p className="text-sm font-heading font-bold text-slate-700">Loading Products from API...</p>
                     <p className="text-xs text-slate-400 font-mono mt-0.5">
@@ -763,7 +899,7 @@ export default function AllProductsView() {
                 </tr>
               ) : displayedProducts.length === 0 ? (
                 <tr>
-                  <td colSpan={7} className="py-12 text-center text-slate-400">
+                  <td colSpan={8} className="py-12 text-center text-slate-400">
                     <Package className="w-10 h-10 mx-auto text-slate-300 mb-2 stroke-[1.5]" />
                     <p className="text-sm font-heading font-bold text-slate-700">No products found</p>
                     <p className="text-xs text-slate-400 mt-0.5 font-montreal">
@@ -778,6 +914,15 @@ export default function AllProductsView() {
 
                   return (
                     <tr key={p.id} className="hover:bg-slate-50/80 transition-colors">
+                      <td className="py-4 px-3">
+                        <input
+                          type="checkbox"
+                          checked={selectedProductSlugs.includes(String(p.slug || "").trim())}
+                          onChange={() => toggleSelectProduct(p.slug)}
+                          className="rounded border-slate-300 text-accent focus:ring-accent"
+                          aria-label={`Select ${p.name}`}
+                        />
+                      </td>
                       {/* Product details with image */}
                       <td className="py-4 px-4">
                         <div className="flex items-center gap-3">
@@ -793,6 +938,18 @@ export default function AllProductsView() {
                             <span className="text-[11px] font-mono text-slate-400 font-medium">
                               SKU: {p.sku}
                             </span>
+                            {Array.isArray(p.tags) && p.tags.length > 0 && (
+                              <div className="flex flex-wrap gap-1 mt-1">
+                                {p.tags.slice(0, 3).map((tag) => (
+                                  <span
+                                    key={tag}
+                                    className="px-1.5 py-0.5 rounded bg-orange-50 text-accent text-[9px] font-bold"
+                                  >
+                                    {tag}
+                                  </span>
+                                ))}
+                              </div>
+                            )}
                           </div>
                         </div>
                       </td>
