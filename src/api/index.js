@@ -12,7 +12,25 @@ export {
   setAdminRefreshToken,
   setAdminTokens,
   clearAdminTokens,
+  getEcommAccessToken,
+  setEcommAccessToken,
+  clearEcommAccessToken,
 } from "./authStorage.js";
+
+// Ecomm Customer Auth API
+export * as ecommAuth from "./ecommAuth.js";
+export {
+  DEFAULT_SECURITY_QUESTIONS,
+  getSecurityQuestions,
+  register,
+  verifyRegistrationOtp,
+  login,
+  forgotPasswordFindUser,
+  forgotPasswordVerifyAnswers,
+  forgotPasswordVerifyOtpFallback,
+  forgotPasswordResetDirect,
+  logoutCustomer,
+} from "./ecommAuth.js";
 
 export {
   normalizeApiError,
@@ -144,6 +162,18 @@ export {
   mergeWishlist,
   moveWishlistToCart,
 } from "./storefrontWishlist.js";
+
+// Storefront Address CRUD API
+export * as addressesApi from "./addresses.js";
+export {
+  calculateCourierLengths,
+  validateAddress,
+  getAddresses,
+  createAddress,
+  updateAddress,
+  setAddressAsDefault,
+  deleteAddress,
+} from "./addresses.js";
 
 // Admin Analytics & Customer Management API
 export * as adminCustomerAnalytics from "./adminCustomerAnalytics.js";

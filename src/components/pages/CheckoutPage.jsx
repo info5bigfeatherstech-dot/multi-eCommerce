@@ -26,6 +26,8 @@ import {
   MessageSquare,
 } from "lucide-react";
 import Button from "@/components/ui/Button";
+import { useAddressesQuery } from "@/hooks/useAddressesQuery";
+import { calculateCourierLengths } from "@/api/addresses";
 
 const PAYMENT_METHODS = [
   {
@@ -78,6 +80,74 @@ export function CheckoutPage({ onBack: propOnBack }) {
     gstin: "",
     notes: "",
   });
+
+  // Address Query Integration
+  const { data: addressData, isLoading: isAddressesLoading } = useAddressesQuery();
+  const defaultAddress = addressData?.defaultAddress || null;
+  const savedAddresses = React.useMemo(() => {
+    const list = addressData?.addresses || [];
+    return defaultAddress ? [defaultAddress, ...list] : list;
+  }, [addressData, defaultAddress]);
+
+  const [selectedAddressId, setSelectedAddressId] = useState(null);
+  const [useCustomAddress, setUseCustomAddress] = useState(false);
+
+  // Pre-fill with default address when loaded
+  React.useEffect(() => {
+    if (savedAddresses.length > 0 && !selectedAddressId && !useCustomAddress) {
+      const initialAddr = defaultAddress || savedAddresses[0];
+      if (initialAddr) {
+        setSelectedAddressId(initialAddr._id || initialAddr.id);
+        const fullStreet = [
+          initialAddr.houseNumber,
+          initialAddr.building,
+          initialAddr.floor ? `Floor ${initialAddr.floor}` : null,
+          initialAddr.addressLine1,
+          initialAddr.addressLine2,
+          initialAddr.area,
+          initialAddr.landmark ? `Near ${initialAddr.landmark}` : null,
+        ]
+          .filter(Boolean)
+          .join(", ");
+
+        setFormData((prev) => ({
+          ...prev,
+          fullName: initialAddr.fullName || prev.fullName,
+          phone: initialAddr.phone || prev.phone,
+          address: fullStreet || prev.address,
+          city: initialAddr.city || prev.city,
+          state: initialAddr.state || prev.state,
+          pincode: initialAddr.postalCode || prev.pincode,
+        }));
+      }
+    }
+  }, [savedAddresses, defaultAddress, selectedAddressId, useCustomAddress]);
+
+  const handleSelectSavedAddress = (addr) => {
+    setSelectedAddressId(addr._id || addr.id);
+    setUseCustomAddress(false);
+    const fullStreet = [
+      addr.houseNumber,
+      addr.building,
+      addr.floor ? `Floor ${addr.floor}` : null,
+      addr.addressLine1,
+      addr.addressLine2,
+      addr.area,
+      addr.landmark ? `Near ${addr.landmark}` : null,
+    ]
+      .filter(Boolean)
+      .join(", ");
+
+    setFormData((prev) => ({
+      ...prev,
+      fullName: addr.fullName || prev.fullName,
+      phone: addr.phone || prev.phone,
+      address: fullStreet,
+      city: addr.city || prev.city,
+      state: addr.state || prev.state,
+      pincode: addr.postalCode || prev.pincode,
+    }));
+  };
 
   const [deliveryMethod, setDeliveryMethod] = useState("standard");
   const [paymentMethod, setPaymentMethod] = useState("upi");
@@ -145,6 +215,10 @@ export function CheckoutPage({ onBack: propOnBack }) {
       const generatedOrderId = "ORD-" + Math.floor(100000 + Math.random() * 900000);
       setOrderPlaced({
         orderId: generatedOrderId,
+        addressId: selectedAddressId || "ADDR-NEW",
+        shippingAddress: formData.address,
+        recipient: formData.fullName,
+        phone: formData.phone,
         total: finalAmount,
         itemsCount: totalCount,
         deliveryMethod,
@@ -184,6 +258,17 @@ export function CheckoutPage({ onBack: propOnBack }) {
                 #{orderPlaced.orderId}
               </span>
             </div>
+            {orderPlaced.shippingAddress && (
+              <div className="flex justify-between items-start pb-2 border-b border-slate-200">
+                <span className="text-slate-500">Delivery Address</span>
+                <span className="font-semibold text-slate-800 text-right max-w-[220px]">
+                  {orderPlaced.shippingAddress}
+                  {orderPlaced.addressId && orderPlaced.addressId !== "ADDR-NEW" && (
+                    <span className="block text-[10px] text-slate-400 font-mono">ID: {orderPlaced.addressId}</span>
+                  )}
+                </span>
+              </div>
+            )}
             <div className="flex justify-between items-center pb-2 border-b border-slate-200">
               <span className="text-slate-500">Total Amount Paid</span>
               <span className="font-poppins font-black text-accent text-base">
@@ -302,7 +387,100 @@ export function CheckoutPage({ onBack: propOnBack }) {
               </div>
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            {/* Saved Address Quick Selector if available */}
+            {savedAddresses.length > 0 && (
+              <div className="space-y-3">
+                <div className="flex items-center justify-between">
+                  <span className="text-xs font-poppins font-bold text-slate-700">
+                    Saved Delivery Addresses ({savedAddresses.length})
+                  </span>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setUseCustomAddress(!useCustomAddress);
+                      if (!useCustomAddress) {
+                        setSelectedAddressId(null);
+                        setFormData((prev) => ({
+                          ...prev,
+                          fullName: "",
+                          phone: "",
+                          address: "",
+                          city: "",
+                          state: "",
+                          pincode: "",
+                        }));
+                      }
+                    }}
+                    className="text-xs font-poppins font-bold text-accent hover:underline cursor-pointer"
+                  >
+                    {useCustomAddress ? "Use Saved Address" : "+ Enter New Address"}
+                  </button>
+                </div>
+
+                {!useCustomAddress && (
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    {savedAddresses.map((addr) => {
+                      const id = addr._id || addr.id;
+                      const isSelected = selectedAddressId === id;
+                      const fullStreet = [
+                        addr.houseNumber,
+                        addr.building,
+                        addr.floor ? `Floor ${addr.floor}` : null,
+                        addr.addressLine1,
+                        addr.addressLine2,
+                        addr.area,
+                        addr.landmark ? `Near ${addr.landmark}` : null,
+                      ]
+                        .filter(Boolean)
+                        .join(", ");
+
+                      return (
+                        <div
+                          key={id}
+                          onClick={() => handleSelectSavedAddress(addr)}
+                          className={cn(
+                            "p-3.5 rounded-2xl border transition-all cursor-pointer relative flex flex-col justify-between text-left",
+                            isSelected
+                              ? "border-accent bg-orange-50/30 ring-2 ring-accent/20 shadow-xs"
+                              : "border-slate-200 bg-white hover:border-slate-300"
+                          )}
+                        >
+                          <div>
+                            <div className="flex items-center justify-between mb-1.5">
+                              <span className="text-xs font-poppins font-bold text-slate-900 flex items-center gap-1.5">
+                                <MapPin size={13} className={isSelected ? "text-accent" : "text-slate-400"} />
+                                {addr.fullName}
+                              </span>
+                              {addr.isDefault && (
+                                <span className="text-[9px] font-poppins font-bold uppercase tracking-wider bg-accent text-white px-2 py-0.5 rounded-md">
+                                  Default
+                                </span>
+                              )}
+                            </div>
+                            <p className="text-[11px] text-slate-500 font-inter line-clamp-2 leading-relaxed">
+                              {fullStreet}
+                            </p>
+                            <p className="text-[11px] font-semibold text-slate-700 font-inter mt-1">
+                              {addr.city}, {addr.state} - {addr.postalCode}
+                            </p>
+                          </div>
+                          <div className="flex items-center justify-between pt-2.5 mt-2 border-t border-slate-100 text-[10px] text-slate-500 font-inter">
+                            <span>Phone: +91 {addr.phone}</span>
+                            <span className={cn("font-poppins font-bold", isSelected ? "text-accent" : "text-slate-400")}>
+                              {isSelected ? "Selected ✓" : "Select"}
+                            </span>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* Address Input Fields (Always visible if no saved addresses or if custom address toggled) */}
+            {(savedAddresses.length === 0 || useCustomAddress) && (
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2">
               {/* Full Name */}
               <div className="space-y-1.5 sm:col-span-2">
                 <label className="text-xs font-poppins font-bold text-slate-700">
@@ -414,6 +592,7 @@ export function CheckoutPage({ onBack: propOnBack }) {
                 </div>
               </div>
             </div>
+          )}
 
             {/* Optional B2B GSTIN Checkbox */}
             <div className="pt-3 border-t border-slate-100">

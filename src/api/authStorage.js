@@ -142,6 +142,68 @@ export function clearAdminTokens() {
   }
 }
 
+export const ECOMM_ACCESS_TOKEN_KEY = "apexmart_ecomm_access_token";
+
+/**
+ * Retrieve the current ecomm customer access token.
+ * Checks dedicated key, standard accessToken/token keys, and stored customer user object.
+ * @returns {string|null}
+ */
+export function getEcommAccessToken() {
+  if (typeof window === "undefined") return null;
+  try {
+    const directKeys = [ECOMM_ACCESS_TOKEN_KEY, "accessToken", "token"];
+    for (const key of directKeys) {
+      const val = localStorage.getItem(key);
+      if (val && typeof val === "string" && val.length > 10 && !val.startsWith("{")) {
+        return val;
+      }
+    }
+
+    const userRaw = localStorage.getItem("apexmart_user");
+    if (userRaw) {
+      const parsed = JSON.parse(userRaw);
+      const token = parsed?.accessToken || parsed?.token || parsed?.data?.accessToken;
+      if (token && typeof token === "string") return token;
+    }
+  } catch (e) {
+    console.error("Error reading ecomm access token:", e);
+  }
+  return null;
+}
+
+/**
+ * Persist the ecomm customer access token.
+ * @param {string} token
+ */
+export function setEcommAccessToken(token) {
+  if (typeof window === "undefined") return;
+  try {
+    if (token) {
+      localStorage.setItem(ECOMM_ACCESS_TOKEN_KEY, token);
+      localStorage.setItem("accessToken", token);
+    } else {
+      localStorage.removeItem(ECOMM_ACCESS_TOKEN_KEY);
+      localStorage.removeItem("accessToken");
+    }
+  } catch (e) {
+    console.error("Error setting ecomm access token:", e);
+  }
+}
+
+/**
+ * Clear ecomm customer authentication token.
+ */
+export function clearEcommAccessToken() {
+  if (typeof window === "undefined") return;
+  try {
+    localStorage.removeItem(ECOMM_ACCESS_TOKEN_KEY);
+    localStorage.removeItem("accessToken");
+  } catch (e) {
+    console.error("Error clearing ecomm access token:", e);
+  }
+}
+
 export default {
   getAdminAccessToken,
   setAdminAccessToken,
@@ -149,4 +211,7 @@ export default {
   setAdminRefreshToken,
   setAdminTokens,
   clearAdminTokens,
+  getEcommAccessToken,
+  setEcommAccessToken,
+  clearEcommAccessToken,
 };

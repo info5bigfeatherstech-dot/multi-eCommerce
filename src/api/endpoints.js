@@ -4,6 +4,18 @@
  */
 
 export const ENDPOINTS = {
+  // Ecomm Customer Auth APIs
+  AUTH: {
+    SECURITY_QUESTIONS: "/auth/security-questions",
+    REGISTER: "/auth/register",
+    VERIFY_OTP_LOGIN: "/auth/otp-verify-login",
+    LOGIN: "/auth/login",
+    FORGOT_FIND_USER: "/auth/forgot-password/find-user",
+    FORGOT_VERIFY_ANSWERS: "/auth/forgot-password/verify-answers",
+    FORGOT_VERIFY_OTP_FALLBACK: "/auth/forgot-password/verify-otp-fallback",
+    FORGOT_RESET_DIRECT: "/auth/forgot-password/reset-direct",
+  },
+
   // Storefront Cart APIs
   CART: {
     GET: "/cart",
@@ -24,6 +36,16 @@ export const ENDPOINTS = {
     CLEAR: "/wishlist/clear",
     MERGE: "/wishlist/merge",
     MOVE_TO_CART: "/wishlist/move-to-cart",
+  },
+
+  // Storefront Address CRUD APIs (Scoped per storefront: ecomm / wholesale)
+  ADDRESSES: {
+    BASE: "/addresses",
+    LIST: "/addresses",
+    CREATE: "/addresses",
+    DETAIL: (id) => `/addresses/${encodeURIComponent(id)}`,
+    UPDATE: (id) => `/addresses/${encodeURIComponent(id)}`,
+    DELETE: (id) => `/addresses/${encodeURIComponent(id)}`,
   },
 
   // Admin Analytics & Customer Management APIs

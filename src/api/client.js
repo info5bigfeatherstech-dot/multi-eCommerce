@@ -5,6 +5,8 @@ import {
   getAdminRefreshToken,
   setAdminRefreshToken,
   clearAdminTokens,
+  getEcommAccessToken,
+  clearEcommAccessToken,
 } from "./authStorage.js";
 
 // Resolve Base URL: default to /api if not specified in environment
@@ -40,11 +42,18 @@ const processQueue = (error, token = null) => {
 
 /**
  * Request Interceptor
- * Injects the Bearer admin access token and default headers.
+ * Injects the Bearer access token (ecomm customer or admin) and default headers.
  */
 apiClient.interceptors.request.use(
   (config) => {
-    const token = getAdminAccessToken();
+    const url = config.url || "";
+    let token = null;
+    if (url.startsWith("/admin/") || url.includes("admin-ecomm")) {
+      token = getAdminAccessToken();
+    } else {
+      token = getEcommAccessToken() || getAdminAccessToken();
+    }
+
     if (token) {
       config.headers = config.headers || {};
       config.headers.Authorization = `Bearer ${token}`;
@@ -74,15 +83,19 @@ apiClient.interceptors.response.use(
   async (error) => {
     const originalRequest = error.config;
 
-    // Skip refresh attempt if no response, already retried, or request is the refresh endpoint itself
+    // Skip refresh attempt if no response, not 401, already retried, or request is the refresh endpoint itself
     if (
       !error.response ||
       error.response.status !== 401 ||
-      originalRequest._retry ||
-      originalRequest.url?.includes("/auth/refresh")
+      originalRequest?._retry ||
+      originalRequest?.url?.includes("/auth/refresh")
     ) {
       return Promise.reject(error);
     }
+
+    const url = originalRequest?.url || "";
+    const isCustomerRequest = !url.startsWith("/admin/") && !url.includes("admin-ecomm");
+    const portal = isCustomerRequest ? "ecomm" : "admin-ecomm";
 
     if (isRefreshing) {
       // Queue subsequent 401 requests while a refresh is in-flight
@@ -91,6 +104,7 @@ apiClient.interceptors.response.use(
       })
         .then((token) => {
           if (token) {
+            originalRequest.headers = originalRequest.headers || {};
             originalRequest.headers.Authorization = `Bearer ${token}`;
           }
           return apiClient(originalRequest);
@@ -101,16 +115,11 @@ apiClient.interceptors.response.use(
     originalRequest._retry = true;
     isRefreshing = true;
 
-    const fallbackRefreshToken = getAdminRefreshToken();
+    const fallbackRefreshToken = isCustomerRequest ? null : getAdminRefreshToken();
 
     try {
-      // Refresh request as specified:
-      // Endpoint: POST /auth/refresh
-      // Body: { "portal": "admin-ecomm", "refreshToken": "<optional_fallback_token>" }
-      // Headers: { "x-refresh-token": "<fallback_token>" }
-      // Credentials: withCredentials: true
       const refreshPayload = {
-        portal: "admin-ecomm",
+        portal,
         ...(fallbackRefreshToken ? { refreshToken: fallbackRefreshToken } : {}),
       };
 
@@ -138,22 +147,42 @@ apiClient.interceptors.response.use(
         responseData.data?.refreshToken;
 
       if (newAccessToken) {
-        setAdminAccessToken(newAccessToken);
+        if (isCustomerRequest) {
+          setEcommAccessToken(newAccessToken);
+        } else {
+          setAdminAccessToken(newAccessToken);
+        }
       }
-      if (newRefreshToken) {
+
+      if (newRefreshToken && !isCustomerRequest) {
         setAdminRefreshToken(newRefreshToken);
       }
 
       processQueue(null, newAccessToken);
 
       if (newAccessToken) {
+        originalRequest.headers = originalRequest.headers || {};
         originalRequest.headers.Authorization = `Bearer ${newAccessToken}`;
       }
 
       return apiClient(originalRequest);
     } catch (refreshError) {
       processQueue(refreshError, null);
-      clearAdminTokens();
+
+      if (isCustomerRequest) {
+        clearEcommAccessToken();
+        try {
+          localStorage.removeItem("apexmart_user");
+          localStorage.removeItem("user");
+        } catch {}
+
+        if (typeof window !== "undefined") {
+          window.dispatchEvent(new CustomEvent("ecomm:auth_expired"));
+        }
+      } else {
+        clearAdminTokens();
+      }
+
       return Promise.reject(refreshError);
     } finally {
       isRefreshing = false;

@@ -20,6 +20,7 @@ const uiSlice = createSlice({
     isCartDrawerOpen: false,
     isAuthModalOpen: false,
     authModalTab: "login", // "login" | "register"
+    authRedirectAfter: null, // target path upon successful auth (e.g. "/checkout")
     currentView: "home", // "home" | "product" | "wishlist" | "contact" | "inquiry"
     user: savedUser,
     isAuthenticated: Boolean(savedUser),
@@ -57,19 +58,34 @@ const uiSlice = createSlice({
     },
     openAuthModal: (state, action) => {
       state.isAuthModalOpen = true;
-      state.authModalTab = action.payload ?? "login";
+      if (typeof action.payload === "string") {
+        state.authModalTab = action.payload;
+        state.authRedirectAfter = null;
+      } else if (action.payload && typeof action.payload === "object") {
+        state.authModalTab = action.payload.tab || "login";
+        state.authRedirectAfter = action.payload.redirectAfter || null;
+      } else {
+        state.authModalTab = "login";
+        state.authRedirectAfter = null;
+      }
     },
     closeAuthModal: (state) => {
       state.isAuthModalOpen = false;
+      state.authRedirectAfter = null;
     },
     setAuthModalTab: (state, action) => {
       state.authModalTab = action.payload;
     },
     loginSuccess: (state, action) => {
-      state.user = action.payload;
+      const userData = action.payload?.user || action.payload;
+      state.user = userData;
       state.isAuthenticated = true;
       try {
-        localStorage.setItem("apexmart_user", JSON.stringify(action.payload));
+        localStorage.setItem("apexmart_user", JSON.stringify(userData));
+        if (action.payload?.accessToken) {
+          localStorage.setItem("apexmart_ecomm_access_token", action.payload.accessToken);
+          localStorage.setItem("accessToken", action.payload.accessToken);
+        }
       } catch {}
     },
     logout: (state) => {
@@ -77,6 +93,8 @@ const uiSlice = createSlice({
       state.isAuthenticated = false;
       try {
         localStorage.removeItem("apexmart_user");
+        localStorage.removeItem("apexmart_ecomm_access_token");
+        localStorage.removeItem("accessToken");
       } catch {}
     },
   },

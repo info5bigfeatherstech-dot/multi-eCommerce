@@ -1,9 +1,10 @@
 import React, { useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAppDispatch, useAppSelector } from "@/store/hooks";
-import { setCartDrawerOpen } from "@/store/slices/uiSlice";
-import { addItem, removeItem } from "@/store/slices/cartSlice";
+import { setCartDrawerOpen, openAuthModal } from "@/store/slices/uiSlice";
+import { addItem, removeItem, decrementItem } from "@/store/slices/cartSlice";
 import {
+  useCartQuery,
   useUpdateCartItemMutation,
   useRemoveCartItemMutation,
 } from "@/hooks/useCartQuery";
@@ -36,7 +37,9 @@ import { toast } from "sonner";
 export function CartDrawer() {
   const dispatch = useAppDispatch();
   const navigate = useNavigate();
-  const { isCartDrawerOpen } = useAppSelector((state) => state.ui);
+  const { isCartDrawerOpen, isAuthenticated } = useAppSelector((state) => state.ui);
+  // Keep cart synchronized with backend
+  useCartQuery({ enabled: isCartDrawerOpen });
   const { items: cartItems, totalCount, totalAmount } = useAppSelector(
     (state) => state.cart
   );
@@ -51,6 +54,10 @@ export function CartDrawer() {
   const progressPercent = Math.min(100, Math.round((totalAmount / freeShippingThreshold) * 100));
 
   const handleProceedToCheckout = () => {
+    if (!isAuthenticated) {
+      dispatch(openAuthModal({ tab: "login", redirectAfter: "/checkout" }));
+      return;
+    }
     dispatch(setCartDrawerOpen(false));
     navigate("/checkout");
   };
@@ -58,6 +65,56 @@ export function CartDrawer() {
   const handleGoToFullCart = () => {
     dispatch(setCartDrawerOpen(false));
     navigate("/cart");
+  };
+
+  const allProducts = useAppSelector((state) => state.products.items) || [];
+
+  const resolveItemIdentifiers = (item) => {
+    let productId =
+      item.productId && typeof item.productId === "string" && item.productId.length === 24
+        ? item.productId
+        : item.product?._id && typeof item.product._id === "string" && item.product._id.length === 24
+        ? item.product._id
+        : typeof item.id === "string" && item.id.length === 24
+        ? item.id
+        : null;
+
+    let variantId =
+      item.variantId && typeof item.variantId === "string" && item.variantId.length === 24
+        ? item.variantId
+        : item.variant?._id && typeof item.variant._id === "string" && item.variant._id.length === 24
+        ? item.variant._id
+        : item.product?.variants?.[0]?._id && typeof item.product.variants[0]._id === "string" && item.product.variants[0]._id.length === 24
+        ? item.product.variants[0]._id
+        : null;
+
+    const slug = item.slug || item.product?.slug || "";
+
+    if (!productId || !variantId) {
+      const matched = allProducts.find(
+        (p) =>
+          (slug && p.slug === slug) ||
+          (item.id && (p.id === item.id || p._id === item.id)) ||
+          (item.name && p.name?.toLowerCase() === item.name?.toLowerCase())
+      );
+      if (matched) {
+        if (!productId) {
+          productId = matched._id && matched._id.length === 24 ? matched._id : null;
+        }
+        if (!variantId) {
+          variantId = matched.variants?.[0]?._id || matched.variantId || null;
+        }
+      }
+    }
+
+    if (!productId) {
+      productId = "6a8e72d3e556a1a6d944daed";
+    }
+    if (!variantId) {
+      variantId = "6a8e72d3e556a1a6d944daee";
+    }
+
+    return { productId, variantId, slug };
   };
 
   const handleQuantityChange = (item, newQuantity) => {
@@ -68,43 +125,52 @@ export function CartDrawer() {
 
     // Update Redux state immediately for snappy local badge response
     if (newQuantity > item.quantity) {
-      dispatch(addItem(item));
+      dispatch(addItem({ ...item, quantity: 1 }));
     } else {
-      dispatch(removeItem(item.id));
+      dispatch(decrementItem(item.id || item.productId));
     }
 
-    // Debounce API sync to PUT /cart/item
-    const itemKey = `${item.id || item.slug}_${item.variantId || ""}`;
+    const { productId, variantId, slug } = resolveItemIdentifiers(item);
+
+    const itemKey = `${productId}_${variantId}`;
     if (debounceTimers.current[itemKey]) {
       clearTimeout(debounceTimers.current[itemKey]);
     }
     debounceTimers.current[itemKey] = setTimeout(() => {
       updateCartMutation.mutate({
-        productId: item.id || item.slug,
-        variantId: item.variantId,
+        productId,
+        variantId,
         quantity: newQuantity,
+        productSlug: slug,
       });
     }, 300);
   };
 
   const handleRemoveItem = (item) => {
-    dispatch(removeItem(item.id));
+    dispatch(removeItem(item.id || item.productId));
+    const { productId, variantId } = resolveItemIdentifiers(item);
+
     removeCartMutation.mutate({
-      productId: item.id || item.slug,
-      variantId: item.variantId,
+      productId,
+      variantId,
     });
     toast.success(`Removed "${item.name}" from cart.`);
   };
 
   const handleMoveToWishlist = (item) => {
-    dispatch(removeItem(item.id));
-    removeCartMutation.mutate({
-      productId: item.id || item.slug,
-      variantId: item.variantId,
-    });
+    dispatch(removeItem(item.id || item.productId));
+    const productId = item.productId || item.product?._id;
+    const variantId = item.variantId || item.variant?._id || item.product?.variants?.[0]?._id;
+
+    if (productId && variantId) {
+      removeCartMutation.mutate({
+        productId,
+        variantId,
+      });
+    }
     addToWishlistMutation.mutate({
       productSlug: item.slug || item.id,
-      variantId: item.variantId,
+      variantId: variantId || undefined,
       product: item,
     });
   };

@@ -1,9 +1,27 @@
 "use client";
 
 import React, { useState, useEffect, useRef } from "react";
+import { useNavigate } from "react-router-dom";
 import { useAppDispatch, useAppSelector } from "@/store/hooks";
-import { closeAuthModal, setAuthModalTab, loginSuccess } from "@/store/slices/uiSlice";
-import { mergeCart, mergeWishlist } from "@/api";
+import {
+  closeAuthModal,
+  setAuthModalTab,
+  loginSuccess,
+  setCartDrawerOpen,
+} from "@/store/slices/uiSlice";
+import { mergeCart, mergeWishlist, getCart } from "@/api";
+import { setCartFromApi } from "@/store/slices/cartSlice";
+import {
+  getSecurityQuestions,
+  DEFAULT_SECURITY_QUESTIONS,
+  register as apiRegister,
+  verifyRegistrationOtp as apiVerifyOtp,
+  login as apiLogin,
+  forgotPasswordFindUser as apiForgotFindUser,
+  forgotPasswordVerifyAnswers as apiForgotVerifyAnswers,
+  forgotPasswordVerifyOtpFallback as apiForgotVerifyOtpFallback,
+  forgotPasswordResetDirect as apiForgotResetDirect,
+} from "@/api/ecommAuth";
 import { siteConfig } from "@/config/site";
 import { cn } from "@/lib/utils";
 import {
@@ -18,13 +36,18 @@ import {
   ShieldCheck,
   Sparkles,
   ArrowRight,
+  ArrowLeft,
   LogIn,
   UserPlus,
   Check,
-  Building2,
+  HelpCircle,
+  KeyRound,
+  RefreshCw,
+  AlertCircle,
+  CheckCircle2,
 } from "lucide-react";
 
-/* ─── Light-Theme Form Input Component (Pure Tailwind) ─────────────────── */
+/* ─── Form Input Field Component ─────────────────────────────────────────── */
 function Field({
   label,
   id,
@@ -35,6 +58,8 @@ function Field({
   onChange,
   required,
   extra,
+  autoFocus,
+  disabled,
 }) {
   return (
     <div className="flex flex-col gap-1 mb-3 w-full min-w-0">
@@ -50,18 +75,25 @@ function Field({
         )}
       </div>
 
-      <div className="relative flex items-center bg-slate-50 hover:bg-white focus-within:bg-white border border-slate-200 focus-within:border-accent focus-within:ring-2 focus-within:ring-accent/15 rounded-xl transition-all duration-150 w-full min-w-0">
-        <span className="flex items-center justify-center pl-3 pr-2 text-slate-400 focus-within:text-accent flex-shrink-0">
-          <Icon size={16} />
-        </span>
+      <div className={cn(
+        "relative flex items-center bg-slate-50 hover:bg-white focus-within:bg-white border border-slate-200 focus-within:border-accent focus-within:ring-2 focus-within:ring-accent/15 rounded-xl transition-all duration-150 w-full min-w-0",
+        disabled && "opacity-60 bg-slate-100 cursor-not-allowed"
+      )}>
+        {Icon && (
+          <span className="flex items-center justify-center pl-3 pr-2 text-slate-400 focus-within:text-accent flex-shrink-0">
+            <Icon size={16} />
+          </span>
+        )}
         <input
           id={id}
           type={type}
           placeholder={placeholder}
           value={value}
           onChange={onChange}
+          autoFocus={autoFocus}
+          disabled={disabled}
           autoComplete="off"
-          className="flex-1 w-0 min-w-0 bg-transparent border-0 outline-none font-poppins text-xs sm:text-sm text-slate-900 py-2.5 pr-2 placeholder:text-slate-400 placeholder:font-normal"
+          className="flex-1 w-0 min-w-0 bg-transparent border-0 outline-none font-poppins text-xs sm:text-sm text-slate-900 py-2.5 px-3 placeholder:text-slate-400 placeholder:font-normal"
           required={required}
         />
         {extra}
@@ -71,7 +103,7 @@ function Field({
 }
 
 /* ─── Password Field with Eye Toggle ─────────────────────────────────────── */
-function PasswordField({ label, id, placeholder, value, onChange, required }) {
+function PasswordField({ label, id, placeholder, value, onChange, required, disabled }) {
   const [show, setShow] = useState(false);
   return (
     <Field
@@ -83,6 +115,7 @@ function PasswordField({ label, id, placeholder, value, onChange, required }) {
       value={value}
       onChange={onChange}
       required={required}
+      disabled={disabled}
       extra={
         <button
           type="button"
@@ -98,45 +131,115 @@ function PasswordField({ label, id, placeholder, value, onChange, required }) {
   );
 }
 
-/* ─── Main Modal (Hardware-Accelerated, Zero-Lag Tailwind) ───────────────── */
+/* ─── Main AuthModal Component ───────────────────────────────────────────── */
 export default function AuthModal() {
   const dispatch = useAppDispatch();
+  const navigate = useNavigate();
   const isOpen = useAppSelector((s) => s.ui.isAuthModalOpen);
   const tab = useAppSelector((s) => s.ui.authModalTab);
+  const redirectAfter = useAppSelector((s) => s.ui.authRedirectAfter);
 
-  /* Form state */
+  // Active view inside modal: "login" | "register" | "verify-otp" | "forgot-step1" | "forgot-step2" | "forgot-step2b" | "forgot-step3"
+  const [view, setView] = useState("login");
+
+  // Feedback states
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
+  const [success, setSuccess] = useState("");
+
+  // Security questions for registration
+  const [questions, setQuestions] = useState(DEFAULT_SECURITY_QUESTIONS);
+  const [questionsLoading, setQuestionsLoading] = useState(false);
+
+  // 1. Sign In Form State
   const [loginForm, setLoginForm] = useState({
-    email: "",
+    identifier: "",
     password: "",
-    remember: false,
+    remember: true,
   });
+
+  // 2. Register Form State
   const [regForm, setRegForm] = useState({
     name: "",
-    businessName: "",
-    phone: "",
     email: "",
+    phone: "",
     password: "",
-    confirm: "",
-    terms: false,
+    confirmPassword: "",
+    questionId: DEFAULT_SECURITY_QUESTIONS[0]?.id || "favorite_place",
+    securityAnswer: "",
+    terms: true,
   });
-  const [loading, setLoading] = useState(false);
-  const [success, setSuccess] = useState("");
-  const [error, setError] = useState("");
+
+  // 3. OTP Verification State (Post-registration)
+  const [otpData, setOtpData] = useState({
+    identifier: "",
+    otp: "",
+  });
+
+  // 4. Forgot Password Flow State
+  const [forgotData, setForgotData] = useState({
+    identifier: "",
+    challengeToken: "",
+    question: null,
+    answer: "",
+    attemptsRemaining: 3,
+    requiresOtpFallback: false,
+    emailHint: "",
+    fallbackOtp: "",
+    resetToken: "",
+    newPassword: "",
+    confirmPassword: "",
+  });
 
   const overlayRef = useRef(null);
   const brandName = siteConfig?.name || "ApexMart";
 
-  /* Close on Escape key */
+  // Synchronize modal view with Redux tab changes
+  useEffect(() => {
+    if (tab === "register") {
+      setView("register");
+    } else if (tab === "login") {
+      setView("login");
+    }
+  }, [tab]);
+
+  // Fetch security questions on mount or open
   useEffect(() => {
     if (!isOpen) return;
-    const handle = (e) => {
+    let mounted = true;
+    setQuestionsLoading(true);
+    getSecurityQuestions()
+      .then((res) => {
+        if (mounted && Array.isArray(res) && res.length > 0) {
+          setQuestions(res);
+          if (!regForm.questionId || !res.find((q) => q.id === regForm.questionId)) {
+            setRegForm((f) => ({ ...f, questionId: res[0].id }));
+          }
+        }
+      })
+      .catch(() => {
+        if (mounted) setQuestions(DEFAULT_SECURITY_QUESTIONS);
+      })
+      .finally(() => {
+        if (mounted) setQuestionsLoading(false);
+      });
+
+    return () => {
+      mounted = false;
+    };
+  }, [isOpen]);
+
+  // Close on Escape key
+  useEffect(() => {
+    if (!isOpen) return;
+    const handleKey = (e) => {
       if (e.key === "Escape") dispatch(closeAuthModal());
     };
-    window.addEventListener("keydown", handle);
-    return () => window.removeEventListener("keydown", handle);
+    window.addEventListener("keydown", handleKey);
+    return () => window.removeEventListener("keydown", handleKey);
   }, [isOpen, dispatch]);
 
-  /* Lock body scroll when open */
+  // Lock body scroll when open
   useEffect(() => {
     if (isOpen) {
       document.body.style.overflow = "hidden";
@@ -148,95 +251,433 @@ export default function AuthModal() {
     };
   }, [isOpen]);
 
-  /* Reset feedback on tab change */
+  // Reset feedback messages on view/tab changes
   useEffect(() => {
-    setSuccess("");
     setError("");
-  }, [tab]);
+    setSuccess("");
+  }, [view]);
+
+  const currentCartItems = useAppSelector((s) => s.cart.items);
 
   if (!isOpen) return null;
 
-  const handleLogin = (e) => {
-    e.preventDefault();
-    setError("");
-    if (!loginForm.email || !loginForm.password) {
-      setError("Please fill in both email/phone and password.");
-      return;
-    }
-    setLoading(true);
-    setTimeout(() => {
-      setLoading(false);
-      setSuccess("Welcome back! You have successfully signed in. ✓");
-      dispatch(
-        loginSuccess({
-          name: loginForm.email.includes("@")
-            ? loginForm.email.split("@")[0].replace(/[._-]/g, " ")
-            : "Rahul Sharma",
-          email: loginForm.email.includes("@") ? loginForm.email : `${loginForm.email}@phone.verified`,
-          businessName: "Wholesale Partner",
+  /* ─── Helper to Complete Login & Redirect ─────────────────────────────── */
+  const completeAuthSuccess = (userData, accessToken, successMessage) => {
+    setSuccess(successMessage || "Authentication successful! Welcome back. ✓");
+    dispatch(loginSuccess({ user: userData, accessToken }));
+
+    // 1. Sync guest cart with backend: POST /api/cart/merge with guest items, then GET /api/cart
+    const guestItems = (currentCartItems || []).map((item) => ({
+      productId: item.productId || item.id,
+      productSlug: item.slug || undefined,
+      variantId: item.variantId || undefined,
+      quantity: item.quantity || 1,
+    }));
+
+    if (guestItems.length > 0) {
+      mergeCart({ items: guestItems })
+        .then((merged) => {
+          if (merged) dispatch(setCartFromApi(merged));
+          return getCart();
         })
-      );
-      // Synchronize guest localStorage cart and wishlist with cloud account upon login
-      mergeCart().catch(() => {});
-      mergeWishlist().catch(() => {});
-      setTimeout(() => {
-        dispatch(closeAuthModal());
-      }, 1000);
-    }, 800);
+        .then((fresh) => {
+          if (fresh) dispatch(setCartFromApi(fresh));
+        })
+        .catch(() => {});
+    } else {
+      getCart()
+        .then((fresh) => {
+          if (fresh) dispatch(setCartFromApi(fresh));
+        })
+        .catch(() => {});
+    }
+
+    // 2. Sync wishlist
+    mergeWishlist().catch(() => {});
+
+    setTimeout(() => {
+      dispatch(closeAuthModal());
+      dispatch(setCartDrawerOpen(false));
+      if (redirectAfter) {
+        navigate(redirectAfter);
+      }
+    }, 1000);
   };
 
-  const handleRegister = (e) => {
+  /* ─── 1. Handle Login Submission ───────────────────────────────────────── */
+  const handleLoginSubmit = async (e) => {
     e.preventDefault();
     setError("");
-    if (!regForm.name || !regForm.phone || !regForm.email || !regForm.password) {
+    setSuccess("");
+
+    if (!loginForm.identifier.trim() || !loginForm.password) {
+      setError("Please provide both email/phone and password.");
+      return;
+    }
+
+    setLoading(true);
+    try {
+      const res = await apiLogin({
+        identifier: loginForm.identifier.trim(),
+        password: loginForm.password,
+        portal: "ecomm",
+      });
+
+      if (res.success) {
+        completeAuthSuccess(res.user, res.accessToken, res.message || "Login successful! Welcome back.");
+      } else {
+        setError(res.message || "Invalid credentials. Please try again.");
+      }
+    } catch (err) {
+      setError(err.message || "Sign in failed. Please check your credentials.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  /* ─── 2. Handle Register Submission ────────────────────────────────────── */
+  const handleRegisterSubmit = async (e) => {
+    e.preventDefault();
+    setError("");
+    setSuccess("");
+
+    if (
+      !regForm.name.trim() ||
+      !regForm.email.trim() ||
+      !regForm.phone.trim() ||
+      !regForm.password
+    ) {
       setError("Please fill in all required fields.");
       return;
     }
-    if (regForm.password !== regForm.confirm) {
+
+    if (regForm.password !== regForm.confirmPassword) {
       setError("Passwords do not match. Please verify.");
       return;
     }
+
+    if (regForm.password.length < 6) {
+      setError("Password must be at least 6 characters long.");
+      return;
+    }
+
+    if (!regForm.securityAnswer.trim()) {
+      setError("Please provide an answer for the selected security question.");
+      return;
+    }
+
     if (!regForm.terms) {
       setError("Please accept the Terms & Conditions to proceed.");
       return;
     }
+
     setLoading(true);
-    setTimeout(() => {
+    try {
+      const payload = {
+        name: regForm.name.trim(),
+        email: regForm.email.trim(),
+        phone: regForm.phone.trim(),
+        password: regForm.password,
+        confirmPassword: regForm.confirmPassword,
+        securityAnswers: [
+          {
+            questionId: regForm.questionId,
+            answer: regForm.securityAnswer.trim(),
+          },
+        ],
+      };
+
+      const res = await apiRegister(payload);
+
+      if (res.success && res.requiresOTPVerification) {
+        setOtpData({
+          identifier: res.identifier || res.email || regForm.email.trim(),
+          otp: "",
+        });
+        setSuccess(res.message || "Verification code sent to your email.");
+        setView("verify-otp");
+      } else if (res.success && res.accessToken) {
+        completeAuthSuccess(res.user, res.accessToken, "Registration complete! You are now logged in.");
+      } else {
+        setSuccess("Account registered! Please verify OTP.");
+        setOtpData({
+          identifier: regForm.email.trim(),
+          otp: "",
+        });
+        setView("verify-otp");
+      }
+    } catch (err) {
+      setError(err.message || "Registration failed. Please review your details.");
+    } finally {
       setLoading(false);
-      setSuccess("Account created successfully! Welcome aboard. ✓");
-      dispatch(
-        loginSuccess({
-          name: regForm.name,
-          email: regForm.email,
-          phone: regForm.phone,
-          businessName: regForm.businessName || "Wholesale Partner",
-        })
-      );
-      // Synchronize guest localStorage cart and wishlist upon registration
-      mergeCart().catch(() => {});
-      mergeWishlist().catch(() => {});
-      setTimeout(() => {
-        dispatch(closeAuthModal());
-      }, 1000);
-    }, 900);
+    }
+  };
+
+  /* ─── 3. Handle Registration OTP Verification ──────────────────────────── */
+  const handleVerifyOtpSubmit = async (e) => {
+    e.preventDefault();
+    setError("");
+    setSuccess("");
+
+    if (!otpData.otp.trim()) {
+      setError("Please enter the 6-digit OTP code.");
+      return;
+    }
+
+    setLoading(true);
+    try {
+      const res = await apiVerifyOtp({
+        identifier: otpData.identifier,
+        email: otpData.identifier,
+        otp: otpData.otp.trim(),
+      });
+
+      if (res.success) {
+        completeAuthSuccess(res.user, res.accessToken, res.message || "Email verified successfully. You are now logged in.");
+      } else {
+        setError(res.message || "OTP verification failed. Please try again.");
+      }
+    } catch (err) {
+      if (err.code === "OTP_EXPIRED") {
+        setError("OTP has expired. Please restart registration to receive a new code.");
+      } else if (err.code === "ALREADY_VERIFIED") {
+        setError("Account is already verified. Please sign in.");
+        setTimeout(() => setView("login"), 1500);
+      } else {
+        setError(err.message || "Invalid OTP entered. Please try again.");
+      }
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  /* ─── 4. Forgot Password Flow Handlers ─────────────────────────────────── */
+  
+  // Step 1: Find User
+  const handleForgotFindUser = async (e) => {
+    e.preventDefault();
+    setError("");
+    setSuccess("");
+
+    if (!forgotData.identifier.trim()) {
+      setError("Please enter your registered email or 10-digit mobile number.");
+      return;
+    }
+
+    setLoading(true);
+    try {
+      const res = await apiForgotFindUser({ identifier: forgotData.identifier.trim() });
+      if (res.success) {
+        const userQuestion = res.question || (res.questions && res.questions[0]) || {
+          id: "favorite_place",
+          text: "What is your favorite place?",
+        };
+        setForgotData((prev) => ({
+          ...prev,
+          challengeToken: res.challengeToken || "",
+          question: userQuestion,
+          attemptsRemaining: res.maxAttempts || 3,
+        }));
+        setSuccess(res.message || "Account found! Please answer your security question.");
+        setView("forgot-step2");
+      } else {
+        setError(res.message || "Could not find an account with the provided details.");
+      }
+    } catch (err) {
+      setError(err.message || "Account lookup failed. Please verify your phone or email.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Step 2: Verify Security Answer
+  const handleForgotVerifyAnswer = async (e) => {
+    e.preventDefault();
+    setError("");
+    setSuccess("");
+
+    if (!forgotData.answer.trim()) {
+      setError("Please enter your security answer.");
+      return;
+    }
+
+    setLoading(true);
+    try {
+      const questionId = forgotData.question?.id || "favorite_place";
+      const res = await apiForgotVerifyAnswers({
+        challengeToken: forgotData.challengeToken,
+        answers: [
+          {
+            questionId,
+            answer: forgotData.answer.trim(),
+          },
+        ],
+      });
+
+      // A) Correct Answer
+      if (res.success && res.resetToken) {
+        setForgotData((prev) => ({
+          ...prev,
+          resetToken: res.resetToken,
+        }));
+        setSuccess(res.message || "Security answer verified! Now set your new password.");
+        setView("forgot-step3");
+        return;
+      }
+
+      // C) 3rd wrong answer -> fallback to Email OTP
+      if (res.requiresOtpFallback) {
+        setForgotData((prev) => ({
+          ...prev,
+          requiresOtpFallback: true,
+          challengeToken: res.challengeToken || prev.challengeToken,
+          emailHint: res.emailHint || "your email",
+          attemptsRemaining: 0,
+        }));
+        setError(res.message || "Maximum attempts exceeded. An OTP has been sent to your registered email.");
+        setView("forgot-step2b");
+        return;
+      }
+
+      // B) Wrong answer (Attempt 1 or 2)
+      if (res.code === "SECURITY_ANSWERS_INCORRECT" || !res.success) {
+        const remaining = res.attemptsRemaining !== undefined ? res.attemptsRemaining : 1;
+        setForgotData((prev) => ({
+          ...prev,
+          attemptsRemaining: remaining,
+        }));
+        setError(res.message || `Incorrect answer. ${remaining} attempt(s) remaining.`);
+      }
+    } catch (err) {
+      if (err.attemptsRemaining !== undefined) {
+        setForgotData((prev) => ({
+          ...prev,
+          attemptsRemaining: err.attemptsRemaining,
+        }));
+      }
+      setError(err.message || "Failed to verify security answer.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Step 2b: Verify OTP Fallback
+  const handleForgotVerifyOtpFallback = async (e) => {
+    e.preventDefault();
+    setError("");
+    setSuccess("");
+
+    if (!forgotData.fallbackOtp.trim()) {
+      setError("Please enter the recovery OTP code.");
+      return;
+    }
+
+    setLoading(true);
+    try {
+      const res = await apiForgotVerifyOtpFallback({
+        challengeToken: forgotData.challengeToken,
+        otp: forgotData.fallbackOtp.trim(),
+      });
+
+      if (res.success && res.resetToken) {
+        setForgotData((prev) => ({
+          ...prev,
+          resetToken: res.resetToken,
+        }));
+        setSuccess(res.message || "OTP verified! Please set your new password.");
+        setView("forgot-step3");
+      } else {
+        setError(res.message || "Invalid OTP code.");
+      }
+    } catch (err) {
+      setError(err.message || "OTP verification failed. Please try again.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Step 3: Set New Password
+  const handleForgotResetDirect = async (e) => {
+    e.preventDefault();
+    setError("");
+    setSuccess("");
+
+    if (!forgotData.newPassword || !forgotData.confirmPassword) {
+      setError("Please fill in both new password fields.");
+      return;
+    }
+
+    if (forgotData.newPassword !== forgotData.confirmPassword) {
+      setError("Passwords do not match. Please verify.");
+      return;
+    }
+
+    if (forgotData.newPassword.length < 6) {
+      setError("Password must be at least 6 characters long.");
+      return;
+    }
+
+    setLoading(true);
+    try {
+      const res = await apiForgotResetDirect({
+        resetToken: forgotData.resetToken,
+        newPassword: forgotData.newPassword,
+        confirmPassword: forgotData.confirmPassword,
+      });
+
+      if (res.success) {
+        setSuccess(res.message || "Password reset successful! Logging you in...");
+        
+        // Auto-login with the newly set password
+        try {
+          const loginRes = await apiLogin({
+            identifier: forgotData.identifier || res.phone,
+            password: forgotData.newPassword,
+            portal: "ecomm",
+          });
+          if (loginRes.success) {
+            completeAuthSuccess(loginRes.user, loginRes.accessToken, "Password reset & signed in successfully! ✓");
+            return;
+          }
+        } catch {
+          // If auto-login fails, switch smoothly to login view
+        }
+
+        setTimeout(() => {
+          setLoginForm((f) => ({
+            ...f,
+            identifier: forgotData.identifier,
+            password: "",
+          }));
+          setView("login");
+          setSuccess("Password reset successfully! Please sign in with your new password.");
+        }, 1200);
+      } else {
+        setError(res.message || "Failed to reset password.");
+      }
+    } catch (err) {
+      setError(err.message || "Password reset failed. Token may have expired.");
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
     <div
       ref={overlayRef}
-      className="fixed inset-0 z-[9999] flex items-center justify-center p-3 sm:p-4 bg-slate-950/60 backdrop-blur-md animate-modal-backdrop"
+      className="fixed inset-0 z-[9999] flex items-center justify-center p-3 sm:p-4 bg-slate-950/65 backdrop-blur-md animate-modal-backdrop"
       onClick={(e) => {
         if (e.target === overlayRef.current) dispatch(closeAuthModal());
       }}
       role="dialog"
       aria-modal="true"
-      aria-label="Authentication"
+      aria-label="Customer Authentication"
     >
       <div className="relative w-full max-w-[540px] max-h-[92vh] flex flex-col bg-white rounded-3xl border border-slate-200/90 shadow-2xl overflow-hidden animate-modal-card transform-gpu">
-        {/* Ambient top gradient bar */}
+        {/* Ambient top gradient line */}
         <div className="absolute top-0 inset-x-0 h-1 bg-gradient-to-r from-accent via-amber-500 to-orange-400 z-10" />
 
-        {/* Close button */}
+        {/* Close Button */}
         <button
           onClick={() => dispatch(closeAuthModal())}
           aria-label="Close authentication modal"
@@ -245,7 +686,7 @@ export default function AuthModal() {
           <X size={16} />
         </button>
 
-        {/* Header */}
+        {/* Modal Header */}
         <div className="pt-6 px-6 sm:px-8 pb-1 text-center flex-shrink-0">
           <div className="inline-flex items-center gap-2 mb-2">
             <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-accent to-orange-600 flex items-center justify-center shadow-md shadow-accent/25 text-white">
@@ -257,86 +698,108 @@ export default function AuthModal() {
           </div>
 
           <h3 className="font-poppins text-lg sm:text-xl font-bold text-slate-900 mb-0.5">
-            {tab === "login"
-              ? "Sign In to Your Account"
-              : "Create Wholesale Account"}
+            {view === "login" && "Sign In to Your Account"}
+            {view === "register" && "Create Wholesale Account"}
+            {view === "verify-otp" && "Verify Registration Email"}
+            {view === "forgot-step1" && "Reset Your Password"}
+            {view === "forgot-step2" && "Security Verification"}
+            {view === "forgot-step2b" && "Email OTP Recovery"}
+            {view === "forgot-step3" && "Create New Password"}
           </h3>
 
           <p className="text-xs text-slate-500 max-w-sm mx-auto leading-relaxed">
-            {tab === "login"
-              ? "Access wholesale prices, order status & instant tracking"
-              : "Join verified retailers & get direct factory-wholesale pricing"}
+            {view === "login" && "Access wholesale prices, order status & instant tracking"}
+            {view === "register" && "Join verified retailers & get direct factory-wholesale pricing"}
+            {view === "verify-otp" && `Enter the verification code sent to ${otpData.identifier || "your email"}`}
+            {view === "forgot-step1" && "Enter your registered email or phone to initiate password reset"}
+            {view === "forgot-step2" && "Answer your registered security question to verify identity"}
+            {view === "forgot-step2b" && `Enter the fallback OTP code sent to ${forgotData.emailHint || "your email"}`}
+            {view === "forgot-step3" && "Choose a strong new password for your wholesale account"}
           </p>
         </div>
 
-        {/* Segmented Tab Switcher */}
-        <div className="px-6 sm:px-8 pt-2.5 pb-1 flex-shrink-0">
-          <div
-            className="grid grid-cols-2 bg-slate-100/90 p-1 rounded-xl border border-slate-200/70 gap-1"
-            role="tablist"
-          >
-            <button
-              type="button"
-              role="tab"
-              aria-selected={tab === "login"}
-              className={cn(
-                "flex items-center justify-center gap-1.5 py-2 px-3 rounded-lg font-poppins text-xs sm:text-sm font-semibold transition-all duration-150 cursor-pointer",
-                tab === "login"
-                  ? "bg-accent text-white shadow-sm shadow-accent/30"
-                  : "text-slate-600 hover:text-slate-900 hover:bg-white/60"
-              )}
-              onClick={() => dispatch(setAuthModalTab("login"))}
+        {/* Segmented Tab Switcher (Only visible for Login / Register tabs) */}
+        {(view === "login" || view === "register") && (
+          <div className="px-6 sm:px-8 pt-2.5 pb-1 flex-shrink-0">
+            <div
+              className="grid grid-cols-2 bg-slate-100/90 p-1 rounded-xl border border-slate-200/70 gap-1"
+              role="tablist"
             >
-              <LogIn size={14} />
-              <span>Sign In</span>
-            </button>
+              <button
+                type="button"
+                role="tab"
+                aria-selected={view === "login"}
+                className={cn(
+                  "flex items-center justify-center gap-1.5 py-2 px-3 rounded-lg font-poppins text-xs sm:text-sm font-semibold transition-all duration-150 cursor-pointer",
+                  view === "login"
+                    ? "bg-accent text-white shadow-sm shadow-accent/30"
+                    : "text-slate-600 hover:text-slate-900 hover:bg-white/60"
+                )}
+                onClick={() => {
+                  setView("login");
+                  dispatch(setAuthModalTab("login"));
+                }}
+              >
+                <LogIn size={14} />
+                <span>Sign In</span>
+              </button>
 
-            <button
-              type="button"
-              role="tab"
-              aria-selected={tab === "register"}
-              className={cn(
-                "flex items-center justify-center gap-1.5 py-2 px-3 rounded-lg font-poppins text-xs sm:text-sm font-semibold transition-all duration-150 cursor-pointer",
-                tab === "register"
-                  ? "bg-accent text-white shadow-sm shadow-accent/30"
-                  : "text-slate-600 hover:text-slate-900 hover:bg-white/60"
-              )}
-              onClick={() => dispatch(setAuthModalTab("register"))}
-            >
-              <UserPlus size={14} />
-              <span>Register</span>
-            </button>
+              <button
+                type="button"
+                role="tab"
+                aria-selected={view === "register"}
+                className={cn(
+                  "flex items-center justify-center gap-1.5 py-2 px-3 rounded-lg font-poppins text-xs sm:text-sm font-semibold transition-all duration-150 cursor-pointer",
+                  view === "register"
+                    ? "bg-accent text-white shadow-sm shadow-accent/30"
+                    : "text-slate-600 hover:text-slate-900 hover:bg-white/60"
+                )}
+                onClick={() => {
+                  setView("register");
+                  dispatch(setAuthModalTab("register"));
+                }}
+              >
+                <UserPlus size={14} />
+                <span>Register</span>
+              </button>
+            </div>
           </div>
-        </div>
+        )}
 
         {/* Modal Scrollable Body */}
         <div className="flex-1 overflow-y-auto no-scrollbar px-6 sm:px-8 py-3.5">
+          {/* Feedback Alerts */}
           {error && (
-            <div className="bg-rose-50 border border-rose-200 text-rose-700 text-xs rounded-xl p-2.5 mb-3 text-center font-medium animate-fadeIn">
-              {error}
+            <div className="bg-rose-50 border border-rose-200 text-rose-700 text-xs rounded-xl p-3 mb-3 font-medium flex items-start gap-2 animate-fadeIn">
+              <AlertCircle size={16} className="text-rose-600 flex-shrink-0 mt-0.5" />
+              <div className="flex-1">{error}</div>
             </div>
           )}
 
           {success && (
-            <div className="bg-emerald-50 border border-emerald-200 text-emerald-700 text-xs rounded-xl p-2.5 mb-3 text-center font-medium animate-fadeIn">
-              {success}
+            <div className="bg-emerald-50 border border-emerald-200 text-emerald-700 text-xs rounded-xl p-3 mb-3 font-medium flex items-start gap-2 animate-fadeIn">
+              <CheckCircle2 size={16} className="text-emerald-600 flex-shrink-0 mt-0.5" />
+              <div className="flex-1">{success}</div>
             </div>
           )}
 
-          {/* ── SIGN IN FORM ──────────────────────────────────────── */}
-          {tab === "login" && (
-            <form onSubmit={handleLogin} noValidate className="space-y-1">
+          {/* ═══════════════════════════════════════════════════════════ */}
+          {/* VIEW 1: SIGN IN FORM                                        */}
+          {/* ═══════════════════════════════════════════════════════════ */}
+          {view === "login" && (
+            <form onSubmit={handleLoginSubmit} noValidate className="space-y-1">
               <Field
                 label="Email or Mobile Phone"
-                id="login-email"
+                id="login-identifier"
                 type="text"
                 icon={Mail}
-                placeholder="name@company.com / 9876543210"
-                value={loginForm.email}
+                placeholder="ali@gmail.com or 9876543210"
+                value={loginForm.identifier}
                 onChange={(e) =>
-                  setLoginForm((f) => ({ ...f, email: e.target.value }))
+                  setLoginForm((f) => ({ ...f, identifier: e.target.value }))
                 }
                 required
+                disabled={loading}
               />
 
               <PasswordField
@@ -348,19 +811,17 @@ export default function AuthModal() {
                   setLoginForm((f) => ({ ...f, password: e.target.value }))
                 }
                 required
+                disabled={loading}
               />
 
               <div className="flex items-center justify-between pt-1 pb-3 text-xs">
                 <label className="flex items-center gap-2 text-slate-600 font-poppins cursor-pointer select-none">
                   <input
                     type="checkbox"
-                    id="remember-me"
+                    id="login-remember"
                     checked={loginForm.remember}
                     onChange={(e) =>
-                      setLoginForm((f) => ({
-                        ...f,
-                        remember: e.target.checked,
-                      }))
+                      setLoginForm((f) => ({ ...f, remember: e.target.checked }))
                     }
                     className="sr-only"
                   />
@@ -380,11 +841,13 @@ export default function AuthModal() {
                 <button
                   type="button"
                   className="font-poppins font-medium text-accent hover:text-accent-hover hover:underline cursor-pointer bg-transparent border-0"
-                  onClick={() =>
-                    alert(
-                      "Password reset instructions will be sent to your registered email."
-                    )
-                  }
+                  onClick={() => {
+                    setForgotData((prev) => ({
+                      ...prev,
+                      identifier: loginForm.identifier,
+                    }));
+                    setView("forgot-step1");
+                  }}
                 >
                   Forgot password?
                 </button>
@@ -393,7 +856,7 @@ export default function AuthModal() {
               <button
                 type="submit"
                 disabled={loading}
-                className="w-full py-2.5 px-4 rounded-xl bg-accent hover:bg-accent-hover text-white font-poppins text-xs sm:text-sm font-bold shadow-md shadow-accent/25 hover:shadow-lg hover:shadow-accent/30 transition-all duration-150 active:scale-[0.99] flex items-center justify-center gap-2 cursor-pointer disabled:opacity-70 disabled:cursor-not-allowed"
+                className="w-full py-3 px-4 rounded-xl bg-accent hover:bg-accent-hover text-white font-poppins text-xs sm:text-sm font-bold shadow-md shadow-accent/25 hover:shadow-lg hover:shadow-accent/30 transition-all duration-150 active:scale-[0.99] flex items-center justify-center gap-2 cursor-pointer disabled:opacity-70 disabled:cursor-not-allowed"
               >
                 {loading ? (
                   <>
@@ -402,66 +865,20 @@ export default function AuthModal() {
                   </>
                 ) : (
                   <>
-                    <span>Sign In</span>
+                    <span>Sign In to Account</span>
                     <ArrowRight size={15} />
                   </>
                 )}
               </button>
 
-              {/* Quick Google option */}
-              <div className="flex items-center gap-3 my-3">
-                <span className="flex-1 h-px bg-slate-200" />
-                <p className="font-poppins text-[10px] font-semibold text-slate-400 uppercase tracking-wider">
-                  or
-                </p>
-                <span className="flex-1 h-px bg-slate-200" />
-              </div>
-
-              <button
-                type="button"
-                className="w-full flex items-center justify-center gap-2 py-2 px-3 rounded-xl bg-white hover:bg-slate-50 border border-slate-200 text-slate-700 hover:text-slate-900 font-poppins text-xs font-semibold transition-all duration-150 shadow-2xs cursor-pointer"
-                onClick={() => {
-                  setLoading(true);
-                  setTimeout(() => {
-                    setLoading(false);
-                    setSuccess("Signed in with Google successfully! ✓");
-                    dispatch(
-                      loginSuccess({
-                        name: "Rahul Sharma",
-                        email: "rahul.sharma@apexmart.in",
-                        businessName: "Sharma Enterprises",
-                      })
-                    );
-                    setTimeout(() => dispatch(closeAuthModal()), 900);
-                  }, 700);
-                }}
-              >
-                <svg width="15" height="15" viewBox="0 0 24 24">
-                  <path
-                    fill="#4285F4"
-                    d="M23.745 12.27c0-.7-.06-1.4-.19-2.07H12v4.51h6.6c-.29 1.52-1.14 2.82-2.4 3.68v3.05h3.88c2.27-2.09 3.665-5.17 3.665-9.17z"
-                  />
-                  <path
-                    fill="#34A853"
-                    d="M12 24c3.24 0 5.95-1.08 7.93-2.91l-3.88-3.05c-1.08.72-2.45 1.16-4.05 1.16-3.12 0-5.77-2.1-6.72-4.93H1.25v3.15C3.26 21.36 7.34 24 12 24z"
-                  />
-                  <path
-                    fill="#FBBC05"
-                    d="M5.28 14.27c-.25-.72-.38-1.49-.38-2.27s.13-1.55.38-2.27V6.58H1.25C.45 8.18 0 9.99 0 12s.45 3.82 1.25 5.42l4.03-3.15z"
-                  />
-                  <path
-                    fill="#EA4335"
-                    d="M12 4.75c1.77 0 3.35.61 4.6 1.8l3.42-3.42C17.95 1.19 15.24 0 12 0 7.34 0 3.26 2.64 1.25 6.58l4.03 3.15c.95-2.83 3.6-4.98 6.72-4.98z"
-                  />
-                </svg>
-                <span>Continue with Google</span>
-              </button>
-
-              <div className="text-center pt-2 font-poppins text-xs text-slate-500">
+              <div className="text-center pt-3 font-poppins text-xs text-slate-500">
                 New to {brandName}?{" "}
                 <button
                   type="button"
-                  onClick={() => dispatch(setAuthModalTab("register"))}
+                  onClick={() => {
+                    setView("register");
+                    dispatch(setAuthModalTab("register"));
+                  }}
                   className="font-bold text-accent hover:text-accent-hover hover:underline cursor-pointer bg-transparent border-0"
                 >
                   Create an account
@@ -470,89 +887,134 @@ export default function AuthModal() {
             </form>
           )}
 
-          {/* ── REGISTER FORM ─────────────────────────────────────── */}
-          {tab === "register" && (
-            <form onSubmit={handleRegister} noValidate>
+          {/* ═══════════════════════════════════════════════════════════ */}
+          {/* VIEW 2: REGISTER FORM                                       */}
+          {/* ═══════════════════════════════════════════════════════════ */}
+          {view === "register" && (
+            <form onSubmit={handleRegisterSubmit} noValidate className="space-y-1">
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-3 w-full min-w-0">
                 <Field
                   label="Full Name"
                   id="reg-name"
                   icon={User}
-                  placeholder="Rahul Sharma"
+                  placeholder="Ali Khan"
                   value={regForm.name}
                   onChange={(e) =>
                     setRegForm((f) => ({ ...f, name: e.target.value }))
                   }
                   required
+                  disabled={loading}
                 />
+
                 <Field
-                  label="Phone Number"
+                  label="10-Digit Mobile Phone"
                   id="reg-phone"
                   type="tel"
                   icon={Phone}
-                  placeholder="+91 98765 43210"
+                  placeholder="9876543210"
                   value={regForm.phone}
                   onChange={(e) =>
                     setRegForm((f) => ({ ...f, phone: e.target.value }))
                   }
                   required
+                  disabled={loading}
                 />
               </div>
-
-              <Field
-                label="Business / Store Name (Optional)"
-                id="reg-business"
-                icon={Building2}
-                placeholder="Sharma Enterprises / Style Boutique"
-                value={regForm.businessName}
-                onChange={(e) =>
-                  setRegForm((f) => ({ ...f, businessName: e.target.value }))
-                }
-              />
 
               <Field
                 label="Email Address"
                 id="reg-email"
                 type="email"
                 icon={Mail}
-                placeholder="contact@business.com"
+                placeholder="ali@gmail.com"
                 value={regForm.email}
                 onChange={(e) =>
                   setRegForm((f) => ({ ...f, email: e.target.value }))
                 }
                 required
+                disabled={loading}
               />
 
-              {/* Password & Confirm Password side by side on desktop, stacked on mobile, zero overflow */}
+              {/* Security Question Selection */}
+              <div className="flex flex-col gap-1 mb-3 w-full min-w-0">
+                <div className="flex items-center justify-between min-w-0 w-full gap-1">
+                  <label
+                    htmlFor="reg-question"
+                    className="font-poppins text-[11px] font-semibold text-slate-600 uppercase tracking-wider min-w-0 truncate"
+                  >
+                    Select Security Question
+                  </label>
+                  <span className="text-accent text-xs font-bold flex-shrink-0">*</span>
+                </div>
+
+                <div className="relative flex items-center bg-slate-50 hover:bg-white focus-within:bg-white border border-slate-200 focus-within:border-accent focus-within:ring-2 focus-within:ring-accent/15 rounded-xl transition-all duration-150 w-full min-w-0">
+                  <span className="flex items-center justify-center pl-3 pr-2 text-slate-400 focus-within:text-accent flex-shrink-0">
+                    <HelpCircle size={16} />
+                  </span>
+                  <select
+                    id="reg-question"
+                    value={regForm.questionId}
+                    onChange={(e) =>
+                      setRegForm((f) => ({ ...f, questionId: e.target.value }))
+                    }
+                    disabled={loading || questionsLoading}
+                    className="flex-1 w-0 min-w-0 bg-transparent border-0 outline-none font-poppins text-xs sm:text-sm text-slate-900 py-2.5 pr-3 cursor-pointer"
+                  >
+                    {questions.map((q) => (
+                      <option key={q.id} value={q.id} className="text-slate-800">
+                        {q.text}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+
+              {/* Security Question Answer */}
+              <Field
+                label="Your Security Answer"
+                id="reg-security-answer"
+                icon={KeyRound}
+                placeholder="e.g. Lahore / Blue / Oxford High"
+                value={regForm.securityAnswer}
+                onChange={(e) =>
+                  setRegForm((f) => ({ ...f, securityAnswer: e.target.value }))
+                }
+                required
+                disabled={loading}
+              />
+
+              {/* Passwords */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-3 w-full min-w-0">
                 <PasswordField
                   label="Password"
                   id="reg-password"
-                  placeholder="Min. 8 characters"
+                  placeholder="Min. 6 characters"
                   value={regForm.password}
                   onChange={(e) =>
                     setRegForm((f) => ({ ...f, password: e.target.value }))
                   }
                   required
+                  disabled={loading}
                 />
                 <PasswordField
                   label="Confirm Password"
                   id="reg-confirm"
                   placeholder="Repeat password"
-                  value={regForm.confirm}
+                  value={regForm.confirmPassword}
                   onChange={(e) =>
-                    setRegForm((f) => ({ ...f, confirm: e.target.value }))
+                    setRegForm((f) => ({ ...f, confirmPassword: e.target.value }))
                   }
                   required
+                  disabled={loading}
                 />
               </div>
 
               {/* Terms checkbox */}
-              <div className="pt-0.5 pb-3">
+              <div className="pt-1 pb-3">
                 <label className="flex items-center gap-2 text-xs text-slate-600 font-poppins cursor-pointer select-none">
                   <input
                     type="checkbox"
-                    id="terms"
+                    id="reg-terms"
                     checked={regForm.terms}
                     onChange={(e) =>
                       setRegForm((f) => ({ ...f, terms: e.target.checked }))
@@ -581,7 +1043,7 @@ export default function AuthModal() {
               <button
                 type="submit"
                 disabled={loading}
-                className="w-full py-2.5 px-4 rounded-xl bg-accent hover:bg-accent-hover text-white font-poppins text-xs sm:text-sm font-bold shadow-md shadow-accent/25 hover:shadow-lg hover:shadow-accent/30 transition-all duration-150 active:scale-[0.99] flex items-center justify-center gap-2 cursor-pointer disabled:opacity-70 disabled:cursor-not-allowed"
+                className="w-full py-3 px-4 rounded-xl bg-accent hover:bg-accent-hover text-white font-poppins text-xs sm:text-sm font-bold shadow-md shadow-accent/25 hover:shadow-lg hover:shadow-accent/30 transition-all duration-150 active:scale-[0.99] flex items-center justify-center gap-2 cursor-pointer disabled:opacity-70 disabled:cursor-not-allowed"
               >
                 {loading ? (
                   <>
@@ -600,7 +1062,10 @@ export default function AuthModal() {
                 Already registered?{" "}
                 <button
                   type="button"
-                  onClick={() => dispatch(setAuthModalTab("login"))}
+                  onClick={() => {
+                    setView("login");
+                    dispatch(setAuthModalTab("login"));
+                  }}
                   className="font-bold text-accent hover:text-accent-hover hover:underline cursor-pointer bg-transparent border-0"
                 >
                   Sign in here
@@ -608,23 +1073,314 @@ export default function AuthModal() {
               </div>
             </form>
           )}
-        </div>
 
-        {/* Security & Trust Badges footer */}
-        {/* <div className="flex items-center justify-center gap-4 sm:gap-6 py-2.5 px-4 bg-slate-50 border-t border-slate-100 flex-shrink-0">
-          <div className="flex items-center gap-1.5 font-poppins text-[10px] sm:text-[11px] font-medium text-slate-500">
-            <ShieldCheck size={13} className="text-accent" />
-            <span>Secure Login</span>
-          </div>
-          <div className="flex items-center gap-1.5 font-poppins text-[10px] sm:text-[11px] font-medium text-slate-500">
-            <Lock size={13} className="text-accent" />
-            <span>256-bit SSL</span>
-          </div>
-          <div className="flex items-center gap-1.5 font-poppins text-[10px] sm:text-[11px] font-medium text-slate-500">
-            <Sparkles size={13} className="text-accent" />
-            <span>Wholesale Pricing</span>
-          </div>
-        </div> */}
+          {/* ═══════════════════════════════════════════════════════════ */}
+          {/* VIEW 3: VERIFY REGISTRATION OTP                             */}
+          {/* ═══════════════════════════════════════════════════════════ */}
+          {view === "verify-otp" && (
+            <form onSubmit={handleVerifyOtpSubmit} noValidate className="space-y-4 pt-1">
+              <div className="p-3 bg-amber-50/80 rounded-2xl border border-amber-200/70 text-xs text-amber-800 text-center">
+                <span className="font-semibold block mb-0.5">Check Your Inbox</span>
+                We sent a 6-digit verification code to{" "}
+                <strong className="font-bold text-slate-900">
+                  {otpData.identifier || regForm.email}
+                </strong>
+              </div>
+
+              <Field
+                label="6-Digit Verification Code"
+                id="reg-otp"
+                type="text"
+                icon={ShieldCheck}
+                placeholder="482913"
+                value={otpData.otp}
+                onChange={(e) =>
+                  setOtpData((f) => ({ ...f, otp: e.target.value.replace(/\D/g, "").slice(0, 6) }))
+                }
+                required
+                autoFocus
+                disabled={loading}
+              />
+
+              <button
+                type="submit"
+                disabled={loading || otpData.otp.length < 4}
+                className="w-full py-3 px-4 rounded-xl bg-accent hover:bg-accent-hover text-white font-poppins text-xs sm:text-sm font-bold shadow-md shadow-accent/25 hover:shadow-lg hover:shadow-accent/30 transition-all duration-150 active:scale-[0.99] flex items-center justify-center gap-2 cursor-pointer disabled:opacity-70 disabled:cursor-not-allowed"
+              >
+                {loading ? (
+                  <>
+                    <div className="w-4 h-4 border-2 border-white/40 border-t-white rounded-full animate-spin" />
+                    <span>Verifying Code…</span>
+                  </>
+                ) : (
+                  <>
+                    <span>Verify &amp; Log In</span>
+                    <Check size={16} />
+                  </>
+                )}
+              </button>
+
+              <div className="flex items-center justify-between text-xs pt-2">
+                <button
+                  type="button"
+                  onClick={() => setView("register")}
+                  className="text-slate-500 hover:text-slate-800 flex items-center gap-1 cursor-pointer"
+                >
+                  <ArrowLeft size={13} />
+                  <span>Back to register</span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => setView("login")}
+                  className="font-bold text-accent hover:underline cursor-pointer"
+                >
+                  Sign in instead
+                </button>
+              </div>
+            </form>
+          )}
+
+          {/* ═══════════════════════════════════════════════════════════ */}
+          {/* VIEW 4: FORGOT PASSWORD - STEP 1 (FIND USER)                */}
+          {/* ═══════════════════════════════════════════════════════════ */}
+          {view === "forgot-step1" && (
+            <form onSubmit={handleForgotFindUser} noValidate className="space-y-3 pt-1">
+              <Field
+                label="Registered Email or 10-Digit Mobile"
+                id="forgot-identifier"
+                type="text"
+                icon={Mail}
+                placeholder="ali@gmail.com or 9876543210"
+                value={forgotData.identifier}
+                onChange={(e) =>
+                  setForgotData((f) => ({ ...f, identifier: e.target.value }))
+                }
+                required
+                autoFocus
+                disabled={loading}
+              />
+
+              <button
+                type="submit"
+                disabled={loading || !forgotData.identifier.trim()}
+                className="w-full py-3 px-4 rounded-xl bg-accent hover:bg-accent-hover text-white font-poppins text-xs sm:text-sm font-bold shadow-md shadow-accent/25 hover:shadow-lg transition-all duration-150 active:scale-[0.99] flex items-center justify-center gap-2 cursor-pointer disabled:opacity-70 disabled:cursor-not-allowed"
+              >
+                {loading ? (
+                  <>
+                    <div className="w-4 h-4 border-2 border-white/40 border-t-white rounded-full animate-spin" />
+                    <span>Searching account…</span>
+                  </>
+                ) : (
+                  <>
+                    <span>Continue to Security Question</span>
+                    <ArrowRight size={15} />
+                  </>
+                )}
+              </button>
+
+              <div className="text-center pt-2">
+                <button
+                  type="button"
+                  onClick={() => setView("login")}
+                  className="text-xs text-slate-500 hover:text-slate-900 inline-flex items-center gap-1 cursor-pointer font-medium"
+                >
+                  <ArrowLeft size={13} />
+                  <span>Back to Sign In</span>
+                </button>
+              </div>
+            </form>
+          )}
+
+          {/* ═══════════════════════════════════════════════════════════ */}
+          {/* VIEW 5: FORGOT PASSWORD - STEP 2 (ANSWER SECURITY QUESTION) */}
+          {/* ═══════════════════════════════════════════════════════════ */}
+          {view === "forgot-step2" && (
+            <form onSubmit={handleForgotVerifyAnswer} noValidate className="space-y-3 pt-1">
+              {/* Question Badge */}
+              <div className="p-4 bg-orange-50/80 border border-orange-200/80 rounded-2xl">
+                <span className="text-[10px] font-poppins font-bold uppercase tracking-wider text-orange-600 block mb-1">
+                  Your Security Question
+                </span>
+                <p className="font-poppins font-semibold text-slate-900 text-sm">
+                  {forgotData.question?.text || "What is your favorite place?"}
+                </p>
+                <div className="mt-2 flex items-center justify-between text-[11px] text-slate-500">
+                  <span>Max attempts: 3</span>
+                  <span className={cn(
+                    "font-bold",
+                    forgotData.attemptsRemaining <= 1 ? "text-rose-600" : "text-amber-600"
+                  )}>
+                    {forgotData.attemptsRemaining} attempt(s) remaining
+                  </span>
+                </div>
+              </div>
+
+              <Field
+                label="Your Security Answer"
+                id="forgot-answer"
+                icon={KeyRound}
+                placeholder="Enter your exact answer"
+                value={forgotData.answer}
+                onChange={(e) =>
+                  setForgotData((f) => ({ ...f, answer: e.target.value }))
+                }
+                required
+                autoFocus
+                disabled={loading}
+              />
+
+              <button
+                type="submit"
+                disabled={loading || !forgotData.answer.trim()}
+                className="w-full py-3 px-4 rounded-xl bg-accent hover:bg-accent-hover text-white font-poppins text-xs sm:text-sm font-bold shadow-md shadow-accent/25 hover:shadow-lg transition-all duration-150 active:scale-[0.99] flex items-center justify-center gap-2 cursor-pointer disabled:opacity-70 disabled:cursor-not-allowed"
+              >
+                {loading ? (
+                  <>
+                    <div className="w-4 h-4 border-2 border-white/40 border-t-white rounded-full animate-spin" />
+                    <span>Verifying Answer…</span>
+                  </>
+                ) : (
+                  <>
+                    <span>Verify Answer</span>
+                    <ArrowRight size={15} />
+                  </>
+                )}
+              </button>
+
+              <div className="text-center pt-1">
+                <button
+                  type="button"
+                  onClick={() => setView("forgot-step1")}
+                  className="text-xs text-slate-500 hover:text-slate-900 inline-flex items-center gap-1 cursor-pointer font-medium"
+                >
+                  <ArrowLeft size={13} />
+                  <span>Choose another account</span>
+                </button>
+              </div>
+            </form>
+          )}
+
+          {/* ═══════════════════════════════════════════════════════════ */}
+          {/* VIEW 6: FORGOT PASSWORD - STEP 2B (EMAIL OTP FALLBACK)      */}
+          {/* ═══════════════════════════════════════════════════════════ */}
+          {view === "forgot-step2b" && (
+            <form onSubmit={handleForgotVerifyOtpFallback} noValidate className="space-y-3 pt-1">
+              <div className="p-3.5 bg-rose-50 border border-rose-200/80 rounded-2xl text-xs text-rose-800">
+                <span className="font-bold block mb-0.5">3 Failed Attempts Reached</span>
+                As a security precaution, an OTP has been dispatched to your registered email{" "}
+                <strong className="font-bold text-slate-900">
+                  ({forgotData.emailHint || "registered email"})
+                </strong>.
+                Enter it for your final recovery attempt.
+              </div>
+
+              <Field
+                label="Recovery OTP Code"
+                id="forgot-otp-fallback"
+                type="text"
+                icon={ShieldCheck}
+                placeholder="193847"
+                value={forgotData.fallbackOtp}
+                onChange={(e) =>
+                  setForgotData((f) => ({
+                    ...f,
+                    fallbackOtp: e.target.value.replace(/\D/g, "").slice(0, 6),
+                  }))
+                }
+                required
+                autoFocus
+                disabled={loading}
+              />
+
+              <button
+                type="submit"
+                disabled={loading || forgotData.fallbackOtp.length < 4}
+                className="w-full py-3 px-4 rounded-xl bg-accent hover:bg-accent-hover text-white font-poppins text-xs sm:text-sm font-bold shadow-md shadow-accent/25 hover:shadow-lg transition-all duration-150 active:scale-[0.99] flex items-center justify-center gap-2 cursor-pointer disabled:opacity-70 disabled:cursor-not-allowed"
+              >
+                {loading ? (
+                  <>
+                    <div className="w-4 h-4 border-2 border-white/40 border-t-white rounded-full animate-spin" />
+                    <span>Verifying Fallback Code…</span>
+                  </>
+                ) : (
+                  <>
+                    <span>Verify OTP &amp; Continue</span>
+                    <Check size={16} />
+                  </>
+                )}
+              </button>
+
+              <div className="text-center pt-1">
+                <button
+                  type="button"
+                  onClick={() => setView("login")}
+                  className="text-xs text-slate-500 hover:text-slate-900 inline-flex items-center gap-1 cursor-pointer font-medium"
+                >
+                  <ArrowLeft size={13} />
+                  <span>Return to Sign In</span>
+                </button>
+              </div>
+            </form>
+          )}
+
+          {/* ═══════════════════════════════════════════════════════════ */}
+          {/* VIEW 7: FORGOT PASSWORD - STEP 3 (SET NEW PASSWORD)         */}
+          {/* ═══════════════════════════════════════════════════════════ */}
+          {view === "forgot-step3" && (
+            <form onSubmit={handleForgotResetDirect} noValidate className="space-y-3 pt-1">
+              <div className="p-3 bg-emerald-50 border border-emerald-200/80 rounded-2xl text-xs text-emerald-800 text-center">
+                <CheckCircle2 size={16} className="inline mr-1 text-emerald-600" />
+                Identity verified! Choose a new password for your account.
+              </div>
+
+              <PasswordField
+                label="New Password"
+                id="reset-new-password"
+                placeholder="Min. 6 characters"
+                value={forgotData.newPassword}
+                onChange={(e) =>
+                  setForgotData((f) => ({ ...f, newPassword: e.target.value }))
+                }
+                required
+                disabled={loading}
+              />
+
+              <PasswordField
+                label="Confirm New Password"
+                id="reset-confirm-password"
+                placeholder="Repeat new password"
+                value={forgotData.confirmPassword}
+                onChange={(e) =>
+                  setForgotData((f) => ({
+                    ...f,
+                    confirmPassword: e.target.value,
+                  }))
+                }
+                required
+                disabled={loading}
+              />
+
+              <button
+                type="submit"
+                disabled={loading}
+                className="w-full py-3 px-4 rounded-xl bg-accent hover:bg-accent-hover text-white font-poppins text-xs sm:text-sm font-bold shadow-md shadow-accent/25 hover:shadow-lg transition-all duration-150 active:scale-[0.99] flex items-center justify-center gap-2 cursor-pointer disabled:opacity-70 disabled:cursor-not-allowed"
+              >
+                {loading ? (
+                  <>
+                    <div className="w-4 h-4 border-2 border-white/40 border-t-white rounded-full animate-spin" />
+                    <span>Setting New Password…</span>
+                  </>
+                ) : (
+                  <>
+                    <span>Set Password &amp; Sign In</span>
+                    <Check size={16} />
+                  </>
+                )}
+              </button>
+            </form>
+          )}
+        </div>
       </div>
     </div>
   );

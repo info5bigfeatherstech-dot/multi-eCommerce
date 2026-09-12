@@ -1,5 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useAppDispatch } from "@/store/hooks";
+import { setCartFromApi, clearCart as clearReduxCart } from "@/store/slices/cartSlice";
 import {
   getCart,
   addToCart,
@@ -11,18 +12,40 @@ import {
 } from "@/api/storefrontCart";
 import { toast } from "sonner";
 
+import { getEcommAccessToken, clearEcommAccessToken } from "@/api/authStorage";
+
 export const CART_QUERY_KEY = ["cart"];
 
 /**
- * 1. Hook to fetch Cart with caching
+ * 1. Hook to fetch Cart with caching and Redux synchronization
+ * Only calls server when customer access token exists; falls back to guest cart otherwise.
  */
-export function useCartQuery() {
+export function useCartQuery({ storefront = "ecomm", enabled = true } = {}) {
+  const dispatch = useAppDispatch();
+
   return useQuery({
-    queryKey: CART_QUERY_KEY,
+    queryKey: [...CART_QUERY_KEY, storefront],
     queryFn: async () => {
-      const data = await getCart();
-      return data;
+      const token = getEcommAccessToken();
+      if (!token) {
+        return null;
+      }
+      try {
+        const data = await getCart({ storefront });
+        if (data) {
+          dispatch(setCartFromApi(data));
+        }
+        return data;
+      } catch (err) {
+        if (err.message?.includes("TOKEN_EXPIRED") || err.message?.includes("expired")) {
+          clearEcommAccessToken();
+          return null;
+        }
+        throw err;
+      }
     },
+    enabled,
+    retry: false,
     staleTime: 30 * 1000,
   });
 }
@@ -30,54 +53,23 @@ export function useCartQuery() {
 /**
  * 2. Hook to add item to Cart
  */
-export function useAddToCartMutation() {
+export function useAddToCartMutation({ storefront = "ecomm" } = {}) {
   const queryClient = useQueryClient();
+  const dispatch = useAppDispatch();
 
   return useMutation({
-    mutationFn: async ({ productSlug, variantId, quantity = 1, product }) => {
-      return await addToCart({ productSlug, variantId, quantity, product });
+    mutationFn: async ({ productSlug, variantId, quantity = 1, productId }) => {
+      return await addToCart({ productSlug, variantId, quantity, productId }, { storefront });
     },
-    onMutate: async (newItem) => {
-      await queryClient.cancelQueries({ queryKey: CART_QUERY_KEY });
-      const previousCart = queryClient.getQueryData(CART_QUERY_KEY);
-
-      if (previousCart) {
-        const optimistic = { ...previousCart };
-        const existing = optimistic.items?.find(
-          (i) => (i.slug === newItem.productSlug || i.id === newItem.product?.id) &&
-            (!newItem.variantId || i.variantId === newItem.variantId)
-        );
-        if (existing) {
-          existing.quantity += (newItem.quantity || 1);
-        } else {
-          optimistic.items = [
-            ...(optimistic.items || []),
-            {
-              id: newItem.product?.id || newItem.productSlug,
-              slug: newItem.productSlug,
-              variantId: newItem.variantId,
-              name: newItem.product?.name || newItem.productSlug,
-              price: newItem.product?.price || 499,
-              quantity: newItem.quantity || 1,
-              imageUrl: newItem.product?.imageUrl || newItem.product?.images?.[0] || "",
-            },
-          ];
-        }
-        optimistic.totalCount = optimistic.items.reduce((s, i) => s + i.quantity, 0);
-        optimistic.totalAmount = optimistic.items.reduce((s, i) => s + i.price * i.quantity, 0);
-        queryClient.setQueryData(CART_QUERY_KEY, optimistic);
-      }
-
-      return { previousCart };
-    },
-    onError: (err, newItem, context) => {
-      if (context?.previousCart) {
-        queryClient.setQueryData(CART_QUERY_KEY, context.previousCart);
-      }
-      toast.error("Failed to add item to cart.");
-    },
-    onSettled: () => {
+    onSuccess: (updatedCart) => {
+      queryClient.setQueryData([...CART_QUERY_KEY, storefront], updatedCart);
       queryClient.invalidateQueries({ queryKey: CART_QUERY_KEY });
+      if (updatedCart) {
+        dispatch(setCartFromApi(updatedCart));
+      }
+    },
+    onError: (err) => {
+      toast.error(err.message || "Failed to add item to cart.");
     },
   });
 }
@@ -85,42 +77,31 @@ export function useAddToCartMutation() {
 /**
  * 3. Hook to update cart item quantity (supports debouncing)
  */
-export function useUpdateCartItemMutation() {
+export function useUpdateCartItemMutation({ storefront = "ecomm" } = {}) {
   const queryClient = useQueryClient();
+  const dispatch = useAppDispatch();
 
   return useMutation({
-    mutationFn: async ({ productId, variantId, quantity }) => {
-      return await updateCartItem({ productId, variantId, quantity });
-    },
-    onMutate: async ({ productId, variantId, quantity }) => {
-      await queryClient.cancelQueries({ queryKey: CART_QUERY_KEY });
-      const previousCart = queryClient.getQueryData(CART_QUERY_KEY);
-
-      if (previousCart) {
-        const optimistic = {
-          ...previousCart,
-          items: previousCart.items.map((item) => {
-            if ((item.id === productId || item.slug === productId) && (!variantId || item.variantId === variantId)) {
-              return { ...item, quantity };
-            }
-            return item;
-          }).filter((i) => i.quantity > 0),
-        };
-        optimistic.totalCount = optimistic.items.reduce((s, i) => s + i.quantity, 0);
-        optimistic.totalAmount = optimistic.items.reduce((s, i) => s + i.price * i.quantity, 0);
-        queryClient.setQueryData(CART_QUERY_KEY, optimistic);
+    mutationFn: async ({ productId, variantId, quantity, productSlug }) => {
+      if (!productId || !variantId) return null;
+      try {
+        return await updateCartItem({ productId, variantId, quantity }, { storefront });
+      } catch (err) {
+        // If server says item not in cart, automatically add it
+        if (err.message?.includes("not in cart") || err.message?.includes("not found") || err.message?.includes("404")) {
+          return await addToCart({ productId, variantId, quantity, productSlug }, { storefront });
+        }
+        throw err;
       }
-
-      return { previousCart };
     },
-    onError: (err, vars, context) => {
-      if (context?.previousCart) {
-        queryClient.setQueryData(CART_QUERY_KEY, context.previousCart);
-      }
-      toast.error("Failed to update item quantity.");
-    },
-    onSettled: () => {
+    onSuccess: (updatedCart) => {
+      if (!updatedCart) return;
+      queryClient.setQueryData([...CART_QUERY_KEY, storefront], updatedCart);
       queryClient.invalidateQueries({ queryKey: CART_QUERY_KEY });
+      dispatch(setCartFromApi(updatedCart));
+    },
+    onError: (err) => {
+      toast.error(err.message || "Failed to update item quantity.");
     },
   });
 }
@@ -128,39 +109,30 @@ export function useUpdateCartItemMutation() {
 /**
  * 4. Hook to remove item from cart
  */
-export function useRemoveCartItemMutation() {
+export function useRemoveCartItemMutation({ storefront = "ecomm" } = {}) {
   const queryClient = useQueryClient();
+  const dispatch = useAppDispatch();
 
   return useMutation({
     mutationFn: async ({ productId, variantId }) => {
-      return await removeCartItem({ productId, variantId });
-    },
-    onMutate: async ({ productId, variantId }) => {
-      await queryClient.cancelQueries({ queryKey: CART_QUERY_KEY });
-      const previousCart = queryClient.getQueryData(CART_QUERY_KEY);
-
-      if (previousCart) {
-        const optimistic = {
-          ...previousCart,
-          items: previousCart.items.filter(
-            (i) => !((i.id === productId || i.slug === productId) && (!variantId || i.variantId === variantId))
-          ),
-        };
-        optimistic.totalCount = optimistic.items.reduce((s, i) => s + i.quantity, 0);
-        optimistic.totalAmount = optimistic.items.reduce((s, i) => s + i.price * i.quantity, 0);
-        queryClient.setQueryData(CART_QUERY_KEY, optimistic);
+      if (!productId || !variantId) return null;
+      try {
+        return await removeCartItem({ productId, variantId }, { storefront });
+      } catch (err) {
+        if (err.message?.includes("not in cart") || err.message?.includes("not found") || err.message?.includes("404")) {
+          return null;
+        }
+        throw err;
       }
-
-      return { previousCart };
     },
-    onError: (err, vars, context) => {
-      if (context?.previousCart) {
-        queryClient.setQueryData(CART_QUERY_KEY, context.previousCart);
-      }
-      toast.error("Failed to remove item.");
-    },
-    onSettled: () => {
+    onSuccess: (updatedCart) => {
+      if (!updatedCart) return;
+      queryClient.setQueryData([...CART_QUERY_KEY, storefront], updatedCart);
       queryClient.invalidateQueries({ queryKey: CART_QUERY_KEY });
+      dispatch(setCartFromApi(updatedCart));
+    },
+    onError: (err) => {
+      toast.error(err.message || "Failed to remove item.");
     },
   });
 }
@@ -168,19 +140,24 @@ export function useRemoveCartItemMutation() {
 /**
  * 5. Hook to bulk remove items from cart
  */
-export function useBulkRemoveCartMutation() {
+export function useBulkRemoveCartMutation({ storefront = "ecomm" } = {}) {
   const queryClient = useQueryClient();
+  const dispatch = useAppDispatch();
 
   return useMutation({
     mutationFn: async ({ items }) => {
-      return await bulkRemoveCartItems({ items });
+      return await bulkRemoveCartItems({ items }, { storefront });
     },
-    onSuccess: (data, vars) => {
+    onSuccess: (updatedCart, vars) => {
+      queryClient.setQueryData([...CART_QUERY_KEY, storefront], updatedCart);
       queryClient.invalidateQueries({ queryKey: CART_QUERY_KEY });
+      if (updatedCart) {
+        dispatch(setCartFromApi(updatedCart));
+      }
       toast.success(`Removed ${vars.items.length} item(s) from cart.`);
     },
-    onError: () => {
-      toast.error("Failed to remove selected items.");
+    onError: (err) => {
+      toast.error(err.message || "Failed to remove selected items.");
     },
   });
 }
@@ -188,20 +165,23 @@ export function useBulkRemoveCartMutation() {
 /**
  * 6. Hook to clear entire cart
  */
-export function useClearCartMutation() {
+export function useClearCartMutation({ storefront = "ecomm" } = {}) {
   const queryClient = useQueryClient();
+  const dispatch = useAppDispatch();
 
   return useMutation({
     mutationFn: async () => {
-      return await clearCart();
+      return await clearCart({ storefront });
     },
-    onSuccess: () => {
-      queryClient.setQueryData(CART_QUERY_KEY, { items: [], totalCount: 0, totalAmount: 0 });
+    onSuccess: (response) => {
+      const emptyCart = response.cart || { items: [], totalCount: 0, totalAmount: 0 };
+      queryClient.setQueryData([...CART_QUERY_KEY, storefront], emptyCart);
       queryClient.invalidateQueries({ queryKey: CART_QUERY_KEY });
-      toast.success("Cart cleared.");
+      dispatch(clearReduxCart());
+      toast.success("Cart cleared successfully.");
     },
-    onError: () => {
-      toast.error("Failed to clear cart.");
+    onError: (err) => {
+      toast.error(err.message || "Failed to clear cart.");
     },
   });
 }
@@ -209,15 +189,30 @@ export function useClearCartMutation() {
 /**
  * 7. Hook to merge guest cart upon sign-in
  */
-export function useMergeCartMutation() {
+export function useMergeCartMutation({ storefront = "ecomm" } = {}) {
   const queryClient = useQueryClient();
+  const dispatch = useAppDispatch();
 
   return useMutation({
     mutationFn: async ({ items } = {}) => {
-      return await mergeCart({ items });
+      return await mergeCart({ items }, { storefront });
     },
-    onSuccess: () => {
+    onSuccess: (updatedCart) => {
+      queryClient.setQueryData([...CART_QUERY_KEY, storefront], updatedCart);
       queryClient.invalidateQueries({ queryKey: CART_QUERY_KEY });
+      if (updatedCart) {
+        dispatch(setCartFromApi(updatedCart));
+      }
     },
   });
 }
+
+export default {
+  useCartQuery,
+  useAddToCartMutation,
+  useUpdateCartItemMutation,
+  useRemoveCartItemMutation,
+  useBulkRemoveCartMutation,
+  useClearCartMutation,
+  useMergeCartMutation,
+};

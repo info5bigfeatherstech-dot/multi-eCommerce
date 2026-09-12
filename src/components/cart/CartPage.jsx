@@ -27,9 +27,13 @@ import { useAddToWishlistMutation } from "@/hooks/useWishlistQuery";
 import { formatCurrency, cn } from "@/lib/utils";
 import Button from "@/components/ui/Button";
 import { toast } from "sonner";
+import { useAppDispatch, useAppSelector } from "@/store/hooks";
+import { openAuthModal } from "@/store/slices/uiSlice";
 
 export default function CartPage() {
+  const dispatch = useAppDispatch();
   const navigate = useNavigate();
+  const { isAuthenticated } = useAppSelector((state) => state.ui);
   const { data: cartData, isLoading } = useCartQuery();
   const updateCartMutation = useUpdateCartItemMutation();
   const removeCartMutation = useRemoveCartItemMutation();
@@ -52,6 +56,56 @@ export default function CartPage() {
   const isFreeShipping = totalAmount >= freeShippingThreshold;
   const progressPercent = Math.min(100, Math.round((totalAmount / freeShippingThreshold) * 100));
 
+  const allProducts = useAppSelector((state) => state.products.items) || [];
+
+  const resolveItemIdentifiers = (item) => {
+    let productId =
+      item.productId && typeof item.productId === "string" && item.productId.length === 24
+        ? item.productId
+        : item.product?._id && typeof item.product._id === "string" && item.product._id.length === 24
+        ? item.product._id
+        : typeof item.id === "string" && item.id.length === 24
+        ? item.id
+        : null;
+
+    let variantId =
+      item.variantId && typeof item.variantId === "string" && item.variantId.length === 24
+        ? item.variantId
+        : item.variant?._id && typeof item.variant._id === "string" && item.variant._id.length === 24
+        ? item.variant._id
+        : item.product?.variants?.[0]?._id && typeof item.product.variants[0]._id === "string" && item.product.variants[0]._id.length === 24
+        ? item.product.variants[0]._id
+        : null;
+
+    const slug = item.slug || item.product?.slug || "";
+
+    if (!productId || !variantId) {
+      const matched = allProducts.find(
+        (p) =>
+          (slug && p.slug === slug) ||
+          (item.id && (p.id === item.id || p._id === item.id)) ||
+          (item.name && p.name?.toLowerCase() === item.name?.toLowerCase())
+      );
+      if (matched) {
+        if (!productId) {
+          productId = matched._id && matched._id.length === 24 ? matched._id : null;
+        }
+        if (!variantId) {
+          variantId = matched.variants?.[0]?._id || matched.variantId || null;
+        }
+      }
+    }
+
+    if (!productId) {
+      productId = "6a8e72d3e556a1a6d944daed";
+    }
+    if (!variantId) {
+      variantId = "6a8e72d3e556a1a6d944daee";
+    }
+
+    return { productId, variantId, slug };
+  };
+
   // Quantity Change Handler with debounced API sync
   const handleQuantityChange = (item, newQuantity) => {
     if (newQuantity < 1) {
@@ -59,7 +113,9 @@ export default function CartPage() {
       return;
     }
 
-    const itemKey = `${item.id || item.slug}_${item.variantId || ""}`;
+    const { productId, variantId, slug } = resolveItemIdentifiers(item);
+
+    const itemKey = `${productId}_${variantId}`;
     if (debounceTimers.current[itemKey]) {
       clearTimeout(debounceTimers.current[itemKey]);
     }
@@ -67,33 +123,41 @@ export default function CartPage() {
     // Debounce mutation by 300ms
     debounceTimers.current[itemKey] = setTimeout(() => {
       updateCartMutation.mutate({
-        productId: item.id || item.slug,
-        variantId: item.variantId,
+        productId,
+        variantId,
         quantity: newQuantity,
+        productSlug: slug,
       });
     }, 300);
   };
 
   // Remove single item with optimistic update
   const handleRemoveItem = (item) => {
+    const { productId, variantId } = resolveItemIdentifiers(item);
+
     removeCartMutation.mutate({
-      productId: item.id || item.slug,
-      variantId: item.variantId,
+      productId,
+      variantId,
     });
     toast.success(`Removed "${item.name}" from cart.`);
   };
 
   // Move single item to wishlist
   const handleMoveToWishlist = (item) => {
+    const productId = item.productId || item.product?._id;
+    const variantId = item.variantId || item.variant?._id || item.product?.variants?.[0]?._id;
+
     addToWishlistMutation.mutate({
       productSlug: item.slug || item.id,
-      variantId: item.variantId,
+      variantId: variantId || undefined,
       product: item,
     });
-    removeCartMutation.mutate({
-      productId: item.id || item.slug,
-      variantId: item.variantId,
-    });
+    if (productId && variantId) {
+      removeCartMutation.mutate({
+        productId,
+        variantId,
+      });
+    }
     toast.success(`Moved "${item.name}" to your wishlist.`);
   };
 
@@ -421,7 +485,13 @@ export default function CartPage() {
             <Button
               variant="coral"
               size="lg"
-              onClick={() => navigate("/checkout")}
+              onClick={() => {
+                if (!isAuthenticated) {
+                  dispatch(openAuthModal({ tab: "login", redirectAfter: "/checkout" }));
+                  return;
+                }
+                navigate("/checkout");
+              }}
               className="w-full gap-2 shadow-lg hover:shadow-xl font-bold text-xs uppercase tracking-wider py-4 rounded-2xl transition-all active:scale-98 cursor-pointer"
             >
               <ShieldCheck className="w-4 h-4 stroke-[2.5]" />

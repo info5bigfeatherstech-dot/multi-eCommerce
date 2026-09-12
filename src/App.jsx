@@ -21,7 +21,7 @@ import Footer from "./components/layout/Footer";
 import ScrollToTop from "./components/common/ScrollToTop";
 import Toaster from "./components/ui/Toaster";
 import { useAppDispatch, useAppSelector } from "./store/hooks";
-import { setMobileDrawerOpen, openAuthModal } from "./store/slices/uiSlice";
+import { setMobileDrawerOpen, openAuthModal, logout } from "./store/slices/uiSlice";
 import {
   Store, X, Heart, User, ClipboardList, Truck,
   ShoppingBag, ChevronRight, LogIn, MapPin, ShieldCheck,
@@ -133,6 +133,15 @@ export default function App() {
   };
 
   const isAdminRoute = location.pathname.startsWith("/admin");
+
+  // Automatically reset expired customer session
+  React.useEffect(() => {
+    const handleAuthExpired = () => {
+      dispatch(logout());
+    };
+    window.addEventListener("ecomm:auth_expired", handleAuthExpired);
+    return () => window.removeEventListener("ecomm:auth_expired", handleAuthExpired);
+  }, [dispatch]);
 
   // ── Dedicated Admin Panel Layout & Routing ──
   if (isAdminRoute) {
