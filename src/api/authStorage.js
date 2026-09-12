@@ -143,6 +143,7 @@ export function clearAdminTokens() {
 }
 
 export const ECOMM_ACCESS_TOKEN_KEY = "apexmart_ecomm_access_token";
+export const ECOMM_REFRESH_TOKEN_KEY = "apexmart_ecomm_refresh_token";
 
 /**
  * Retrieve the current ecomm customer access token.
@@ -192,6 +193,52 @@ export function setEcommAccessToken(token) {
 }
 
 /**
+ * Retrieve the current ecomm customer refresh token.
+ * @returns {string|null}
+ */
+export function getEcommRefreshToken() {
+  if (typeof window === "undefined") return null;
+  try {
+    const directKeys = [ECOMM_REFRESH_TOKEN_KEY, "refreshToken"];
+    for (const key of directKeys) {
+      const val = localStorage.getItem(key);
+      if (val && typeof val === "string" && val.length > 10 && !val.startsWith("{")) {
+        return val;
+      }
+    }
+
+    const userRaw = localStorage.getItem("apexmart_user");
+    if (userRaw) {
+      const parsed = JSON.parse(userRaw);
+      const token = parsed?.refreshToken || parsed?.data?.refreshToken;
+      if (token && typeof token === "string") return token;
+    }
+  } catch (e) {
+    console.error("Error reading ecomm refresh token:", e);
+  }
+  return null;
+}
+
+/**
+ * Persist the ecomm customer refresh token.
+ * @param {string} token
+ */
+export function setEcommRefreshToken(token) {
+  if (typeof window === "undefined") return;
+  try {
+    if (token) {
+      localStorage.setItem(ECOMM_REFRESH_TOKEN_KEY, token);
+      localStorage.setItem("refreshToken", token);
+    } else {
+      localStorage.removeItem(ECOMM_REFRESH_TOKEN_KEY);
+      localStorage.removeItem("refreshToken");
+    }
+  } catch (e) {
+    console.error("Error setting ecomm refresh token:", e);
+  }
+}
+
+/**
  * Clear ecomm customer authentication token.
  */
 export function clearEcommAccessToken() {
@@ -204,6 +251,27 @@ export function clearEcommAccessToken() {
   }
 }
 
+/**
+ * Clear ecomm customer refresh token.
+ */
+export function clearEcommRefreshToken() {
+  if (typeof window === "undefined") return;
+  try {
+    localStorage.removeItem(ECOMM_REFRESH_TOKEN_KEY);
+    localStorage.removeItem("refreshToken");
+  } catch (e) {
+    console.error("Error clearing ecomm refresh token:", e);
+  }
+}
+
+/**
+ * Clear all customer authentication tokens.
+ */
+export function clearAllEcommTokens() {
+  clearEcommAccessToken();
+  clearEcommRefreshToken();
+}
+
 export default {
   getAdminAccessToken,
   setAdminAccessToken,
@@ -214,4 +282,9 @@ export default {
   getEcommAccessToken,
   setEcommAccessToken,
   clearEcommAccessToken,
+  getEcommRefreshToken,
+  setEcommRefreshToken,
+  clearEcommRefreshToken,
+  clearAllEcommTokens,
 };
+

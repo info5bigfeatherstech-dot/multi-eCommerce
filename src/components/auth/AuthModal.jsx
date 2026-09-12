@@ -262,9 +262,9 @@ export default function AuthModal() {
   if (!isOpen) return null;
 
   /* ─── Helper to Complete Login & Redirect ─────────────────────────────── */
-  const completeAuthSuccess = (userData, accessToken, successMessage) => {
+  const completeAuthSuccess = (userData, accessToken, successMessage, refreshToken) => {
     setSuccess(successMessage || "Authentication successful! Welcome back. ✓");
-    dispatch(loginSuccess({ user: userData, accessToken }));
+    dispatch(loginSuccess({ user: userData, accessToken, refreshToken }));
 
     // 1. Sync guest cart with backend: POST /api/cart/merge with guest items, then GET /api/cart
     const guestItems = (currentCartItems || []).map((item) => ({
@@ -324,7 +324,7 @@ export default function AuthModal() {
       });
 
       if (res.success) {
-        completeAuthSuccess(res.user, res.accessToken, res.message || "Login successful! Welcome back.");
+        completeAuthSuccess(res.user, res.accessToken, res.message || "Login successful! Welcome back.", res.refreshToken);
       } else {
         setError(res.message || "Invalid credentials. Please try again.");
       }
@@ -397,7 +397,7 @@ export default function AuthModal() {
         setSuccess(res.message || "Verification code sent to your email.");
         setView("verify-otp");
       } else if (res.success && res.accessToken) {
-        completeAuthSuccess(res.user, res.accessToken, "Registration complete! You are now logged in.");
+        completeAuthSuccess(res.user, res.accessToken, "Registration complete! You are now logged in.", res.refreshToken);
       } else {
         setSuccess("Account registered! Please verify OTP.");
         setOtpData({
@@ -433,7 +433,7 @@ export default function AuthModal() {
       });
 
       if (res.success) {
-        completeAuthSuccess(res.user, res.accessToken, res.message || "Email verified successfully. You are now logged in.");
+        completeAuthSuccess(res.user, res.accessToken, res.message || "Email verified successfully. You are now logged in.", res.refreshToken);
       } else {
         setError(res.message || "OTP verification failed. Please try again.");
       }

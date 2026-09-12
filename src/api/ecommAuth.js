@@ -1,7 +1,7 @@
 import { apiClient } from "./client.js";
 import { normalizeApiError } from "./helpers.js";
 import { ENDPOINTS } from "./endpoints.js";
-import { setEcommAccessToken, clearEcommAccessToken } from "./authStorage.js";
+import { setEcommAccessToken, clearEcommAccessToken, setEcommRefreshToken, clearAllEcommTokens } from "./authStorage.js";
 
 /**
  * Fallback security questions as defined in the API specification.
@@ -88,6 +88,9 @@ export async function verifyRegistrationOtp({ identifier, otp, email }) {
     if (data.accessToken) {
       setEcommAccessToken(data.accessToken);
     }
+    if (data.refreshToken) {
+      setEcommRefreshToken(data.refreshToken);
+    }
     return data;
   } catch (error) {
     const errData = error.response?.data;
@@ -120,6 +123,9 @@ export async function login({ identifier, password, portal = "ecomm" }) {
     const data = response.data || {};
     if (data.accessToken) {
       setEcommAccessToken(data.accessToken);
+    }
+    if (data.refreshToken) {
+      setEcommRefreshToken(data.refreshToken);
     }
     return data;
   } catch (error) {
@@ -246,5 +252,5 @@ export async function forgotPasswordResetDirect({ resetToken, newPassword, confi
  * Customer Logout
  */
 export function logoutCustomer() {
-  clearEcommAccessToken();
+  clearAllEcommTokens();
 }

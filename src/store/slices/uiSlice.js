@@ -86,6 +86,10 @@ const uiSlice = createSlice({
           localStorage.setItem("apexmart_ecomm_access_token", action.payload.accessToken);
           localStorage.setItem("accessToken", action.payload.accessToken);
         }
+        if (action.payload?.refreshToken) {
+          localStorage.setItem("apexmart_ecomm_refresh_token", action.payload.refreshToken);
+          localStorage.setItem("refreshToken", action.payload.refreshToken);
+        }
       } catch {}
     },
     logout: (state) => {
@@ -95,6 +99,8 @@ const uiSlice = createSlice({
         localStorage.removeItem("apexmart_user");
         localStorage.removeItem("apexmart_ecomm_access_token");
         localStorage.removeItem("accessToken");
+        localStorage.removeItem("apexmart_ecomm_refresh_token");
+        localStorage.removeItem("refreshToken");
       } catch {}
     },
   },

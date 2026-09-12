@@ -44,6 +44,15 @@ const wishlistSlice = createSlice({
       }
       state.totalCount = state.items.length;
     },
+    setWishlistFromApi: (state, action) => {
+      const items = Array.isArray(action.payload?.items)
+        ? action.payload.items
+        : Array.isArray(action.payload)
+        ? action.payload
+        : [];
+      state.items = items;
+      state.totalCount = items.length;
+    },
     clearWishlist: (state) => {
       state.items = [];
       state.totalCount = 0;
@@ -51,6 +60,11 @@ const wishlistSlice = createSlice({
   },
 });
 
-export const { addToWishlist, removeFromWishlist, toggleWishlist, clearWishlist } =
-  wishlistSlice.actions;
+export const {
+  addToWishlist,
+  removeFromWishlist,
+  toggleWishlist,
+  clearWishlist,
+  setWishlistFromApi,
+} = wishlistSlice.actions;
 export default wishlistSlice.reducer;

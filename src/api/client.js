@@ -6,7 +6,11 @@ import {
   setAdminRefreshToken,
   clearAdminTokens,
   getEcommAccessToken,
+  setEcommAccessToken,
   clearEcommAccessToken,
+  getEcommRefreshToken,
+  setEcommRefreshToken,
+  clearEcommRefreshToken,
 } from "./authStorage.js";
 
 // Resolve Base URL: default to /api if not specified in environment
@@ -115,7 +119,9 @@ apiClient.interceptors.response.use(
     originalRequest._retry = true;
     isRefreshing = true;
 
-    const fallbackRefreshToken = isCustomerRequest ? null : getAdminRefreshToken();
+    const fallbackRefreshToken = isCustomerRequest
+      ? getEcommRefreshToken()
+      : getAdminRefreshToken();
 
     try {
       const refreshPayload = {
@@ -154,8 +160,12 @@ apiClient.interceptors.response.use(
         }
       }
 
-      if (newRefreshToken && !isCustomerRequest) {
-        setAdminRefreshToken(newRefreshToken);
+      if (newRefreshToken) {
+        if (isCustomerRequest) {
+          setEcommRefreshToken(newRefreshToken);
+        } else {
+          setAdminRefreshToken(newRefreshToken);
+        }
       }
 
       processQueue(null, newAccessToken);
@@ -169,8 +179,15 @@ apiClient.interceptors.response.use(
     } catch (refreshError) {
       processQueue(refreshError, null);
 
-      if (isCustomerRequest) {
+      const errCode = refreshError.response?.data?.code;
+      const isPermanentlyExpired =
+        refreshError.response?.status === 401 &&
+        (errCode === "SESSION_EXPIRED" || errCode === "REFRESH_TOKEN_MISSING");
+
+      // Only force customer logout if the backend definitely rejected the session
+      if (isCustomerRequest && isPermanentlyExpired) {
         clearEcommAccessToken();
+        clearEcommRefreshToken();
         try {
           localStorage.removeItem("apexmart_user");
           localStorage.removeItem("user");
@@ -179,7 +196,7 @@ apiClient.interceptors.response.use(
         if (typeof window !== "undefined") {
           window.dispatchEvent(new CustomEvent("ecomm:auth_expired"));
         }
-      } else {
+      } else if (!isCustomerRequest && isPermanentlyExpired) {
         clearAdminTokens();
       }
 
@@ -191,3 +208,4 @@ apiClient.interceptors.response.use(
 );
 
 export default apiClient;
+

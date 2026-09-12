@@ -6,3 +6,4 @@ export { ProfileCartTab } from "./ProfileCartTab";
 export { ProfileWishlistTab } from "./ProfileWishlistTab";
 export { ProfileSecurityTab } from "./ProfileSecurityTab";
 export { ProfilePreferencesTab } from "./ProfilePreferencesTab";
+export { ProfileOrdersTab } from "./ProfileOrdersTab";

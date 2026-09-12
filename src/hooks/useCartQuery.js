@@ -37,11 +37,7 @@ export function useCartQuery({ storefront = "ecomm", enabled = true } = {}) {
         }
         return data;
       } catch (err) {
-        if (err.message?.includes("TOKEN_EXPIRED") || err.message?.includes("expired")) {
-          clearEcommAccessToken();
-          return null;
-        }
-        throw err;
+        return null;
       }
     },
     enabled,

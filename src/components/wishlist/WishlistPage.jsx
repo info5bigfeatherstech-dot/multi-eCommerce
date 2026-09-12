@@ -62,10 +62,11 @@ export default function WishlistPage({ onBack: propOnBack, onSelectProduct }) {
 
   // Move single item to Cart
   const handleMoveToCart = (product) => {
+    const targetId = product.wishlistEntryId || product._id || product.id;
     const slug = product.slug || product.id;
     moveWishlistToCartMutation.mutate({
       moveAll: false,
-      productIds: [slug],
+      productIds: [targetId],
     });
     // Synchronize Redux
     dispatch(addItem(product));

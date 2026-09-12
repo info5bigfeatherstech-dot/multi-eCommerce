@@ -11,6 +11,7 @@ import {
   ProfileHeader,
   ProfileSidebar,
   ProfileInfoTab,
+  ProfileOrdersTab,
   ProfileAddressesTab,
   ProfileCartTab,
   ProfileWishlistTab,
@@ -28,6 +29,7 @@ export function ProfilePage() {
   // Derive active tab from URL param (default to "info" for /profile)
   const validTabs = [
     "info",
+    "orders",
     "addresses",
     "cart",
     "wishlist",
@@ -104,6 +106,10 @@ export function ProfilePage() {
         <div className="lg:col-span-3">
           <div className={activeTab === "info" ? "block" : "hidden"}>
             <ProfileInfoTab user={user} onUpdateProfile={handleUpdateProfile} />
+          </div>
+
+          <div className={activeTab === "orders" ? "block" : "hidden"}>
+            <ProfileOrdersTab />
           </div>
 
           <div className={activeTab === "addresses" ? "block" : "hidden"}>

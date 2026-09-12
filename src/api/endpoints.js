@@ -48,6 +48,38 @@ export const ENDPOINTS = {
     DELETE: (id) => `/addresses/${encodeURIComponent(id)}`,
   },
 
+  // Storefront Checkout Flow APIs
+  CHECKOUT: {
+    SETTINGS: "/checkout/settings",
+    QUOTE: "/checkout/quote",
+    CONFIRM: "/checkout/confirm",
+  },
+
+  // Delivery Servicability APIs
+  DELIVERY: {
+    CHECK: "/delivery/check-delivery",
+    CHARGES: (pincode) => `/delivery/delivery-charges/${encodeURIComponent(pincode)}`,
+  },
+
+  // Storefront Coupons APIs
+  COUPONS: {
+    AVAILABLE: "/coupons/available",
+    VALIDATE: "/coupons/validate",
+  },
+
+  // Orders APIs
+  ORDERS: {
+    ITEMS: "/orders/items",
+    VERIFY_PAYMENT: "/orders/items/verify-payment",
+    INITIATE_PAYMENT: (orderId) => `/orders/items/${encodeURIComponent(orderId)}/initiate-payment`,
+    PAY_BALANCE: (orderId) => `/orders/items/${encodeURIComponent(orderId)}/pay-balance`,
+    ABANDON_CHECKOUT: (orderId) => `/orders/items/${encodeURIComponent(orderId)}/abandon-online-checkout`,
+    GET_USER_ORDERS: "/orders/items",
+    GET_ORDER: (orderId) => `/orders/items/${encodeURIComponent(orderId)}`,
+    TRACK: (orderId) => `/orders/items/${encodeURIComponent(orderId)}/track`,
+    INVOICE: (orderId) => `/orders/items/${encodeURIComponent(orderId)}/invoice`,
+  },
+
   // Admin Analytics & Customer Management APIs
   ADMIN_ANALYTICS: {
     DASHBOARD_SUMMARY: "/admin/analytics/dashboard/summary",

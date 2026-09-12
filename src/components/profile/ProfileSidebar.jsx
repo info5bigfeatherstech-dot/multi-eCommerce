@@ -10,6 +10,7 @@ import {
   LogOut,
   ShoppingBag,
   Heart,
+  Package,
 } from "lucide-react";
 
 export const ProfileSidebar = React.memo(function ProfileSidebar({
@@ -27,6 +28,13 @@ export const ProfileSidebar = React.memo(function ProfileSidebar({
       label: "Business & Profile",
       icon: Building2,
       desc: "Name, GSTIN, and contact details",
+    },
+    {
+      id: "orders",
+      path: "/profile/orders",
+      label: "My Orders",
+      icon: Package,
+      desc: "Track orders, invoices & balance",
     },
     {
       id: "addresses",

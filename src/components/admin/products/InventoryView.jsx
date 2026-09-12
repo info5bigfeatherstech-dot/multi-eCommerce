@@ -95,6 +95,8 @@ export default function InventoryView() {
     setSelectedProduct(null);
   };
 
+  
+
   return (
     <div className="space-y-6">
       {/* ── Top Header ── */}
