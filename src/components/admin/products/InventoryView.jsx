@@ -127,7 +127,7 @@ export default function InventoryView() {
             </div>
           </div>
           <p className="text-2xl font-poppins font-black text-slate-900">{totalUnits}</p>
-          <span className="text-[10px] text-slate-400 font-inter">Across all warehouse bays</span>
+          <span className="text-[10px] text-slate-400 font-inter capitalize">Across all warehouse bays</span>
         </div>
 
         <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-xs space-y-1">
@@ -142,7 +142,7 @@ export default function InventoryView() {
           <p className="text-2xl font-poppins font-black text-emerald-600">
             ₹{totalValuation.toLocaleString("en-IN")}
           </p>
-          <span className="text-[10px] text-slate-400 font-inter">At wholesale base cost</span>
+          <span className="text-[10px] text-slate-400 font-inter capitalize">At wholesale base cost</span>
         </div>
 
         <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-xs space-y-1">
@@ -155,7 +155,7 @@ export default function InventoryView() {
             </div>
           </div>
           <p className="text-2xl font-poppins font-black text-amber-600">{lowStockProducts.length}</p>
-          <span className="text-[10px] text-amber-600 font-medium font-inter">At or below re-order point</span>
+          <span className="text-[10px] text-amber-600 font-medium font-inter capitalize">At or below re-order point</span>
         </div>
 
         <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-xs space-y-1">
@@ -168,7 +168,7 @@ export default function InventoryView() {
             </div>
           </div>
           <p className="text-2xl font-poppins font-black text-rose-600">{outOfStockProducts.length}</p>
-          <span className="text-[10px] text-rose-600 font-medium font-inter">Zero available inventory</span>
+          <span className="text-[10px] text-rose-600 font-medium font-inter capitalize">Zero available inventory</span>
         </div>
       </div>
 

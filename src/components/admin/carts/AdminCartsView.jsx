@@ -269,7 +269,7 @@ export default function AdminCartsView() {
               {totalActiveCartsCount} Active Session(s)
             </span>
           </h1>
-          <p className="text-xs text-slate-500 font-inter mt-1">
+          <p className="text-xs text-slate-500 font-inter mt-1 capitalize">
             Monitor real-time basket additions, analyze abandoned checkouts older than 24h, and recover high-value accounts.
           </p>
         </div>
