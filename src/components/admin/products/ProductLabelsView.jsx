@@ -1,4 +1,6 @@
-import React, { useCallback, useEffect, useMemo, useState } from "react";
+import React, { useState, useEffect, useCallback, useMemo } from "react";
+import { createPortal } from "react-dom";
+import { useAppSelector } from "@/store/hooks";
 import {
   Tag,
   Plus,
@@ -13,6 +15,10 @@ import {
   Globe,
   Package,
   CheckCircle2,
+  ShieldAlert,
+  CheckSquare,
+  Square,
+  AlertCircle,
 } from "lucide-react";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
@@ -50,8 +56,12 @@ function slugifyName(value) {
 function isValidPagePath(path) {
   const p = String(path || "").trim();
   if (!p) return true;
-  if (/^[a-z][a-z0-9+.-]*:/i.test(p) || p.includes("://") || p.includes("\\")) return false;
-  return true;
+  // Strictly disallow absolute protocols, domain schemes, or backslashes
+  if (/^[a-z][a-z0-9+.-]*:/i.test(p) || p.includes("://") || p.includes("\\") || p.startsWith("//")) {
+    return false;
+  }
+  // Must be a relative path starting with /
+  return p.startsWith("/");
 }
 
 function productImage(p) {
@@ -66,6 +76,16 @@ function productImage(p) {
 }
 
 export default function ProductLabelsView() {
+  const adminUser = useAppSelector((state) => state.adminAuth?.adminUser);
+  const normalizedRole = String(adminUser?.role || adminUser?.userType || "admin")
+    .toLowerCase()
+    .replace(/[\s-]+/g, "_");
+
+  // Read: admin, product_manager, marketing_manager, inventory_manager
+  // Write: admin, product_manager, marketing_manager (only inventory_manager is strictly read-only)
+  const isReadOnly = normalizedRole === "inventory_manager";
+  const canWrite = !isReadOnly;
+
   const [labels, setLabels] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -86,6 +106,7 @@ export default function ProductLabelsView() {
   const [isSearchingProducts, setIsSearchingProducts] = useState(false);
   const [selectedProductSlugs, setSelectedProductSlugs] = useState([]);
   const [isAssigning, setIsAssigning] = useState(false);
+  const [productFilterTab, setProductFilterTab] = useState("all"); // 'all' | 'on_label' | 'not_on_label'
 
   const fetchLabels = useCallback(async (showToast = false) => {
     setIsLoading(true);
@@ -170,6 +191,10 @@ export default function ProductLabelsView() {
 
   const handleSave = async (e) => {
     e.preventDefault();
+    if (!canWrite) {
+      toast.error("You have read-only access (inventory_manager). Writing requires admin or manager privileges.");
+      return;
+    }
     const name = form.name.trim();
     if (!name) {
       toast.error("Label name is required");
@@ -179,8 +204,19 @@ export default function ProductLabelsView() {
       toast.error("Name must be at most 80 characters");
       return;
     }
-    if (!isValidPagePath(form.pagePath)) {
-      toast.error("Page URL must be a relative path, e.g. /TagProducts/rakhis-sale");
+
+    const slug = slugTouched ? slugifyName(form.slug) : slugifyName(form.name);
+    let pagePath = "";
+    if (pathTouched && form.pagePath.trim()) {
+      pagePath = form.pagePath.trim().startsWith("/")
+        ? form.pagePath.trim()
+        : `/${form.pagePath.trim()}`;
+    } else if (slug) {
+      pagePath = `/TagProducts/${slug}`;
+    }
+
+    if (pagePath && !isValidPagePath(pagePath)) {
+      toast.error("Page URL must be a relative path (e.g. /TagProducts/rakhis-sale). External URLs (https://...) are rejected.");
       return;
     }
     if (!form.storefronts.length) {
@@ -196,25 +232,22 @@ export default function ProductLabelsView() {
       sortOrder: Number.isFinite(Number(form.sortOrder)) ? Number(form.sortOrder) : 100,
       storefronts: form.storefronts,
     };
-    const slug = slugTouched ? slugifyName(form.slug) : slugifyName(form.name);
     if (slug) payload.slug = slug;
-    if (pathTouched && form.pagePath.trim()) {
-      payload.pagePath = form.pagePath.trim().startsWith("/")
-        ? form.pagePath.trim()
-        : `/${form.pagePath.trim()}`;
-    } else if (slug) {
-      payload.pagePath = `/TagProducts/${slug}`;
-    }
+    if (pagePath) payload.pagePath = pagePath;
 
     setIsSubmitting(true);
     try {
       if (editingLabel) {
         const key = editingLabel.slug || editingLabel.id;
-        await updateAdminProductLabel(key, payload);
-        toast.success("Label updated");
+        const res = await updateAdminProductLabel(key, payload);
+        if (res.slugMigrated) {
+          toast.success("Label updated! Products were automatically migrated to the new slug.");
+        } else {
+          toast.success(res.message || "Label updated successfully");
+        }
       } else {
-        await createAdminProductLabel(payload);
-        toast.success("Label created");
+        const res = await createAdminProductLabel(payload);
+        toast.success(res.message || "Label created successfully");
       }
       closeModal();
       await fetchLabels();
@@ -226,12 +259,22 @@ export default function ProductLabelsView() {
   };
 
   const handleDelete = async () => {
+    if (!canWrite) {
+      toast.error("You have read-only access (inventory_manager).");
+      return;
+    }
     if (!deleteTarget) return;
     setIsDeleting(true);
     try {
       const key = deleteTarget.slug || deleteTarget.id;
-      await deleteAdminProductLabel(key);
-      toast.success(`Deleted “${deleteTarget.name}” and removed it from products`);
+      const res = await deleteAdminProductLabel(key);
+      const updatedProducts = res?.cleanup?.productsUpdated;
+      toast.success(
+        res?.message ||
+          `Deleted “${deleteTarget.name}”${
+            updatedProducts ? ` and unassigned from ${updatedProducts} product(s)` : " and unassigned from products"
+          }`
+      );
       setDeleteTarget(null);
       if (assignLabel && (assignLabel.slug === deleteTarget.slug || assignLabel.id === deleteTarget.id)) {
         setAssignLabel(null);
@@ -246,12 +289,16 @@ export default function ProductLabelsView() {
   };
 
   const handleToggleActive = async (label) => {
+    if (!canWrite) {
+      toast.error("You have read-only access.");
+      return;
+    }
     try {
       await updateAdminProductLabel(label.slug || label.id, { isActive: !label.isActive });
       toast.success(label.isActive ? "Label hidden from storefront" : "Label activated");
       await fetchLabels();
     } catch (error) {
-      toast.error(error.message || "Failed to update label");
+      toast.error(error.message || "Failed to update label status");
     }
   };
 
@@ -263,7 +310,7 @@ export default function ProductLabelsView() {
       try {
         const res = await getAllProducts({
           page: 1,
-          limit: 25,
+          limit: 50,
           search: q,
           status: "active",
         });
@@ -287,7 +334,42 @@ export default function ProductLabelsView() {
     );
   };
 
+  // Filter products in assignment drawer
+  const visibleAssignmentProducts = useMemo(() => {
+    if (!assignLabel) return [];
+    return productResults.filter((p) => {
+      const tags = Array.isArray(p.tags)
+        ? p.tags
+        : Array.isArray(p.appliedTags)
+        ? p.appliedTags
+        : [];
+      const hasLabel = tags.includes(assignLabel.slug);
+
+      if (productFilterTab === "on_label") return hasLabel;
+      if (productFilterTab === "not_on_label") return !hasLabel;
+      return true;
+    });
+  }, [productResults, assignLabel, productFilterTab]);
+
+  const selectAllVisible = () => {
+    const slugs = visibleAssignmentProducts
+      .map((p) => String(p.slug || "").trim())
+      .filter(Boolean);
+    setSelectedProductSlugs((prev) => [...new Set([...prev, ...slugs])]);
+  };
+
+  const deselectAllVisible = () => {
+    const slugsToRemove = new Set(
+      visibleAssignmentProducts.map((p) => String(p.slug || "").trim())
+    );
+    setSelectedProductSlugs((prev) => prev.filter((s) => !slugsToRemove.has(s)));
+  };
+
   const handleAssign = async (value) => {
+    if (!canWrite) {
+      toast.error("You have read-only access (inventory_manager).");
+      return;
+    }
     if (!assignLabel?.slug) {
       toast.error("Select a label first");
       return;
@@ -303,10 +385,27 @@ export default function ProductLabelsView() {
         flagType: assignLabel.slug,
         value,
       });
+      const count = res.updatedCount ?? selectedProductSlugs.length;
       toast.success(
-        value
-          ? `Applied “${assignLabel.name}” to ${res.updatedCount || selectedProductSlugs.length} product(s)`
-          : `Removed “${assignLabel.name}” from ${res.updatedCount || selectedProductSlugs.length} product(s)`
+        res.message ||
+          (value
+            ? `Applied “${assignLabel.name}” to ${count} product(s)`
+            : `Removed “${assignLabel.name}” from ${count} product(s)`)
+      );
+      setProductResults((prev) =>
+        prev.map((p) => {
+          const slug = String(p.slug || "").trim();
+          if (!selectedProductSlugs.includes(slug)) return p;
+          const currentTags = Array.isArray(p.tags)
+            ? [...p.tags]
+            : Array.isArray(p.appliedTags)
+            ? [...p.appliedTags]
+            : [];
+          const updatedTags = value
+            ? [...new Set([...currentTags, assignLabel.slug])]
+            : currentTags.filter((t) => t !== assignLabel.slug);
+          return { ...p, tags: updatedTags, appliedTags: updatedTags };
+        })
       );
       setSelectedProductSlugs([]);
       await fetchLabels();
@@ -323,7 +422,7 @@ export default function ProductLabelsView() {
         <div>
           <h1 className="text-3xl font-serif text-slate-800 tracking-tight">Product Labels</h1>
           <p className="text-xs text-slate-500 mt-1.5 font-montreal">
-            Create storefront collections (Today’s Deal, On Sale, festival sales). Click URL and product assignment are admin-controlled.
+            Create Storefront Collections (Today’s Deal, On Sale, Festival Sales). Click URL and Product Assignment are Admin-Controlled.
           </p>
         </div>
         <div className="flex items-center gap-2.5 flex-wrap">
@@ -339,7 +438,14 @@ export default function ProductLabelsView() {
           <button
             type="button"
             onClick={openCreate}
-            className="flex items-center gap-1.5 px-4 py-2 rounded-xl bg-accent hover:bg-accent-hover text-white text-xs font-bold transition-all shadow-xs cursor-pointer"
+            disabled={!canWrite}
+            title={!canWrite ? "Writing restricted for Inventory Manager" : "Create new label"}
+            className={cn(
+              "flex items-center gap-1.5 px-4 py-2 rounded-xl text-white text-xs font-bold transition-all shadow-xs",
+              canWrite
+                ? "bg-accent hover:bg-accent-hover cursor-pointer"
+                : "bg-slate-300 opacity-60 cursor-not-allowed"
+            )}
           >
             <Plus className="w-4 h-4" />
             <span>Add Label</span>
@@ -347,12 +453,21 @@ export default function ProductLabelsView() {
         </div>
       </div>
 
+      {!canWrite && (
+        <div className="flex items-center gap-2.5 p-3.5 bg-amber-50 border border-amber-200/80 rounded-2xl text-amber-900 text-xs font-montreal">
+          <ShieldAlert className="w-4 h-4 text-amber-600 flex-shrink-0" />
+          <span>
+            You are logged in with role <strong className="capitalize font-heading">{adminUser?.role || "Inventory Manager"}</strong> (Read-only for marketing labels). Creating, editing, deleting, or updating product tags requires Administrator or Marketing privileges.
+          </span>
+        </div>
+      )}
+
       <div className="bg-white p-4 rounded-2xl border border-slate-200 shadow-xs">
         <div className="relative max-w-md">
           <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
           <input
             type="text"
-            placeholder="Search labels by name, slug, or URL..."
+            placeholder="Search Labels by Name, Slug, or URL..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-slate-200 text-xs font-montreal text-slate-800 placeholder:text-slate-400 focus:outline-none focus:border-accent bg-slate-50/50 focus:bg-white"
@@ -386,7 +501,17 @@ export default function ProductLabelsView() {
                   <td colSpan={6} className="py-12 text-center text-slate-400">
                     <Tag className="w-10 h-10 mx-auto text-slate-300 mb-2 stroke-[1.5]" />
                     <p className="text-sm font-heading font-bold text-slate-700">No labels found</p>
-                    <p className="text-xs text-slate-400 mt-0.5">Create a label to start grouping products.</p>
+                    <p className="text-xs text-slate-400 mt-0.5 mb-3">Create a label to start grouping products.</p>
+                    {canWrite && (
+                      <button
+                        type="button"
+                        onClick={openCreate}
+                        className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-accent hover:bg-accent-hover text-white text-xs font-bold transition-all shadow-xs cursor-pointer"
+                      >
+                        <Plus className="w-3.5 h-3.5" />
+                        <span>Add First Label</span>
+                      </button>
+                    )}
                   </td>
                 </tr>
               ) : (
@@ -444,6 +569,7 @@ export default function ProductLabelsView() {
                             setAssignLabel(label);
                             setSelectedProductSlugs([]);
                             setProductSearch("");
+                            setProductFilterTab("all");
                           }}
                           title="Assign products"
                           className="p-1.5 rounded-lg text-slate-400 hover:text-accent hover:bg-orange-50 transition-colors cursor-pointer"
@@ -452,25 +578,43 @@ export default function ProductLabelsView() {
                         </button>
                         <button
                           type="button"
+                          disabled={!canWrite}
                           onClick={() => handleToggleActive(label)}
-                          title={label.isActive ? "Deactivate" : "Activate"}
-                          className="p-1.5 rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition-colors cursor-pointer"
+                          title={!canWrite ? "Read-only" : label.isActive ? "Deactivate" : "Activate"}
+                          className={cn(
+                            "p-1.5 rounded-lg text-slate-400 transition-colors",
+                            canWrite
+                              ? "hover:text-slate-700 hover:bg-slate-100 cursor-pointer"
+                              : "opacity-40 cursor-not-allowed"
+                          )}
                         >
                           {label.isActive ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                         </button>
                         <button
                           type="button"
+                          disabled={!canWrite}
                           onClick={() => openEdit(label)}
-                          title="Edit label"
-                          className="p-1.5 rounded-lg text-slate-400 hover:text-accent hover:bg-orange-50 transition-colors cursor-pointer"
+                          title={!canWrite ? "Read-only" : "Edit label"}
+                          className={cn(
+                            "p-1.5 rounded-lg text-slate-400 transition-colors",
+                            canWrite
+                              ? "hover:text-accent hover:bg-orange-50 cursor-pointer"
+                              : "opacity-40 cursor-not-allowed"
+                          )}
                         >
                           <Edit2 className="w-4 h-4" />
                         </button>
                         <button
                           type="button"
+                          disabled={!canWrite}
                           onClick={() => setDeleteTarget(label)}
-                          title="Delete label"
-                          className="p-1.5 rounded-lg text-slate-400 hover:text-rose-600 hover:bg-rose-50 transition-colors cursor-pointer"
+                          title={!canWrite ? "Read-only" : "Delete label"}
+                          className={cn(
+                            "p-1.5 rounded-lg text-slate-400 transition-colors",
+                            canWrite
+                              ? "hover:text-rose-600 hover:bg-rose-50 cursor-pointer"
+                              : "opacity-40 cursor-not-allowed"
+                          )}
                         >
                           <Trash2 className="w-4 h-4" />
                         </button>
@@ -488,12 +632,14 @@ export default function ProductLabelsView() {
         <div className="bg-white rounded-2xl border border-slate-200 shadow-xs p-5 space-y-4">
           <div className="flex items-start justify-between gap-3">
             <div>
-              <h2 className="font-heading font-bold text-slate-900 text-sm">
-                Assign products to “{assignLabel.name}”
+              <h2 className="font-heading font-bold text-slate-900 text-sm flex items-center gap-2">
+                <span>Assign products to “{assignLabel.name}”</span>
+                <span className="text-[10px] px-2 py-0.5 rounded-full bg-slate-100 text-slate-600 font-mono">
+                  {assignLabel.slug}
+                </span>
               </h2>
               <p className="text-[11px] text-slate-500 mt-0.5 font-montreal">
-                Search, select products, then apply or remove this label. Slug:{" "}
-                <span className="font-mono">{assignLabel.slug}</span>
+                Select products below and apply or remove this label flag via <code>PUT /api/admin/products/updateFlags</code>.
               </p>
             </div>
             <button
@@ -508,29 +654,98 @@ export default function ProductLabelsView() {
             </button>
           </div>
 
-          <div className="relative">
-            <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
-            <input
-              type="text"
-              placeholder="Search products by name..."
-              value={productSearch}
-              onChange={(e) => setProductSearch(e.target.value)}
-              className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-slate-200 text-xs font-montreal text-slate-800 placeholder:text-slate-400 focus:outline-none focus:border-accent bg-slate-50/50 focus:bg-white"
-            />
+          <div className="flex flex-col sm:flex-row gap-2.5 items-stretch sm:items-center justify-between">
+            <div className="relative flex-1">
+              <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
+              <input
+                type="text"
+                placeholder="Search products by title..."
+                value={productSearch}
+                onChange={(e) => setProductSearch(e.target.value)}
+                className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-slate-200 text-xs font-montreal text-slate-800 placeholder:text-slate-400 focus:outline-none focus:border-accent bg-slate-50/50 focus:bg-white"
+              />
+            </div>
+
+            {/* Filter Tabs */}
+            <div className="flex items-center gap-1 p-1 bg-slate-100 rounded-xl text-[11px] font-heading font-bold text-slate-600">
+              <button
+                type="button"
+                onClick={() => setProductFilterTab("all")}
+                className={cn(
+                  "px-2.5 py-1.5 rounded-lg transition-all",
+                  productFilterTab === "all" ? "bg-white text-slate-900 shadow-2xs" : "hover:text-slate-900"
+                )}
+              >
+                All ({productResults.length})
+              </button>
+              <button
+                type="button"
+                onClick={() => setProductFilterTab("on_label")}
+                className={cn(
+                  "px-2.5 py-1.5 rounded-lg transition-all",
+                  productFilterTab === "on_label" ? "bg-white text-emerald-700 shadow-2xs" : "hover:text-slate-900"
+                )}
+              >
+                On label ({productResults.filter((p) => (p.tags || p.appliedTags || []).includes(assignLabel.slug)).length})
+              </button>
+              <button
+                type="button"
+                onClick={() => setProductFilterTab("not_on_label")}
+                className={cn(
+                  "px-2.5 py-1.5 rounded-lg transition-all",
+                  productFilterTab === "not_on_label" ? "bg-white text-slate-900 shadow-2xs" : "hover:text-slate-900"
+                )}
+              >
+                Not on label ({productResults.filter((p) => !(p.tags || p.appliedTags || []).includes(assignLabel.slug)).length})
+              </button>
+            </div>
+          </div>
+
+          <div className="flex items-center justify-between gap-2 text-[11px] font-montreal text-slate-500">
+            <span>
+              Showing <strong>{visibleAssignmentProducts.length}</strong> matching products
+            </span>
+            <div className="flex items-center gap-2">
+              <button
+                type="button"
+                onClick={selectAllVisible}
+                disabled={visibleAssignmentProducts.length === 0}
+                className="hover:text-accent font-bold cursor-pointer disabled:opacity-40"
+              >
+                Select all visible
+              </button>
+              <span>•</span>
+              <button
+                type="button"
+                onClick={deselectAllVisible}
+                disabled={selectedProductSlugs.length === 0}
+                className="hover:text-slate-800 font-bold cursor-pointer disabled:opacity-40"
+              >
+                Deselect visible
+              </button>
+            </div>
           </div>
 
           <div className="max-h-72 overflow-y-auto rounded-xl border border-slate-100 divide-y divide-slate-50">
             {isSearchingProducts ? (
               <div className="py-8 text-center text-slate-400">
                 <Loader2 className="w-5 h-5 mx-auto animate-spin text-accent" />
+                <p className="text-xs text-slate-500 mt-2">Searching products...</p>
               </div>
-            ) : productResults.length === 0 ? (
-              <p className="py-8 text-center text-xs text-slate-400">No products found</p>
+            ) : visibleAssignmentProducts.length === 0 ? (
+              <div className="py-8 text-center text-xs text-slate-400 space-y-1">
+                <p className="font-heading font-bold text-slate-600">No products found</p>
+                <p className="text-[11px]">Try adjusting your search query or filter tab.</p>
+              </div>
             ) : (
-              productResults.map((p) => {
+              visibleAssignmentProducts.map((p) => {
                 const slug = String(p.slug || "").trim();
                 const checked = selectedProductSlugs.includes(slug);
-                const tags = Array.isArray(p.tags) ? p.tags : [];
+                const tags = Array.isArray(p.tags)
+                  ? p.tags
+                  : Array.isArray(p.appliedTags)
+                  ? p.appliedTags
+                  : [];
                 const hasLabel = tags.includes(assignLabel.slug);
                 if (!slug) return null;
                 return (
@@ -558,7 +773,7 @@ export default function ProductLabelsView() {
                       <p className="text-[10px] font-mono text-slate-400 truncate">{slug}</p>
                     </div>
                     {hasLabel && (
-                      <span className="inline-flex items-center gap-1 text-[10px] font-bold text-emerald-700 bg-emerald-50 px-1.5 py-0.5 rounded">
+                      <span className="inline-flex items-center gap-1 text-[10px] font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200">
                         <CheckCircle2 className="w-3 h-3" />
                         On label
                       </span>
@@ -569,189 +784,200 @@ export default function ProductLabelsView() {
             )}
           </div>
 
-          <div className="flex flex-wrap items-center justify-between gap-2">
-            <span className="text-[11px] text-slate-500 font-montreal">
+          <div className="flex flex-wrap items-center justify-between gap-2 pt-1">
+            <span className="text-[11px] text-slate-600 font-heading font-bold">
               {selectedProductSlugs.length} product(s) selected
             </span>
             <div className="flex items-center gap-2">
               <button
                 type="button"
-                disabled={isAssigning || !selectedProductSlugs.length}
+                disabled={isAssigning || !selectedProductSlugs.length || !canWrite}
                 onClick={() => handleAssign(false)}
                 className="px-3.5 py-2 rounded-xl border border-slate-200 bg-white text-xs font-bold text-slate-700 hover:bg-slate-50 disabled:opacity-40 cursor-pointer"
               >
-                Remove label
+                {isAssigning ? "Updating..." : "Remove label"}
               </button>
               <button
                 type="button"
-                disabled={isAssigning || !selectedProductSlugs.length || !assignLabel.isActive}
+                disabled={isAssigning || !selectedProductSlugs.length || !assignLabel.isActive || !canWrite}
                 onClick={() => handleAssign(true)}
                 className="px-3.5 py-2 rounded-xl bg-accent hover:bg-accent-hover text-white text-xs font-bold disabled:opacity-40 cursor-pointer"
               >
-                {isAssigning ? "Saving..." : "Apply label"}
+                {isAssigning ? "Updating..." : "Apply label"}
               </button>
             </div>
           </div>
           {!assignLabel.isActive && (
-            <p className="text-[11px] text-amber-700 bg-amber-50 border border-amber-100 rounded-xl px-3 py-2">
-              This label is inactive. Activate it before applying to products. You can still remove it.
-            </p>
+            <div className="flex items-center gap-2 text-[11px] text-amber-800 bg-amber-50 border border-amber-200 rounded-xl px-3 py-2 font-montreal">
+              <AlertCircle className="w-3.5 h-3.5 text-amber-600 flex-shrink-0" />
+              <span>This label is currently inactive. Activate it before applying to new products. You can still remove existing assignments.</span>
+            </div>
           )}
         </div>
       )}
 
-      {isModalOpen && (
-        <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-xs flex items-center justify-center p-4">
-          <div className="bg-white w-full max-w-lg rounded-2xl border border-slate-200 shadow-2xl overflow-hidden max-h-[90vh] flex flex-col">
-            <div className="p-5 border-b border-slate-100 flex items-center justify-between bg-slate-50/50 flex-shrink-0">
-              <div>
-                <h3 className="font-heading font-bold text-slate-900 text-sm">
-                  {editingLabel ? "Edit Label" : "Add Label"}
-                </h3>
-                <span className="text-[11px] text-slate-400 font-mono">
-                  {editingLabel ? "PUT /admin/product-labels/:slug" : "POST /admin/product-labels"}
-                </span>
-              </div>
-              <button
-                type="button"
-                onClick={closeModal}
-                className="p-1.5 rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-100"
-              >
-                <X className="w-4 h-4" />
-              </button>
-            </div>
-
-            <form onSubmit={handleSave} className="p-5 space-y-4 text-xs font-montreal overflow-y-auto flex-1">
-              <div>
-                <label className="block font-heading font-bold text-slate-700 mb-1">Name *</label>
-                <input
-                  type="text"
-                  required
-                  maxLength={80}
-                  placeholder="e.g. Rakhi's Sale"
-                  value={form.name}
-                  onChange={(e) => setForm((prev) => ({ ...prev, name: e.target.value }))}
-                  className="w-full px-3 py-2 rounded-xl border border-slate-200 text-slate-800 focus:outline-none focus:border-accent"
-                />
-              </div>
-
-              <div>
-                <label className="block font-heading font-bold text-slate-700 mb-1">Slug</label>
-                <input
-                  type="text"
-                  maxLength={80}
-                  placeholder={previewSlug || "rakhis-sale"}
-                  value={slugTouched ? form.slug : previewSlug}
-                  onChange={(e) => {
-                    setSlugTouched(true);
-                    setForm((prev) => ({ ...prev, slug: e.target.value }));
-                  }}
-                  className="w-full px-3 py-2 rounded-xl border border-slate-200 text-slate-800 font-mono focus:outline-none focus:border-accent"
-                />
-                <p className="text-[10px] text-slate-400 mt-1">Lowercase letters, numbers, hyphens. Used in ?tags=</p>
-              </div>
-
-              <div>
-                <label className="block font-heading font-bold text-slate-700 mb-1">Click URL (page path)</label>
-                <input
-                  type="text"
-                  maxLength={200}
-                  placeholder={previewPath || "/TagProducts/rakhis-sale"}
-                  value={pathTouched ? form.pagePath : previewPath}
-                  onChange={(e) => {
-                    setPathTouched(true);
-                    setForm((prev) => ({ ...prev, pagePath: e.target.value }));
-                  }}
-                  className="w-full px-3 py-2 rounded-xl border border-slate-200 text-slate-800 font-mono focus:outline-none focus:border-accent"
-                />
-                <p className="text-[10px] text-slate-400 mt-1">
-                  Relative path only. Storefront opens this when the label is clicked.
-                </p>
-              </div>
-
-              <div>
-                <label className="block font-heading font-bold text-slate-700 mb-1">Description</label>
-                <textarea
-                  rows={2}
-                  maxLength={300}
-                  value={form.description}
-                  onChange={(e) => setForm((prev) => ({ ...prev, description: e.target.value }))}
-                  className="w-full px-3 py-2 rounded-xl border border-slate-200 text-slate-800 focus:outline-none focus:border-accent"
-                />
-              </div>
-
-              <div className="grid grid-cols-2 gap-3">
+      {isModalOpen &&
+        createPortal(
+          <div
+            onClick={(e) => {
+              if (e.target === e.currentTarget && !isSubmitting) {
+                closeModal();
+              }
+            }}
+            className="fixed inset-0 z-[99999] flex items-center justify-center p-4 sm:p-6 bg-black/60 backdrop-blur-md animate-modal-backdrop font-poppins"
+            style={{ backdropFilter: "blur(12px)", WebkitBackdropFilter: "blur(12px)" }}
+          >
+            <div className="bg-white w-full max-w-lg rounded-3xl border border-slate-200/90 shadow-2xl overflow-hidden max-h-[90vh] flex flex-col animate-modal-card">
+              <div className="p-5 border-b border-slate-100 flex items-center justify-between bg-slate-50/50 flex-shrink-0">
                 <div>
-                  <label className="block font-heading font-bold text-slate-700 mb-1">Sort order</label>
-                  <input
-                    type="number"
-                    value={form.sortOrder}
-                    onChange={(e) => setForm((prev) => ({ ...prev, sortOrder: Number(e.target.value) }))}
-                    className="w-full px-3 py-2 rounded-xl border border-slate-200 text-slate-800 focus:outline-none focus:border-accent"
-                  />
+                  <h3 className="font-heading font-bold text-slate-900 text-sm">
+                    {editingLabel ? "Edit Label" : "Add Label"}
+                  </h3>
+                  <span className="text-[11px] text-slate-400 font-mono">
+                    {editingLabel ? "PUT /admin/product-labels/:slug" : "POST /admin/product-labels"}
+                  </span>
                 </div>
-                <div className="space-y-2 pt-5">
-                  <label className="flex items-center gap-2 cursor-pointer">
-                    <input
-                      type="checkbox"
-                      checked={form.isActive}
-                      onChange={(e) => setForm((prev) => ({ ...prev, isActive: e.target.checked }))}
-                      className="rounded border-slate-300 text-accent focus:ring-accent"
-                    />
-                    <span className="font-heading font-bold text-slate-700">Active</span>
-                  </label>
-                  <label className="flex items-center gap-2 cursor-pointer">
-                    <input
-                      type="checkbox"
-                      checked={form.showInNav}
-                      onChange={(e) => setForm((prev) => ({ ...prev, showInNav: e.target.checked }))}
-                      className="rounded border-slate-300 text-accent focus:ring-accent"
-                    />
-                    <span className="font-heading font-bold text-slate-700">Show in nav</span>
-                  </label>
-                </div>
-              </div>
-
-              <div>
-                <label className="block font-heading font-bold text-slate-700 mb-2">
-                  <Globe className="w-3.5 h-3.5 inline mr-1" />
-                  Storefronts
-                </label>
-                <div className="flex gap-3">
-                  {["ecomm", "wholesale"].map((sf) => (
-                    <label key={sf} className="flex items-center gap-2 cursor-pointer">
-                      <input
-                        type="checkbox"
-                        checked={form.storefronts.includes(sf)}
-                        onChange={() => toggleStorefront(sf)}
-                        className="rounded border-slate-300 text-accent focus:ring-accent"
-                      />
-                      <span className="capitalize font-semibold text-slate-700">{sf}</span>
-                    </label>
-                  ))}
-                </div>
-              </div>
-
-              <div className="flex justify-end gap-2 pt-2">
                 <button
                   type="button"
                   onClick={closeModal}
-                  className="px-4 py-2 rounded-xl border border-slate-200 text-slate-700 font-bold hover:bg-slate-50 cursor-pointer"
+                  className="p-1.5 rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-100 cursor-pointer"
                 >
-                  Cancel
-                </button>
-                <button
-                  type="submit"
-                  disabled={isSubmitting}
-                  className="px-4 py-2 rounded-xl bg-accent hover:bg-accent-hover text-white font-bold disabled:opacity-50 cursor-pointer"
-                >
-                  {isSubmitting ? "Saving..." : editingLabel ? "Save changes" : "Create label"}
+                  <X className="w-4 h-4" />
                 </button>
               </div>
-            </form>
-          </div>
-        </div>
-      )}
+
+              <form onSubmit={handleSave} className="p-5 space-y-4 text-xs font-montreal overflow-y-auto flex-1">
+                <div>
+                  <label className="block font-heading font-bold text-slate-700 mb-1">Name *</label>
+                  <input
+                    type="text"
+                    required
+                    maxLength={80}
+                    placeholder="e.g. Rakhi's Sale"
+                    value={form.name}
+                    onChange={(e) => setForm((prev) => ({ ...prev, name: e.target.value }))}
+                    className="w-full px-3 py-2 rounded-xl border border-slate-200 text-slate-800 focus:outline-none focus:border-accent"
+                  />
+                </div>
+
+                <div>
+                  <label className="block font-heading font-bold text-slate-700 mb-1">Slug</label>
+                  <input
+                    type="text"
+                    maxLength={80}
+                    placeholder={previewSlug || "rakhis-sale"}
+                    value={slugTouched ? form.slug : previewSlug}
+                    onChange={(e) => {
+                      setSlugTouched(true);
+                      setForm((prev) => ({ ...prev, slug: e.target.value }));
+                    }}
+                    className="w-full px-3 py-2 rounded-xl border border-slate-200 text-slate-800 font-mono focus:outline-none focus:border-accent"
+                  />
+                  <p className="text-[10px] text-slate-400 mt-1">Lowercase letters, numbers, hyphens. Used in ?tags=</p>
+                </div>
+
+                <div>
+                  <label className="block font-heading font-bold text-slate-700 mb-1">Click URL (page path)</label>
+                  <input
+                    type="text"
+                    maxLength={200}
+                    placeholder={previewPath || "/TagProducts/rakhis-sale"}
+                    value={pathTouched ? form.pagePath : previewPath}
+                    onChange={(e) => {
+                      setPathTouched(true);
+                      setForm((prev) => ({ ...prev, pagePath: e.target.value }));
+                    }}
+                    className="w-full px-3 py-2 rounded-xl border border-slate-200 text-slate-800 font-mono focus:outline-none focus:border-accent"
+                  />
+                  <p className="text-[10px] text-slate-400 mt-1">
+                    Relative path only. Storefront opens this when the label is clicked.
+                  </p>
+                </div>
+
+                <div>
+                  <label className="block font-heading font-bold text-slate-700 mb-1">Description</label>
+                  <textarea
+                    rows={2}
+                    maxLength={300}
+                    value={form.description}
+                    onChange={(e) => setForm((prev) => ({ ...prev, description: e.target.value }))}
+                    className="w-full px-3 py-2 rounded-xl border border-slate-200 text-slate-800 focus:outline-none focus:border-accent"
+                  />
+                </div>
+
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <label className="block font-heading font-bold text-slate-700 mb-1">Sort order</label>
+                    <input
+                      type="number"
+                      value={form.sortOrder}
+                      onChange={(e) => setForm((prev) => ({ ...prev, sortOrder: Number(e.target.value) }))}
+                      className="w-full px-3 py-2 rounded-xl border border-slate-200 text-slate-800 focus:outline-none focus:border-accent"
+                    />
+                  </div>
+                  <div className="space-y-2 pt-5">
+                    <label className="flex items-center gap-2 cursor-pointer">
+                      <input
+                        type="checkbox"
+                        checked={form.isActive}
+                        onChange={(e) => setForm((prev) => ({ ...prev, isActive: e.target.checked }))}
+                        className="rounded border-slate-300 text-accent focus:ring-accent"
+                      />
+                      <span className="font-heading font-bold text-slate-700">Active</span>
+                    </label>
+                    <label className="flex items-center gap-2 cursor-pointer">
+                      <input
+                        type="checkbox"
+                        checked={form.showInNav}
+                        onChange={(e) => setForm((prev) => ({ ...prev, showInNav: e.target.checked }))}
+                        className="rounded border-slate-300 text-accent focus:ring-accent"
+                      />
+                      <span className="font-heading font-bold text-slate-700">Show in nav</span>
+                    </label>
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block font-heading font-bold text-slate-700 mb-2">
+                    <Globe className="w-3.5 h-3.5 inline mr-1" />
+                    Storefronts
+                  </label>
+                  <div className="flex gap-3">
+                    {["ecomm", "wholesale"].map((sf) => (
+                      <label key={sf} className="flex items-center gap-2 cursor-pointer">
+                        <input
+                          type="checkbox"
+                          checked={form.storefronts.includes(sf)}
+                          onChange={() => toggleStorefront(sf)}
+                          className="rounded border-slate-300 text-accent focus:ring-accent"
+                        />
+                        <span className="capitalize font-semibold text-slate-700">{sf}</span>
+                      </label>
+                    ))}
+                  </div>
+                </div>
+
+                <div className="flex justify-end gap-2 pt-2">
+                  <button
+                    type="button"
+                    onClick={closeModal}
+                    className="px-4 py-2 rounded-xl border border-slate-200 text-slate-700 font-bold hover:bg-slate-50 cursor-pointer"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="submit"
+                    disabled={isSubmitting}
+                    className="px-4 py-2 rounded-xl bg-accent hover:bg-accent-hover text-white font-bold disabled:opacity-50 cursor-pointer"
+                  >
+                    {isSubmitting ? "Saving..." : editingLabel ? "Save changes" : "Create label"}
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>,
+          document.body
+        )}
 
       <ConfirmDeleteDialog
         isOpen={Boolean(deleteTarget)}

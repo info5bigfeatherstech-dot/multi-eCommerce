@@ -123,7 +123,7 @@ export default function OrderReportsView() {
           <h1 className="text-2xl font-poppins font-black text-slate-900 mt-1">
             Orders Sales & Status Reports
           </h1>
-          <p className="text-xs text-slate-500 font-inter">
+          <p className="text-xs text-slate-500 font-inter capitalize">
             Comprehensive business intelligence, order fulfillment velocity & revenue metrics
           </p>
         </div>
@@ -163,7 +163,7 @@ export default function OrderReportsView() {
             </span>
           </div>
           <p className="text-2xl font-poppins font-black text-slate-900">{formatCurrency(totalGrossRevenue)}</p>
-          <div className="flex items-center gap-1 text-[11px] text-emerald-600 font-semibold">
+          <div className="flex items-center capitalize gap-1 text-[11px] text-emerald-600 font-semibold">
             <ArrowUpRight className="w-3.5 h-3.5" />
             <span>+18.4% from last period</span>
           </div>
@@ -177,7 +177,7 @@ export default function OrderReportsView() {
             </span>
           </div>
           <p className="text-2xl font-poppins font-black text-slate-900">{formatCurrency(avgOrderValue)}</p>
-          <p className="text-[11px] text-slate-400 font-inter">Wholesale bulk tier basket</p>
+          <p className="text-[11px] text-slate-400 font-inter capitalize">Wholesale bulk tier basket</p>
         </div>
 
         <div className="bg-white p-5 rounded-3xl border border-slate-200 shadow-xs space-y-2">
@@ -188,7 +188,7 @@ export default function OrderReportsView() {
             </span>
           </div>
           <p className="text-2xl font-poppins font-black text-slate-900">{totalUnitsShipped.toLocaleString()} Units</p>
-          <p className="text-[11px] text-slate-400 font-inter">Across all catalog SKUs</p>
+          <p className="text-[11px] text-slate-400 font-inter capitalize">Across all catalog SKUs</p>
         </div>
 
         <div className="bg-white p-5 rounded-3xl border border-slate-200 shadow-xs space-y-2">
@@ -201,7 +201,7 @@ export default function OrderReportsView() {
           <p className="text-2xl font-poppins font-black text-slate-900">
             {orders.length ? Math.round(((statusCounts.Delivered + statusCounts.Dispatched) / orders.length) * 100) : 0}%
           </p>
-          <p className="text-[11px] text-slate-400 font-inter">Fulfillment conversion rate</p>
+          <p className="text-[11px] text-slate-400 font-inter capitalize">Fulfillment conversion rate</p>
         </div>
       </div>
 
@@ -213,7 +213,7 @@ export default function OrderReportsView() {
           <div className="flex items-center justify-between border-b border-slate-100 pb-3">
             <div>
               <h3 className="font-poppins font-bold text-sm text-slate-900">Order Status Distribution</h3>
-              <p className="text-xs text-slate-400 font-inter">Active volume across all workflow stages</p>
+              <p className="text-xs text-slate-400 font-inter capitalize">Active volume across all workflow stages</p>
             </div>
             <BarChart3 className="w-4 h-4 text-slate-400" />
           </div>
@@ -250,7 +250,7 @@ export default function OrderReportsView() {
           <div className="flex items-center justify-between border-b border-slate-100 pb-3">
             <div>
               <h3 className="font-poppins font-bold text-sm text-slate-900">Payment Modes & Regional Sales</h3>
-              <p className="text-xs text-slate-400 font-inter">Prepaid vs COD ratio and top consuming states</p>
+              <p className="text-xs text-slate-400 font-inter capitalize">Prepaid vs COD ratio and top consuming states</p>
             </div>
             <PieChart className="w-4 h-4 text-slate-400" />
           </div>

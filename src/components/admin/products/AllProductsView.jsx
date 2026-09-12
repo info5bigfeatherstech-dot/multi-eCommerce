@@ -88,9 +88,13 @@ function normalizeProduct(p) {
   const lowStockThreshold =
     Number(p.lowStockThreshold || variant0?.inventory?.lowStockThreshold || 10);
 
-  const rawStatus = (p.status || "active").toLowerCase();
-  const isArchived = rawStatus === "archived" || p.isActive === false;
-  const status = isArchived ? "Archived" : rawStatus === "draft" ? "Draft" : "Active";
+  const rawStatus = String(p.status || "").toLowerCase();
+  const isArchived = Boolean(p.isArchived) || rawStatus === "archived";
+  const status = isArchived
+    ? "Archived"
+    : rawStatus === "draft" || p.isActive === false
+    ? "Draft"
+    : "Active";
 
   const imageUrl =
     (Array.isArray(p.images) && p.images[0]?.url) ||
@@ -145,6 +149,7 @@ export default function AllProductsView() {
   const [selectedCategory, setSelectedCategory] = useState("All");
   const [selectedStockStatus, setSelectedStockStatus] = useState("All"); // All, In Stock, Low Stock, Out of Stock
   const [selectedStatus, setSelectedStatus] = useState("All"); // All, Active, Draft
+  const [selectedTag, setSelectedTag] = useState("All"); // All or specific label slug
 
   // Pagination & API Data State
   const [currentPage, setCurrentPage] = useState(1);
@@ -177,7 +182,7 @@ export default function AllProductsView() {
 
   /**
    * Fetch Live Products from API
-   * Endpoint: GET /admin/products/all?page=1&limit=10&search=&status=&category=
+   * Endpoint: GET /admin/products/all?page=1&limit=10&search=&status=&category=&tags=
    */
   const fetchProductsList = useCallback(
     async (page, limit, showToast = false) => {
@@ -192,6 +197,9 @@ export default function AllProductsView() {
           status: selectedStatus === "All" ? "" : selectedStatus.toLowerCase(),
           category: selectedCategory === "All" ? "" : selectedCategory,
         };
+        if (selectedTag && selectedTag !== "All") {
+          params.tags = selectedTag;
+        }
 
         const res = await getAllProducts(params);
         const list = res.products || res.data || res.items || (Array.isArray(res) ? res : []);
@@ -237,7 +245,7 @@ export default function AllProductsView() {
         setIsLoading(false);
       }
     },
-    [searchQuery, selectedCategory, selectedStatus]
+    [searchQuery, selectedCategory, selectedStatus, selectedTag]
   );
 
   // Trigger fetch when search or filters change (reset to page 1)
@@ -247,7 +255,7 @@ export default function AllProductsView() {
       fetchProductsList(1, pageSize);
     }, searchQuery ? 300 : 0);
     return () => clearTimeout(timer);
-  }, [searchQuery, selectedCategory, selectedStatus, selectedStockStatus, pageSize]);
+  }, [searchQuery, selectedCategory, selectedStatus, selectedStockStatus, selectedTag, pageSize]);
 
   // Page navigation handlers (clean, immediate response without debounce lag)
   const handlePageChange = (newPage) => {
@@ -371,7 +379,7 @@ export default function AllProductsView() {
 
   // Active products to display in the table
   const displayedProducts = useMemo(() => {
-    if (apiProducts && apiProducts.length > 0) {
+    if (apiProducts !== null) {
       // Further filter stock status client-side if API doesn't filter stock levels
       if (selectedStockStatus !== "All") {
         return apiProducts.filter((p) => {
@@ -643,7 +651,7 @@ export default function AllProductsView() {
             </div>
           </div>
           <p className="text-2xl font-heading font-black text-slate-900">{totalCount}</p>
-          <span className="text-[10px] text-slate-400 font-montreal">Master active items</span>
+          <span className="text-[10px] text-slate-400 font-montreal capitalize">Master active items</span>
         </div>
 
         <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-xs space-y-1">
@@ -658,7 +666,7 @@ export default function AllProductsView() {
           <p className="text-2xl font-heading font-black text-emerald-600">
             ₹{totalStockValue.toLocaleString("en-IN")}
           </p>
-          <span className="text-[10px] text-slate-400 font-montreal">
+          <span className="text-[10px] text-slate-400 font-montreal capitalize">
             {totalStockUnits} total units in warehouse
           </span>
         </div>
@@ -673,7 +681,7 @@ export default function AllProductsView() {
             </div>
           </div>
           <p className="text-2xl font-heading font-black text-amber-600">{lowStockCount}</p>
-          <span className="text-[10px] text-amber-600 font-medium font-montreal">
+          <span className="text-[10px] text-amber-600 font-medium font-montreal capitalize">
             Re-order threshold breached
           </span>
         </div>
@@ -688,7 +696,7 @@ export default function AllProductsView() {
             </div>
           </div>
           <p className="text-2xl font-heading font-black text-rose-600">{outOfStockCount}</p>
-          <span className="text-[10px] text-rose-600 font-medium font-montreal">
+          <span className="text-[10px] text-rose-600 font-medium font-montreal capitalize">
             Requires urgent replenishment
           </span>
         </div>
@@ -776,16 +784,37 @@ export default function AllProductsView() {
             </Select>
           </div>
 
+          {/* Label / Marketing Tag Filter */}
+          <div className="w-44">
+            <select
+              value={selectedTag}
+              onChange={(e) => {
+                setSelectedTag(e.target.value);
+                setCurrentPage(1);
+              }}
+              className="w-full h-10 px-3 rounded-xl border border-slate-200 bg-white text-xs font-heading font-bold text-slate-700 focus:outline-none focus:border-accent cursor-pointer"
+            >
+              <option value="All">All Tags / Labels</option>
+              {availableLabels.map((lbl) => (
+                <option key={lbl.slug} value={lbl.slug}>
+                  {lbl.name}
+                </option>
+              ))}
+            </select>
+          </div>
+
           {(searchQuery ||
             selectedCategory !== "All" ||
             selectedStockStatus !== "All" ||
-            selectedStatus !== "All") && (
+            selectedStatus !== "All" ||
+            selectedTag !== "All") && (
             <button
               onClick={() => {
                 setSearchQuery("");
                 setSelectedCategory("All");
                 setSelectedStockStatus("All");
                 setSelectedStatus("All");
+                setSelectedTag("All");
                 setCurrentPage(1);
               }}
               className="px-3 py-2.5 rounded-xl text-xs font-heading font-bold text-slate-500 hover:bg-slate-100 transition-colors cursor-pointer"
@@ -798,22 +827,22 @@ export default function AllProductsView() {
         {/* Live API Feed Status Pill */}
         <div className="pt-2 border-t border-slate-100 flex items-center justify-between flex-wrap gap-2 text-[11px] font-montreal">
           <div className="flex items-center gap-2">
-            <span className="flex h-2 w-2 relative">
+            {/* <span className="flex h-2 w-2 relative">
               <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
               <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
-            </span>
-            <span className="font-heading font-bold text-slate-700">
+            </span> */}
+            {/* <span className="font-heading font-bold text-slate-700">
               {apiProducts !== null ? "Live Database API" : "Connecting..."}
-            </span>
+            </span> */}
             <span className="text-slate-400">•</span>
             <span className="text-slate-500">
               {totalCount} Total Products ({totalPagesCount} {totalPagesCount === 1 ? "Page" : "Pages"})
             </span>
           </div>
 
-          <div className="flex items-center gap-2 text-slate-400 font-mono text-[10px]">
+          {/* <div className="flex items-center gap-2 text-slate-400 font-mono text-[10px]">
             <span>GET /api/products/all?page={currentPage}&limit={pageSize}</span>
-          </div>
+          </div> */}
         </div>
       </div>
 
@@ -940,13 +969,20 @@ export default function AllProductsView() {
                             </span>
                             {Array.isArray(p.tags) && p.tags.length > 0 && (
                               <div className="flex flex-wrap gap-1 mt-1">
-                                {p.tags.slice(0, 3).map((tag) => (
-                                  <span
+                                {p.tags.map((tag) => (
+                                  <button
                                     key={tag}
-                                    className="px-1.5 py-0.5 rounded bg-orange-50 text-accent text-[9px] font-bold"
+                                    type="button"
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      setSelectedTag(tag);
+                                      setCurrentPage(1);
+                                    }}
+                                    title={`Filter by tag "${tag}"`}
+                                    className="px-1.5 py-0.5 rounded bg-orange-50 hover:bg-orange-100 text-accent text-[9px] font-bold transition-colors cursor-pointer border border-orange-100"
                                   >
                                     {tag}
-                                  </span>
+                                  </button>
                                 ))}
                               </div>
                             )}

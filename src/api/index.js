@@ -55,7 +55,7 @@ export {
   exportProductsCSV,
 } from "./adminProducts.js";
 
-// Product marketing labels
+// Product marketing labels (Admin & Storefront)
 export * as adminProductLabels from "./adminProductLabels.js";
 export {
   getAdminProductLabels,
@@ -65,6 +65,14 @@ export {
   deleteAdminProductLabel,
   assignProductsToLabel,
 } from "./adminProductLabels.js";
+
+export * as storefrontLabels from "./storefrontLabels.js";
+export {
+  getStorefrontLabels,
+  getStorefrontLabelBySlug,
+  getStorefrontProductsByTag,
+  normalizeStorefrontProduct,
+} from "./storefrontLabels.js";
 
 // Enterprise Order Management System (OMS) & Fulfillment API
 export * as adminOrders from "./adminOrders.js";

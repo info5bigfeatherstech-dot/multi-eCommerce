@@ -101,8 +101,8 @@ export default function DeliveryVerificationView() {
           <h1 className="text-2xl font-poppins font-black text-slate-900 mt-1">
             Order & Customer Verification Before Dispatch
           </h1>
-          <p className="text-xs text-slate-500 font-inter">
-            Prevent RTO fraud, verify wholesale buyer credentials, and approve orders before handover to logistics
+          <p className="text-xs text-slate-500 font-inter capitalize">
+            Prevent RTO Fraud, Verify Wholesale Buyer credentials, and approve orders before handover to logistics
           </p>
         </div>
       </div>
@@ -121,7 +121,7 @@ export default function DeliveryVerificationView() {
           <div>
             <span className="text-xs font-poppins font-bold text-amber-700 block">Pending Verification</span>
             <span className="text-2xl font-poppins font-black text-slate-900 block mt-1">{pendingCount}</span>
-            <span className="text-[11px] text-slate-400 font-inter">Action required immediately</span>
+            <span className="text-[11px] text-slate-400 font-inter capitalize">Action required immediately</span>
           </div>
           <div className="w-10 h-10 rounded-xl bg-amber-100 text-amber-600 flex items-center justify-center">
             <Clock className="w-5 h-5" />
@@ -140,7 +140,7 @@ export default function DeliveryVerificationView() {
           <div>
             <span className="text-xs font-poppins font-bold text-emerald-700 block">Verified & Approved</span>
             <span className="text-2xl font-poppins font-black text-slate-900 block mt-1">{verifiedCount}</span>
-            <span className="text-[11px] text-slate-400 font-inter">Safe to dispatch</span>
+            <span className="text-[11px] text-slate-400 font-inter capitalize">Safe to dispatch</span>
           </div>
           <div className="w-10 h-10 rounded-xl bg-emerald-100 text-emerald-600 flex items-center justify-center">
             <ShieldCheck className="w-5 h-5" />
@@ -159,7 +159,7 @@ export default function DeliveryVerificationView() {
           <div>
             <span className="text-xs font-poppins font-bold text-rose-700 block">Flagged / Held Orders</span>
             <span className="text-2xl font-poppins font-black text-slate-900 block mt-1">{flaggedCount}</span>
-            <span className="text-[11px] text-slate-400 font-inter">Suspicious or invalid data</span>
+            <span className="text-[11px] text-slate-400 font-inter capitalize">Suspicious or invalid data</span>
           </div>
           <div className="w-10 h-10 rounded-xl bg-rose-100 text-rose-600 flex items-center justify-center">
             <AlertTriangle className="w-5 h-5" />

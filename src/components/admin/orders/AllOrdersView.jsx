@@ -404,19 +404,19 @@ export default function AllOrdersView() {
       {/* ── Top Header ── */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-white p-6 rounded-3xl border border-slate-200 shadow-xs">
         <div>
-          <div className="flex items-center gap-2">
+          {/* <div className="flex items-center gap-2">
             <span className="px-2.5 py-0.5 rounded-full bg-orange-100 text-accent text-[10px] font-heading font-black uppercase tracking-wider">
               All Orders Hub
             </span>
             <span className="text-xs text-slate-400 font-montreal">
               Carrier Dispatch & Order Management
             </span>
-          </div>
+          </div> */}
           <h1 className="text-2xl font-heading font-black text-slate-900 tracking-tight mt-1">
             Order Management
           </h1>
           <p className="text-xs text-slate-500 font-montreal mt-0.5">
-            Central order ledger. Click <strong>"Manage / Ship"</strong> on any order to manage its address, items, carrier fulfillment, and live tracking.
+            Central Order Ledger. Click <strong>"Manage / Ship"</strong> on any Order to Manage its Address, Items, Carrier Fulfillment, and Live Tracking.
           </p>
         </div>
 
@@ -450,7 +450,7 @@ export default function AllOrdersView() {
             Total Orders
           </p>
           <p className="text-2xl font-heading font-black text-slate-900">{totalOrdersCount}</p>
-          <p className="text-[11px] text-slate-500">Across all fulfillment stages</p>
+          <p className="text-[11px] text-slate-500">Across all Fulfillment Stages</p>
         </div>
 
         <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-xs space-y-1">
@@ -460,7 +460,7 @@ export default function AllOrdersView() {
           <p className="text-2xl font-heading font-black text-emerald-600">
             {formatCurrency(totalRevenue)}
           </p>
-          <p className="text-[11px] text-emerald-600/80 font-montreal">Excluding cancelled orders</p>
+          <p className="text-[11px] text-emerald-600/80 font-montreal">Excluding Cancelled Orders</p>
         </div>
 
         <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-xs space-y-1">
@@ -468,7 +468,7 @@ export default function AllOrdersView() {
             Pending Orders
           </p>
           <p className="text-2xl font-heading font-black text-amber-600">{pendingCount}</p>
-          <p className="text-[11px] text-amber-600/80 font-montreal">Awaiting approval & packing</p>
+          <p className="text-[11px] text-amber-600/80 font-montreal">Awaiting Approval & Packing</p>
         </div>
 
         <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-xs space-y-1">
@@ -476,7 +476,7 @@ export default function AllOrdersView() {
             Completed Orders
           </p>
           <p className="text-2xl font-heading font-black text-blue-600">{completedCount}</p>
-          <p className="text-[11px] text-blue-600/80 font-montreal">Delivered to customer</p>
+          <p className="text-[11px] text-blue-600/80 font-montreal">Delivered to Customer</p>
         </div>
       </div>
 

@@ -75,7 +75,10 @@ export async function createAdminProductLabel(payload) {
   try {
     const response = await apiClient.post("/admin/product-labels", payload);
     const data = unwrap(response);
-    return normalizeLabel(data.label || data);
+    return {
+      label: normalizeLabel(data.label || data),
+      message: data.message || "Label created successfully",
+    };
   } catch (error) {
     throw new Error(normalizeApiError(error));
   }
@@ -93,6 +96,7 @@ export async function updateAdminProductLabel(idOrSlug, payload) {
     return {
       label: normalizeLabel(data.label || data),
       slugMigrated: Boolean(data.slugMigrated),
+      message: data.message || "Label updated successfully",
     };
   } catch (error) {
     throw new Error(normalizeApiError(error));

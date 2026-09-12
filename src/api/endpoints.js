@@ -102,6 +102,18 @@ export const ENDPOINTS = {
     UPDATE: (idOrSlug) => `/admin/product-labels/${encodeURIComponent(idOrSlug)}`,
     DELETE: (idOrSlug) => `/admin/product-labels/${encodeURIComponent(idOrSlug)}`,
   },
+
+  // Public Storefront Product Labels & Products APIs
+  PRODUCT_LABELS: {
+    PUBLIC_LIST: "/product-labels",
+    PUBLIC_DETAIL: (slug) => `/product-labels/${encodeURIComponent(slug)}`,
+  },
+
+  STOREFRONT_PRODUCTS: {
+    ALL: "/products/all",
+    SEARCH: "/products/search",
+    BY_CATEGORY: (slug) => `/products/category/${encodeURIComponent(slug)}`,
+  },
 };
 
 export default ENDPOINTS;

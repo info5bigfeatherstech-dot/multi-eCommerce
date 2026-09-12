@@ -14,6 +14,7 @@ import CartPage from "./components/cart/CartPage";
 import ProductDetail from "./components/product/ProductDetail";
 import CheckoutPage from "./components/pages/CheckoutPage";
 import CategoryPage from "./components/pages/CategoryPage";
+import TagProductsPage from "./components/pages/TagProductsPage";
 import ProfilePage from "./components/pages/ProfilePage";
 import CartDrawer from "./components/cart/CartDrawer";
 import Footer from "./components/layout/Footer";
@@ -321,6 +322,12 @@ export default function App() {
           <Route path="/category/:slug" element={<CategoryPage />} />
           <Route path="/category/:slug/:subSlug" element={<CategoryPage />} />
           <Route path="/product/:slug" element={<ProductDetail />} />
+          {/* Storefront Marketing Label Collections */}
+          <Route path="/TagProducts/:slug" element={<TagProductsPage />} />
+          <Route path="/tag-products/:slug" element={<TagProductsPage />} />
+          <Route path="/tagproducts/:slug" element={<TagProductsPage />} />
+          <Route path="/today-arrival" element={<TagProductsPage defaultSlug="today-arrival" />} />
+          <Route path="/on-sale" element={<TagProductsPage defaultSlug="on-sale" />} />
           {/* Catch-all route returns to Home */}
           <Route path="*" element={<HomePage />} />
         </Routes>
